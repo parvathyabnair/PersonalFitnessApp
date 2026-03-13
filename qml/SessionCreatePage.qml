@@ -13,7 +13,7 @@ Page {
 
         StyleHints {
             foregroundColor: "white"
-            backgroundColor: "#f78787"
+            backgroundColor: '#240606'
         }
     }
 
