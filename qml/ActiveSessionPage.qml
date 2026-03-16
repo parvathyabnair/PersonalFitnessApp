@@ -3,7 +3,7 @@ import Lomiri.Components 1.3
 
 Page {
     header: PageHeader {
-        title: "Add Session"
+        title: "Active Session"
 
          StyleHints {
             foregroundColor: "white"

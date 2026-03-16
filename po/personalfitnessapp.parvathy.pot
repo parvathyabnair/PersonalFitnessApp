@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-13 10:21+0000\n"
+"POT-Creation-Date: 2026-03-16 09:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,90 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/HomePage.qml:13 personalfitnessapp.desktop.in.h:1
+#: ../qml/AddSessionPage.qml:24
+msgid "Add Session"
+msgstr ""
+
+#: ../qml/AddSessionPage.qml:40
+msgid "Add workout session here"
+msgstr ""
+
+#: ../qml/HomePage.qml:11 personalfitnessapp.desktop.in.h:1
 msgid "Fitness App"
 msgstr ""
 
-#: ../qml/HomePage.qml:27
-msgid "Dark Mode"
+#: ../qml/HomePage.qml:29
+msgid "Light Mode"
 msgstr ""
 
-#: ../qml/HomePage.qml:27
-msgid "Light Mode"
+#: ../qml/HomePage.qml:30
+msgid "Dark Mode"
 msgstr ""
 
 #: ../qml/HomePage.qml:53
 msgid "Active Session"
 msgstr ""
 
-#: ../qml/HomePage.qml:61
+#: ../qml/HomePage.qml:62
 msgid "Settings"
 msgstr ""
 
-#: ../qml/HomePage.qml:76
+#: ../qml/HomePage.qml:73
 msgid "Hello!"
+msgstr ""
+
+#: ../qml/HomePage.qml:119
+msgid "Swipe up to start session"
+msgstr ""
+
+#: ../qml/SessionCreatePage.qml:13
+msgid "Create New Session"
+msgstr ""
+
+#: ../qml/SessionCreatePage.qml:26 ../qml/SettingsPage.qml:26
+msgid "Save Session"
+msgstr ""
+
+#: ../qml/SessionCreatePage.qml:60
+msgid "Select Workout"
+msgstr ""
+
+#: ../qml/SessionCreatePage.qml:75
+msgid "No. of sets"
+msgstr ""
+
+#: ../qml/SessionCreatePage.qml:109 ../qml/SettingsPage.qml:98
+msgid "Select Date"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:35
+msgid "Edit Session"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:58
+msgid "Current Weight"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:68
+msgid "Kcal should burn"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:85
+msgid "No. of workout"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:117 ../qml/SettingsPage.qml:187
+msgid "Save"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:143
+msgid "OK"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:171
+msgid "Save the settings before starting new session"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:179
+msgid "Cancel"
 msgstr ""

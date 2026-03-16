@@ -1,6 +1,7 @@
 import QtQuick 2.7
 import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
+import Lomiri.Components.Pickers 1.3
 import QtQuick.Layouts 1.3
 
 Page {
@@ -9,12 +10,34 @@ Page {
     property string selectedDate: ""
 
     header: PageHeader {
-        title: "Create New Session"
+        title: i18n.tr("Create New Session")
 
         StyleHints {
             foregroundColor: "white"
-            backgroundColor: '#240606'
+            backgroundColor: '#f78787'
         }
+
+        trailingActionBar.numberOfSlots: 2
+            trailingActionBar.actions: [
+               
+              
+               Action {
+    iconName: "save"
+    text: i18n.tr("Save Session")
+
+    // onTriggered: {
+    //     pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
+    // }
+},
+
+            Action {
+    iconName: "edit"
+    text: "Edit Session"
+
+    // onTriggered: {
+    //     pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
+    // }
+} ]
     }
 
     Flickable {
@@ -31,10 +54,10 @@ Page {
                 right: parent.right
                 margins: units.gu(2)
             }
-
+  
             // Workout selection
             Label {
-                text: "Select Workout"
+                text: i18n.tr("Select Workout")
             }
 
             OptionSelector {
@@ -49,13 +72,15 @@ Page {
 
             // Number of sets
             Label {
-                text: "No. of sets"
+                text: i18n.tr("No. of sets")
             }
 
             OptionSelector {
                 id: setSelector
                 model: ["1","2","3","4","5"]
             }
+
+
 
             // Dynamic weight inputs
             Column {
@@ -81,35 +106,115 @@ Page {
 
             // Date selection
             Label {
-                text: "Date"
+                text: i18n.tr("Select Date")
             }
 
-            Button {
-                id: dateButton
-                text: selectedDate === "" ? "Select Date" : selectedDate
+         
 
-                onClicked: {
-                    PopupUtils.open(DateDialog)
-                }
-            }
+          Button {
+    id: dateButton
+    text: selectedDate === "" ? "Select Date" : selectedDate
+
+    onClicked: {
+        PopupUtils.open(datePickerPopover, dateButton)
+    }
+}
+
+
+
 
             // Start session button
+          Button {
+    text: "Start Session"
+    anchors.horizontalCenter: parent.horizontalCenter
+
+    onClicked: {
+        PopupUtils.open(saveDialog)
+    }
+}
+            // Date Picker Dialog
+  
+        }
+
+Component {
+    id: datePickerPopover
+
+    Popover {
+        id: pop
+
+        Column {
+            width: units.gu(30)
+            spacing: units.gu(2)
+
+            DatePicker {
+                id: picker
+            }
+
             Button {
-                text: "Start Session"
+                text: "OK"
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 onClicked: {
-
-                    console.log("Workout:",
-                        workoutSelector.model[workoutSelector.selectedIndex])
-
-                    console.log("Sets:",
-                        setSelector.model[setSelector.selectedIndex])
-
-                    console.log("Date:", selectedDate)
+                    selectedDate = picker.date.toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
+                    PopupUtils.close(pop)
                 }
             }
         }
+    }
+}
+
+Component {
+    id: saveDialog
+
+    Dialog {
+        id: dialog
+        title: "Save Session"
+
+        Column {
+            spacing: units.gu(2)
+
+            Label {
+                text: "Save the session before starting"
+                wrapMode: Text.WordWrap
+            }
+
+            Row {
+                spacing: units.gu(2)
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Button {
+                    text: "Cancel"
+
+                    onClicked: {
+                        PopupUtils.close(dialog)
+                    }
+                }
+
+                Button {
+                    text: "Save & Start"
+
+                    onClicked: {
+
+                        var workoutName =
+                            workoutSelector.model[workoutSelector.selectedIndex]
+
+                        var sets =
+                            setSelector.model[setSelector.selectedIndex]
+
+                        console.log("Workout:", workoutName)
+                        console.log("Sets:", sets)
+                        console.log("Date:", selectedDate)
+
+                        PopupUtils.close(dialog)
+
+                        pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+                    }
+                }
+            }
+        }
+    }
+}
+
     }
 
    

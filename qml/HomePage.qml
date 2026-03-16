@@ -1,81 +1,123 @@
 import QtQuick 2.7
 import Lomiri.Components 1.3
-//import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 
+Page {
+    anchors.fill: parent
 
- Page {
-        anchors.fill: parent
-visible: !showSplash
-        header: PageHeader {
-            id: header
-            title: i18n.tr('Fitness App')
+    header: PageHeader {
+        id: header
+        title: i18n.tr("Fitness App")
 
-         StyleHints {
+        StyleHints {
             foregroundColor: "white"
-             backgroundColor: '#f78787'
+            backgroundColor: "#f78787"
             dividerColor: LomiriColors.slate
         }
-            
-        
 
         trailingActionBar.numberOfSlots: 2
-            trailingActionBar.actions: [
-                Action {
-                iconName: theme.name === "Ubuntu.Components.Themes.SuruDark" ? "weather-clear-night-symbolic" : "weather-clear-symbolic"
-                text: theme.name === "Ubuntu.Components.Themes.SuruDark" ? i18n.tr("Light Mode") : i18n.tr("Dark Mode")
-                onTriggered: {
-                    var newTheme = theme.name === "Ubuntu.Components.Themes.SuruDark" ? "Ubuntu.Components.Themes.Ambiance" : "Ubuntu.Components.Themes.SuruDark";
-                    Theme.name = newTheme;
 
-                
+        trailingActionBar.actions: [
+
+            Action {
+                iconName: theme.name === "Ubuntu.Components.Themes.SuruDark" ?
+                          "weather-clear-night-symbolic" :
+                          "weather-clear-symbolic"
+
+                text: theme.name === "Ubuntu.Components.Themes.SuruDark" ?
+                      i18n.tr("Light Mode") :
+                      i18n.tr("Dark Mode")
+
+                onTriggered: {
+                    var newTheme =
+                        theme.name === "Ubuntu.Components.Themes.SuruDark" ?
+                        "Ubuntu.Components.Themes.Ambiance" :
+                        "Ubuntu.Components.Themes.SuruDark"
+
+                    Theme.name = newTheme
                 }
             },
-              
-               Action {
-    iconName: "add"
-    text: "Add Session"
 
-    onTriggered: {
-        pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
-    }
-},
-//            Action {
-//     iconName: "notification"
-//     text: "Notification"
+            Action {
+                iconName: "add"
+                text: "Add Session"
 
-   
-// },
-
-                 Action {
-                    iconName: "info"
-                    text: i18n.tr("Active Session")
-                    onTriggered: {
-        pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
-    }
-                },
-
-                 Action {
-                    iconName: "settings"
-                    text: i18n.tr("Settings")
-                    onTriggered: {
-        pageStack.push(Qt.resolvedUrl("SettingsPage.qml"))
-    }
+                onTriggered: {
+                    pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
                 }
-            ]
+            },
+
+            Action {
+                iconName: "info"
+                text: i18n.tr("Active Session")
+
+                onTriggered: {
+                    pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+                }
+            },
+
+            Action {
+                iconName: "settings"
+                text: i18n.tr("Settings")
+
+                onTriggered: {
+                    pageStack.push(Qt.resolvedUrl("SettingsPage.qml"))
+                }
+            }
+        ]
+    }
+
+    Label {
+        anchors.centerIn: parent
+        text: i18n.tr("Hello!")
+    }
+
+    /* Swipe Gesture */
+
+    MultiPointTouchArea {
+        anchors.fill: parent
+
+        property real startY
+
+        onPressed: {
+            startY = touchPoints[0].y
         }
 
-        Label {
-            anchors {
-                top: header.bottom
-                left: parent.left
-                right: parent.right
-                bottom: parent.bottom
-            }
-            text: i18n.tr('Hello!')
+        onReleased: {
 
-            verticalAlignment: Label.AlignVCenter
-            horizontalAlignment: Label.AlignHCenter
+            var endY = touchPoints[0].y
+
+            if (startY - endY > 120) {
+
+                console.log("Swipe Up Detected")
+
+                pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+            }
         }
     }
+
+    /* Swipe Up Hint */
+
+    Column {
+    width: parent.width
+    anchors.bottom: parent.bottom
+    anchors.bottomMargin: units.gu(3)
+
+    spacing: units.gu(1)
+
+    //horizontalAlignment: Text.AlignHCenter
+
+    Icon {
+        name: "go-up"
+        width: units.gu(3)
+        height: units.gu(3)
+        anchors.horizontalCenter: parent.horizontalCenter
+    }
+
+    Label {
+        text: i18n.tr("Swipe up to start session")
+        anchors.horizontalCenter: parent.horizontalCenter
+    }
+}
+}
