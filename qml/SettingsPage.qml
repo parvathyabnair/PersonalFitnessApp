@@ -102,7 +102,7 @@ Page {
 
           Button {
     id: dateButton
-    text: selectedDate === "" ? "Select Date" : selectedDate
+    text: selectedDate === "" ? "Date" : selectedDate
 
     onClicked: {
         PopupUtils.open(datePickerPopover, dateButton)

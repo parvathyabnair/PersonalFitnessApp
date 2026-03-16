@@ -5,11 +5,13 @@ import QtQml.Models 2.3
 //import QtQuick.Controls 2.2
 import QtGraphicalEffects 1.0
 //mport "components"
+import "database.js" as DB
 
 Page {
     header: PageHeader {
-        title: "Add Session"
+        title: i18n.tr("Session Overview")
         trailingActionBar.numberOfSlots: 1
+        
 
          StyleHints {
             foregroundColor: "white"
@@ -21,23 +23,77 @@ Page {
               
                Action {
     iconName: "add"
-    text: i18n.tr("Add Session")
+    text: i18n.tr(" Session Overview")
 
     onTriggered: {
         pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
     }
 }]
     }
+    Flickable {
+        anchors.fill: parent
+        anchors.topMargin: header.height + units.gu(2)
+    ListModel {
+        id: sessionModel
+    }
+
+Component.onCompleted: {
+
+    var sessions = DB.getSessions()
+
+    for(var i=0; i<sessions.length; i++) {
+
+        sessionModel.append({
+            workout: sessions[i].workout,
+            sets: sessions[i].sets,
+            weight: sessions[i].weight,
+            date: sessions[i].date
+        })
+    }
+}
+
+
+ListView {
+    anchors.fill: parent
+    model: sessionModel
+
+    delegate: ListItem {
+
+    width: parent.width
+    height: units.gu(7)
+
+    Row {
+        anchors.fill: parent
+        anchors.margins: units.gu(2)
+
+        Column {
+            width: parent.width - units.gu(12)
+
+            Label { text: workout
+             font.bold: true }
+            Label { text: "Sets: " + sets }
+        }
+
+        Label {
+            text: date
+            anchors.verticalCenter: parent.verticalCenter
+            color: LomiriColors.slate
+             font.bold: true
+        }
+    }
+}
+}
 
 
  
 
-Column {
-        anchors.centerIn: parent
-        spacing: units.gu(2)
+// Column {
+//         anchors.centerIn: parent
+//         spacing: units.gu(2)
 
-        Label {
-            text: i18n.tr("Add workout session here")
-        }
-    }
-}
+//         Label {
+//             text: i18n.tr("Add workout session here")
+//         }
+//     }
+
+}}

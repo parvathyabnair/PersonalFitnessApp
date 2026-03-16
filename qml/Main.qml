@@ -19,6 +19,8 @@ import Lomiri.Components 1.3
 //import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
+import "database.js" as DB
+
 
 MainView {
     id: root
@@ -29,6 +31,10 @@ MainView {
     width: units.gu(45)
     height: units.gu(75)
     property bool showSplash: true
+    
+    Component.onCompleted: {
+    DB.createTable()
+}
 
     PageStack {
         id: pageStack

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 09:43+0000\n"
+"POT-Creation-Date: 2026-03-16 12:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/AddSessionPage.qml:24
-msgid "Add Session"
+#: ../qml/AddSessionPage.qml:12
+msgid "Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:40
-msgid "Add workout session here"
+#: ../qml/AddSessionPage.qml:26
+msgid " Session Overview"
 msgstr ""
 
 #: ../qml/HomePage.qml:11 personalfitnessapp.desktop.in.h:1
@@ -53,23 +53,23 @@ msgstr ""
 msgid "Swipe up to start session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:13
+#: ../qml/SessionCreatePage.qml:14
 msgid "Create New Session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:26 ../qml/SettingsPage.qml:26
+#: ../qml/SessionCreatePage.qml:27 ../qml/SettingsPage.qml:26
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:60
+#: ../qml/SessionCreatePage.qml:61
 msgid "Select Workout"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:75
+#: ../qml/SessionCreatePage.qml:76
 msgid "No. of sets"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:109 ../qml/SettingsPage.qml:98
+#: ../qml/SessionCreatePage.qml:110 ../qml/SettingsPage.qml:98
 msgid "Select Date"
 msgstr ""
 

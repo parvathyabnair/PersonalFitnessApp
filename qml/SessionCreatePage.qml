@@ -3,6 +3,7 @@ import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import Lomiri.Components.Pickers 1.3
 import QtQuick.Layouts 1.3
+import "database.js" as DB
 
 Page {
     id: createSessionPage
@@ -113,7 +114,7 @@ Page {
 
           Button {
     id: dateButton
-    text: selectedDate === "" ? "Select Date" : selectedDate
+    text: selectedDate === "" ? "Date" : selectedDate
 
     onClicked: {
         PopupUtils.open(datePickerPopover, dateButton)
@@ -193,22 +194,39 @@ Component {
                 Button {
                     text: "Save & Start"
 
-                    onClicked: {
 
-                        var workoutName =
-                            workoutSelector.model[workoutSelector.selectedIndex]
+       onClicked: {
 
-                        var sets =
-                            setSelector.model[setSelector.selectedIndex]
+    var workout = workoutSelector.model[workoutSelector.selectedIndex]
+    var sets = setSelector.model[setSelector.selectedIndex]
+    var weight = "multiple"
+    var date = selectedDate
 
-                        console.log("Workout:", workoutName)
-                        console.log("Sets:", sets)
-                        console.log("Date:", selectedDate)
+    console.log("Saving date:", date)
 
-                        PopupUtils.close(dialog)
+    DB.insertSession(workout, sets, weight, date)
 
-                        pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
-                    }
+    PopupUtils.close(dialog)
+
+    pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+}
+
+                    // onClicked: {
+
+                    //     var workoutName =
+                    //         workoutSelector.model[workoutSelector.selectedIndex]
+
+                    //     var sets =
+                    //         setSelector.model[setSelector.selectedIndex]
+
+                    //     console.log("Workout:", workoutName)
+                    //     console.log("Sets:", sets)
+                    //     console.log("Date:", selectedDate)
+
+                    //     PopupUtils.close(dialog)
+
+                    //     pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+                    // }
                 }
             }
         }
