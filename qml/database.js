@@ -45,6 +45,7 @@ function insertSession(workout, sets, weight, date) {
 }
 
 
+
 function getSessions() {
 
     var db = getDatabase();
@@ -63,4 +64,19 @@ function getSessions() {
     });
 
     return results;
+}
+
+
+function deleteSession(id) {
+
+    var db = getDatabase();
+
+    db.transaction(function(tx) {
+
+        tx.executeSql(
+            "DELETE FROM sessions WHERE id= ?",
+            [id]
+        );
+
+    });
 }

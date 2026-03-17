@@ -32,9 +32,11 @@ MainView {
     height: units.gu(75)
     property bool showSplash: true
     
+    
     Component.onCompleted: {
     DB.createTable()
 }
+
 
     PageStack {
         id: pageStack

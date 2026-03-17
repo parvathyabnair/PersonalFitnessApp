@@ -35,6 +35,8 @@ Page {
         anchors.topMargin: header.height + units.gu(2)
     ListModel {
         id: sessionModel
+        
+       
     }
 
 Component.onCompleted: {
@@ -43,12 +45,13 @@ Component.onCompleted: {
 
     for(var i=0; i<sessions.length; i++) {
 
-        sessionModel.append({
-            workout: sessions[i].workout,
-            sets: sessions[i].sets,
-            weight: sessions[i].weight,
-            date: sessions[i].date
-        })
+    sessionModel.append({
+    id: sessions[i].id,
+    workout: sessions[i].workout,
+    sets: sessions[i].sets,
+    weight: sessions[i].weight,
+    date: sessions[i].date
+})
     }
 }
 
@@ -57,21 +60,57 @@ ListView {
     anchors.fill: parent
     model: sessionModel
 
+
+
+            function refresh() {
+                var tmp = model;
+                model = null;
+                model = tmp;
+            }
+
     delegate: ListItem {
 
     width: parent.width
     height: units.gu(7)
+      leadingActions: ListItemActions {
+                    actions: [
+                        Action {
+                            iconName: "delete"
+                            onTriggered: {
+                                DB.deleteSession(model.id)
+                                console.log("deleted the item from the list")}
+                            
+                        }
+                        
+                    ]
+                    
+                }
 
-    Row {
+                trailingActions: ListItemActions {
+                    actions: [
+                        Action {
+                            iconName: "edit"
+                            onTriggered: PopupUtils.open(aboutDialog)
+                        }
+                    ]
+                }
+
+    
+
+Row {
         anchors.fill: parent
         anchors.margins: units.gu(2)
-
-        Column {
+        
+Column {
             width: parent.width - units.gu(12)
 
-            Label { text: workout
-             font.bold: true }
-            Label { text: "Sets: " + sets }
+            Label { 
+                text: workout
+             font.bold: true 
+             }
+            Label { 
+                text: "Sets: " + sets
+                 }
         }
 
         Label {
@@ -84,16 +123,5 @@ ListView {
 }
 }
 
-
- 
-
-// Column {
-//         anchors.centerIn: parent
-//         spacing: units.gu(2)
-
-//         Label {
-//             text: i18n.tr("Add workout session here")
-//         }
-//     }
 
 }}

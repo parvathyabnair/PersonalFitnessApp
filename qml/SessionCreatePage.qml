@@ -156,7 +156,7 @@ Component {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 onClicked: {
-                    selectedDate = picker.date.toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
+                    selectedDate = picker.date.toLocaleDateString(Qt.locale(), "MM/ d/ yyyy")
                     PopupUtils.close(pop)
                 }
             }
