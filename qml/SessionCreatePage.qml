@@ -13,6 +13,7 @@ Page {
     id: createSessionPage
 
     property string selectedDate: ""
+    property var weightFields: []
 
     header: PageHeader {
         title: i18n.tr("Create New Session")
@@ -88,26 +89,30 @@ Page {
 
 
             // Dynamic weight inputs
-            Column {
-                width: parent.width
+         Column {
+    width: parent.width
 
-                Repeater {
-                    model: parseInt(setSelector.model[setSelector.selectedIndex])
+    Repeater {
+        model: parseInt(setSelector.model[setSelector.selectedIndex])
 
-                    Column {
-                        width: parent.width
-                        spacing: units.gu(1)
+        Column {
+            width: parent.width
+            spacing: units.gu(1)
 
-                        Label {
-                            text: "Set " + (index + 1) + " Weight (kg)"
-                        }
+            Label {
+                text: "Set " + (index + 1) + " Weight (kg)"
+            }
 
-                        TextField {
-                            placeholderText: "Enter weight"
-                        }
-                    }
+            TextField {
+                placeholderText: "Enter weight"
+
+                Component.onCompleted: {
+                    weightFields[index] = this
                 }
             }
+        }
+    }
+}
 
             // Date selection
             Label {
@@ -118,7 +123,8 @@ Page {
 
           Button {
     id: dateButton
-    text: selectedDate === "" ? "Date" : selectedDate
+    text: selectedDate === "" ? "Date" 
+      : new Date(selectedDate).toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
 
     onClicked: {
         PopupUtils.open(datePickerPopover, dateButton)
@@ -160,9 +166,9 @@ Component {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 onClicked: {
-                    selectedDate = picker.date.toLocaleDateString(Qt.locale(), "MM/ d/ yyyy")
-                    PopupUtils.close(pop)
-                }
+    selectedDate = picker.date.toISOString()  
+    PopupUtils.close(pop)
+}
             }
         }
     }
@@ -199,13 +205,23 @@ Component {
                     text: "Save & Start"
 
 
-       onClicked: {
+     onClicked: {
 
     var workout = workoutSelector.model[workoutSelector.selectedIndex]
     var sets = setSelector.model[setSelector.selectedIndex]
-    var weight = "multiple"
+
+    // 🔥 Collect all weights
+    var weightsArray = []
+
+    for (var i = 0; i < weightFields.length; i++) {
+        weightsArray.push(weightFields[i].text)
+    }
+
+    var weight = JSON.stringify(weightsArray)   // ✅ store as JSON
+
     var date = selectedDate
 
+    console.log("Saving weights:", weight)
     console.log("Saving date:", date)
 
     DB.insertSession(workout, sets, weight, date)

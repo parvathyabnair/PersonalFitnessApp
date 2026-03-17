@@ -42,6 +42,7 @@ Page {
 Component.onCompleted: {
 
     var sessions = DB.getSessions()
+  
 
     for(var i=0; i<sessions.length; i++) {
 
@@ -53,6 +54,7 @@ Component.onCompleted: {
     date: sessions[i].date
 })
     }
+      var weightsArray = JSON.parse(weight)
 }
 
 
@@ -61,17 +63,10 @@ ListView {
     model: sessionModel
 
 
-
-            function refresh() {
-                var tmp = model;
-                model = null;
-                model = tmp;
-            }
-
     delegate: ListItem {
 
     width: parent.width
-    height: units.gu(7)
+    height: units.gu(10)
       leadingActions: ListItemActions {
                     actions: [
                         Action {
@@ -106,21 +101,29 @@ Row {
         
 Column {
             width: parent.width - units.gu(12)
+            
 
             Label { 
-                text: workout
+                text: model.workout
              font.bold: true 
              }
             Label { 
-                text: "Sets: " + sets
+                text: "Sets: " + model.sets
                  }
+ Label {
+                text: {
+                    var weightsArray = JSON.parse(model.weight)
+                    return "Weights: " + weightsArray.join(", ")
+                }
+            }
         }
 
         Label {
-            text: date
+            text: new Date(model.date).toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
+
             anchors.verticalCenter: parent.verticalCenter
             color: LomiriColors.slate
-             font.bold: true
+            font.bold: true
         }
     }
 }
