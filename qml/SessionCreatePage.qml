@@ -5,7 +5,11 @@ import Lomiri.Components.Pickers 1.3
 import QtQuick.Layouts 1.3
 import "database.js" as DB
 
+
+
 Page {
+
+    
     id: createSessionPage
 
     property string selectedDate: ""

@@ -77,8 +77,9 @@ ListView {
                         Action {
                             iconName: "delete"
                             onTriggered: {
-                                DB.deleteSession(model.id)
-                                console.log("deleted the item from the list")}
+    DB.deleteSession(model.id)
+    sessionModel.remove(index)
+}
                             
                         }
                         
@@ -90,7 +91,9 @@ ListView {
                     actions: [
                         Action {
                             iconName: "edit"
-                            onTriggered: PopupUtils.open(aboutDialog)
+                            onTriggered: {
+        pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+    }
                         }
                     ]
                 }
