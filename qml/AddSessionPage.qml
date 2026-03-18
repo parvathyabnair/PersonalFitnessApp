@@ -26,7 +26,9 @@ Page {
     text: i18n.tr(" Session Overview")
 
     onTriggered: {
-        pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+        pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"))
+
+
     }
 }]
     }
