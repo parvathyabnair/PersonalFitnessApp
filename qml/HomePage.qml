@@ -5,7 +5,7 @@ import Qt.labs.settings 1.0
 
 Page {
     anchors.fill: parent
-
+property var pageLayout
     header: PageHeader {
         id: header
         title: i18n.tr("Fitness App")
@@ -44,7 +44,8 @@ Page {
                 text: "Add Session"
 
                 onTriggered: {
-                    pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml")
+)
                 }
             },
 
@@ -53,7 +54,7 @@ Page {
                 text: i18n.tr("Active Session")
 
                 onTriggered: {
-                    pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("ActiveSessionPage.qml"))
                 }
             },
 
@@ -62,7 +63,7 @@ Page {
                 text: i18n.tr("Settings")
 
                 onTriggered: {
-                    pageStack.push(Qt.resolvedUrl("SettingsPage.qml"))
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SettingsPage.qml"))
                 }
             }
         ]
@@ -92,7 +93,7 @@ Page {
 
                 console.log("Swipe Up Detected")
 
-                pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+                pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
             }
         }
     }

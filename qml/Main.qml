@@ -38,19 +38,14 @@ MainView {
 }
 
 
+    AdaptivePageLayout {
+    id: pageLayout
+    anchors.fill: parent
 
-
-    PageStack {
-        id: pageStack
-        anchors.fill: parent
-
-        Component.onCompleted: push(homePage)
+    primaryPage: HomePage {
+        pageLayout: pageLayout
     }
-
-    Component {
-        id: homePage
-        HomePage { }
-    }
+}
 
     SplashScreen {
         id: splashScreen

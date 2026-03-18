@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 05:20+0000\n"
+"POT-Creation-Date: 2026-03-18 06:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,19 +37,19 @@ msgstr ""
 msgid "Dark Mode"
 msgstr ""
 
-#: ../qml/HomePage.qml:53
+#: ../qml/HomePage.qml:54
 msgid "Active Session"
 msgstr ""
 
-#: ../qml/HomePage.qml:62
+#: ../qml/HomePage.qml:63
 msgid "Settings"
 msgstr ""
 
-#: ../qml/HomePage.qml:73
+#: ../qml/HomePage.qml:74
 msgid "Hello!"
 msgstr ""
 
-#: ../qml/HomePage.qml:119
+#: ../qml/HomePage.qml:120
 msgid "Swipe up to start session"
 msgstr ""
 
