@@ -12,36 +12,44 @@ function getDatabase() {
 
 
 function createTable() {
-
     var db = getDatabase();
 
     db.transaction(function(tx) {
 
+        // Create table if not exists
         tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS sessions \
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        workout TEXT, \
-        sets TEXT, \
-        weight TEXT, \
-        date DATE)"
-        );
+            "CREATE TABLE IF NOT EXISTS sessions (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "workout TEXT," +
+            "sets TEXT," +
+            "weight TEXT," +
+            "date TEXT" +
+            ")"
+        )
 
-    });
+        //  Add new column (if not exists)
+        try {
+            tx.executeSql("ALTER TABLE sessions ADD COLUMN duration INTEGER")
+        } catch(e) {
+            console.log("Column may already exist")
+        }
+    })
 }
 
 
 function insertSession(workout, sets, weight, date) {
-
-    var db = getDatabase();
+     var db = getDatabase();
+    var insertedId = -1
 
     db.transaction(function(tx) {
+        var rs = tx.executeSql(
+            "INSERT INTO sessions (workout, sets, weight, date) VALUES (?, ?, ?, ?)",
+            [workout, sets, weight, date]
+        )
+        insertedId = rs.insertId    
+    })
 
-        tx.executeSql(
-        "INSERT INTO sessions (workout, sets, weight, date) VALUES (?,?,?,?)",
-        [workout, sets, weight, date]);
-
-    });
-
+    return insertedId
 }
 
 
@@ -91,3 +99,17 @@ function updateSession(id, workout, sets, weight, date) {
         );
     });
 }
+
+function updateSessionTime(id, time) {
+    var db = getDatabase();
+
+    db.transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE sessions SET duration = ? WHERE id = ?",
+            [time, id]
+        )
+    })
+}
+
+
+

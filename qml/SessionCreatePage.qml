@@ -223,54 +223,32 @@ Page {
 
                         onClicked: {
 
-                            var workoutVal =
-                                workoutSelector.model[workoutSelector.selectedIndex]
+    var workoutVal = workoutSelector.model[workoutSelector.selectedIndex]
+    var setsVal = setSelector.model[setSelector.selectedIndex]
 
-                            var setsVal =
-                                setSelector.model[setSelector.selectedIndex]
-
-                            // Collect weights
-                            weightsArray = []
-
-                            for (var i = 0; i < weightFields.length; i++) {
-                                weightsArray.push(weightFields[i].text)
-                            }
-
-                            var weightString = JSON.stringify(weightsArray)
-                            var dateVal = selectedDate
-
-                            console.log("Saving weights:", weightString)
-                            console.log("Saving date:", dateVal)
-
-                            if (isEditMode) {
-
-                                DB.updateSession(
-                                    sessionId,
-                                    workoutVal,
-                                    setsVal,
-                                    weightString,
-                                    dateVal
-                                )
-
-                            } else {
-
-                                DB.insertSession(
-                                    workoutVal,
-                                    setsVal,
-                                    weightString,
-                                    dateVal
-                                )
-                            }
-
-                            PopupUtils.close(dialog)
-pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("ActiveSessionPage.qml"),
-    {
-        pageLayout: pageLayout,   
-        sets: setsVal,
-        weights: weightsArray
+    // Collect weights
+    var weightsArray = []
+    for (var i = 0; i < weightFields.length; i++) {
+        weightsArray.push(weightFields[i].text)
     }
-)                           
-                        }
+
+    var weightVal = JSON.stringify(weightsArray)
+    var dateVal = selectedDate
+
+    //  INSERT SESSION
+    var sessionId = DB.insertSession(workoutVal, setsVal, weightVal, dateVal)
+
+    PopupUtils.close(dialog)
+
+    // NAVIGATE TO ACTIVE SESSION PAGE (PUT HERE)
+    pageLayout.addPageToNextColumn(createSessionPage,  Qt.resolvedUrl("ActiveSessionPage.qml"),
+        {
+            pageLayout: pageLayout,
+            sessionId: sessionId,
+            workout: workoutVal
+        }
+    )
+}
                     }
                 }
             }

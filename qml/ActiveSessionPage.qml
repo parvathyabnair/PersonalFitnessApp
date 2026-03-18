@@ -1,117 +1,175 @@
 import QtQuick 2.7
 import Lomiri.Components 1.3
+import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
+import "database.js" as DB
 
 Page {
     id: activePage
 
-    // 🔥 Data from previous page
-    property string workout: ""
-    property string sets: ""
-    property var weights: []
+    // REQUIRED PROPERTIES
+    property var pageLayout
+    property int sessionId: -1
+    property string workout: "Workout"
 
-    // 🔥 Timer
+    // TIMER PROPERTIES
     property int secondsElapsed: 0
     property bool isRunning: true
 
+    // NEXT EXERCISE CONFIRM FLAG
+    property bool confirmNext: false
+
+    // FORMAT TIME
+    property string timeString: {
+        var mins = Math.floor(secondsElapsed / 60)
+        var secs = secondsElapsed % 60
+        return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+    }
+
     header: PageHeader {
-        title: "Active Session"
+        title: i18n.tr("Active Session")
 
         StyleHints {
             foregroundColor: "white"
             backgroundColor: "#f78787"
         }
+
+           trailingActionBar.numberOfSlots: 2
+            trailingActionBar.actions: [
+               
+              
+               Action {
+    iconName: "save"
+    text: i18n.tr("Save Session")
+
+            onTriggered: {
+                var timeTaken = secondsElapsed
+
+                console.log("Saving time:", timeTaken)
+
+                DB.updateSessionTime(sessionId, timeTaken)
+
+                PopupUtils.open(savedDialog)
+            }
+
+    
+}]
     }
 
-    // ⏱ Timer logic
+    // TIMER
     Timer {
-        id: sessionTimer
-        interval: 1000   // 1 second
+        interval: 1000
         running: isRunning
         repeat: true
-
-        onTriggered: {
-            secondsElapsed++
-        }
+        onTriggered: secondsElapsed++
     }
 
-    // 📱 UI
+    //  MAIN UI (CENTERED)
     Column {
         anchors.centerIn: parent
         spacing: units.gu(3)
 
-        // Workout name
+        //  WORKOUT NAME
         Label {
             text: workout
             font.bold: true
             font.pixelSize: units.gu(3)
-            horizontalAlignment: Text.AlignHCenter
+            anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        // Timer display
+        // TIMER DISPLAY
         Label {
-            text: formatTime(secondsElapsed)
-            font.pixelSize: units.gu(5)
+            text: timeString
+            font.pixelSize: units.gu(6)
             font.bold: true
-            horizontalAlignment: Text.AlignHCenter
+            anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        // Sets & Weights
-        Column {
-            spacing: units.gu(1)
-
-            Repeater {
-                model: weights.length
-
-                Label {
-                    text: "Set " + (index + 1) + ": " + weights[index] + " kg"
-                }
-            }
-        }
-
-        // Buttons
+        //  BUTTONS
         Row {
             spacing: units.gu(2)
             anchors.horizontalCenter: parent.horizontalCenter
 
-            // ⏸ Pause / Resume
             Button {
-                text: isRunning ? "Pause" : "Resume"
-
-                onClicked: {
-                    isRunning = !isRunning
-                }
+                text: isRunning ? "Stop" : "Resume"
+                onClicked: isRunning = !isRunning
             }
 
-            // ⏭ Next Exercise
             Button {
                 text: "Next Exercise"
+                onClicked: handleNextExercise()
+            }
+        }
 
-                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"))
-                     console.log("Next exercise clicked")
 
-                    // You can later navigate or reset timer
-                    secondsElapsed = 0
+    }
+
+    //  NEXT EXERCISE FUNCTION
+    function handleNextExercise() {
+
+        if (!confirmNext) {
+            PopupUtils.open(confirmDialog)
+            confirmNext = true
+        } else {
+            pageLayout.addPageToNextColumn(
+                activePage,
+                Qt.resolvedUrl("SessionCreatePage.qml"),
+                {
+                    pageLayout: pageLayout
                 }
-            
+            )
+        }
+    }
 
-                // onClicked: {
-                //     console.log("Next exercise clicked")
+    //  CONFIRM DIALOG
+    Component {
+        id: confirmDialog
 
-                //     // You can later navigate or reset timer
-                //     secondsElapsed = 0
-                // }
+        Dialog {
+            id: dialog
+            title: "Save Session"
+
+            Column {
+                spacing: units.gu(2)
+
+                Label {
+                    text: "Please save the session before starting a new one."
+                    wrapMode: Text.WordWrap
+                }
+
+                Button {
+                    text: "OK"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    onClicked: PopupUtils.close(dialog)
+                }
             }
         }
     }
 
-    // Helper function
-    function formatTime(sec) {
-        var mins = Math.floor(sec / 60)
-        var secs = sec % 60
+    //  SAVED SUCCESS DIALOG
+    Component {
+        id: savedDialog
 
-        return (mins < 10 ? "0" + mins : mins) + ":" +
-               (secs < 10 ? "0" + secs : secs)
+        Dialog {
+            id: dialogBox
+            title: "Success"
+
+            Column {
+                spacing: units.gu(2)
+
+                Label {
+                    text: "Session saved successfully!"
+                }
+
+                Button {
+                    text: "OK"
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    onClicked: {
+                        PopupUtils.close(dialogBox)
+                    }
+                }
+            }
+        }
     }
 }

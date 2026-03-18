@@ -41,7 +41,7 @@ Page {
        
     }
 
-Component.onCompleted: {
+ Component.onCompleted: {
 
     var sessions = DB.getSessions()
   
@@ -68,7 +68,7 @@ ListView {
     delegate: ListItem {
 
     width: parent.width
-    height: units.gu(8)
+    height: units.gu(10)
       leadingActions: ListItemActions {
                     actions: [
                         Action {
@@ -124,6 +124,10 @@ Column {
             Label { 
                 text: "Sets: " + model.sets
                  }
+
+                 Label {
+    text: "Time: " + formatTime(model.duration)
+}
  Label {
                 text: {
                     var weightsArray = JSON.parse(model.weight)
@@ -144,4 +148,13 @@ Column {
 }
 
 
-}}
+}
+function formatTime(sec) {
+    if (!sec) return "00:00"
+
+    var mins = Math.floor(sec / 60)
+    var secs = sec % 60
+    return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+}
+
+}
