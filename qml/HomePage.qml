@@ -92,7 +92,13 @@ property var pageLayout
 
                 console.log("Swipe Up Detected")
 
-                pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+                pageLayout.addPageToNextColumn(
+    pageLayout.primaryPage,
+    Qt.resolvedUrl("SessionCreatePage.qml"),
+    {
+        pageLayout: pageLayout    
+    }
+)
             }
         }
     }

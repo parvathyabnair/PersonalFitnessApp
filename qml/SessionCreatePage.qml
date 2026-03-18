@@ -263,11 +263,13 @@ Page {
                             }
 
                             PopupUtils.close(dialog)
-
-                            pageLayout.addPageToNextColumn(
-                                pageLayout.primaryPage,
-                                Qt.resolvedUrl("ActiveSessionPage.qml")
-                            )
+pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("ActiveSessionPage.qml"),
+    {
+        pageLayout: pageLayout,   
+        sets: setsVal,
+        weights: weightsArray
+    }
+)                           
                         }
                     }
                 }
