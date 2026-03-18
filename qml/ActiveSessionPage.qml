@@ -133,8 +133,11 @@ Page {
                 spacing: units.gu(2)
 
                 Label {
-                    text: "Please save the session before starting a new one."
-                    wrapMode: Text.WordWrap
+                 
+                    width: parent.width
+        wrapMode: Text.WordWrap
+        horizontalAlignment: Text.AlignJustify
+        text: i18n.tr("Save the session before starting")
                 }
 
                 Button {
@@ -158,7 +161,12 @@ Page {
                 spacing: units.gu(2)
 
                 Label {
-                    text: "Session saved successfully!"
+                   
+                       width: parent.width
+        wrapMode: Text.WordWrap
+        horizontalAlignment: Text.AlignJustify
+        text: i18n.tr("Session saved successfully!")
+                    
                 }
 
                 Button {

@@ -23,7 +23,8 @@ function createTable() {
             "workout TEXT," +
             "sets TEXT," +
             "weight TEXT," +
-            "date TEXT" +
+            "date TEXT," +
+            "duration INTEGER" +
             ")"
         )
 
@@ -99,6 +100,8 @@ function updateSession(id, workout, sets, weight, date) {
         );
     });
 }
+
+
 
 function updateSessionTime(id, time) {
     var db = getDatabase();

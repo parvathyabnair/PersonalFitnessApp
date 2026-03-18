@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 10:25+0000\n"
+"POT-Creation-Date: 2026-03-18 12:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,6 +23,14 @@ msgstr ""
 
 #: ../qml/ActiveSessionPage.qml:43 ../qml/SettingsPage.qml:26
 msgid "Save Session"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:140 ../qml/SessionCreatePage.qml:212
+msgid "Save the session before starting"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:168
+msgid "Session saved successfully!"
 msgstr ""
 
 #: ../qml/AddSessionPage.qml:12

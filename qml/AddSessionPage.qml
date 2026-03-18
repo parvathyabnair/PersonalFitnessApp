@@ -26,7 +26,12 @@ Page {
     text: i18n.tr(" Session Overview")
 
     onTriggered: {
-        pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"))
+        pageLayout.addPageToNextColumn(
+    pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
+    {
+        pageLayout: pageLayout   
+    }
+)
 
 
     }
@@ -53,7 +58,8 @@ Page {
     workout: sessions[i].workout,
     sets: sessions[i].sets,
     weight: sessions[i].weight,
-    date: sessions[i].date
+    date: sessions[i].date,
+    duration: sessions[i].duration 
 })
     }
       //var weightsArray = JSON.parse(weight)

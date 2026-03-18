@@ -205,8 +205,11 @@ Page {
                 spacing: units.gu(2)
 
                 Label {
-                    text: "Save the session before starting"
-                    wrapMode: Text.WordWrap
+
+                    width: parent.width
+        wrapMode: Text.WordWrap
+        horizontalAlignment: Text.AlignJustify
+        text: i18n.tr("Save the session before starting")
                 }
 
                 Row {
@@ -226,7 +229,6 @@ Page {
     var workoutVal = workoutSelector.model[workoutSelector.selectedIndex]
     var setsVal = setSelector.model[setSelector.selectedIndex]
 
-    // Collect weights
     var weightsArray = []
     for (var i = 0; i < weightFields.length; i++) {
         weightsArray.push(weightFields[i].text)
@@ -235,19 +237,31 @@ Page {
     var weightVal = JSON.stringify(weightsArray)
     var dateVal = selectedDate
 
-    //  INSERT SESSION
-    var sessionId = DB.insertSession(workoutVal, setsVal, weightVal, dateVal)
+    var currentSessionId
+
+    if (isEditMode) {
+        //  UPDATE EXISTING SESSION
+        DB.updateSession(sessionId, workoutVal, setsVal, weightVal, dateVal)
+        currentSessionId = sessionId
+    } else {
+        //  CREATE NEW SESSION
+        currentSessionId = DB.insertSession(workoutVal, setsVal, weightVal, dateVal)
+    }
 
     PopupUtils.close(dialog)
 
-    // NAVIGATE TO ACTIVE SESSION PAGE (PUT HERE)
-    pageLayout.addPageToNextColumn(createSessionPage,  Qt.resolvedUrl("ActiveSessionPage.qml"),
-        {
-            pageLayout: pageLayout,
-            sessionId: sessionId,
-            workout: workoutVal
-        }
-    )
+    // SAFE NAVIGATION
+    if (pageLayout) {
+        pageLayout.addPageToNextColumn(createSessionPage,Qt.resolvedUrl("ActiveSessionPage.qml"),
+            {
+                pageLayout: pageLayout,
+                sessionId: currentSessionId,
+                workout: workoutVal
+            }
+        )
+    } else {
+        console.log("ERROR: pageLayout is undefined")
+    }
 }
                     }
                 }
