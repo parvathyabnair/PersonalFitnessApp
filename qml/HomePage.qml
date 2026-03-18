@@ -44,7 +44,7 @@ property var pageLayout
                 text: "Add Session"
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml")
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("AddSessionPage.qml")
 )
                 }
             },

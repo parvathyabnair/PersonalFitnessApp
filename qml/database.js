@@ -80,3 +80,14 @@ function deleteSession(id) {
 
     });
 }
+function updateSession(id, workout, sets, weight, date) {
+
+    var db = getDatabase();
+
+    db.transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE sessions SET workout=?, sets=?, weight=?, date=? WHERE id=?",
+            [workout, sets, weight, date, id]
+        );
+    });
+}

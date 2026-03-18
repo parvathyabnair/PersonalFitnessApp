@@ -86,9 +86,18 @@ ListView {
                     actions: [
                         Action {
                             iconName: "edit"
-                            onTriggered: {
-        pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
-    }
+   onTriggered: {
+    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
+        {
+            isEditMode: true,
+            sessionId: model.id,
+            workout: model.workout,
+            sets: model.sets,
+            weight: model.weight,
+            date: model.date
+        }
+    )
+}
                         }
                     ]
                 }

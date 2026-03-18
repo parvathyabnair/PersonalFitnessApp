@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 06:04+0000\n"
+"POT-Creation-Date: 2026-03-18 06:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,24 +53,8 @@ msgstr ""
 msgid "Swipe up to start session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:19
-msgid "Create New Session"
-msgstr ""
-
-#: ../qml/SessionCreatePage.qml:32 ../qml/SettingsPage.qml:26
+#: ../qml/SettingsPage.qml:26
 msgid "Save Session"
-msgstr ""
-
-#: ../qml/SessionCreatePage.qml:66
-msgid "Select Workout"
-msgstr ""
-
-#: ../qml/SessionCreatePage.qml:81
-msgid "No. of sets"
-msgstr ""
-
-#: ../qml/SessionCreatePage.qml:119 ../qml/SettingsPage.qml:98
-msgid "Select Date"
 msgstr ""
 
 #: ../qml/SettingsPage.qml:35
@@ -87,6 +71,10 @@ msgstr ""
 
 #: ../qml/SettingsPage.qml:85
 msgid "No. of workout"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:98
+msgid "Select Date"
 msgstr ""
 
 #: ../qml/SettingsPage.qml:117 ../qml/SettingsPage.qml:187
