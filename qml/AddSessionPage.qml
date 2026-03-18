@@ -26,13 +26,13 @@ Page {
     text: i18n.tr(" Session Overview")
 
     onTriggered: {
-        pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+        pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
     }
 }]
     }
     Flickable {
         anchors.fill: parent
-        anchors.topMargin: header.height + units.gu(2)
+        anchors.topMargin: header.height + units.gu(0.5)
     ListModel {
         id: sessionModel
         
@@ -54,7 +54,7 @@ Component.onCompleted: {
     date: sessions[i].date
 })
     }
-      var weightsArray = JSON.parse(weight)
+      //var weightsArray = JSON.parse(weight)
 }
 
 
@@ -66,7 +66,7 @@ ListView {
     delegate: ListItem {
 
     width: parent.width
-    height: units.gu(10)
+    height: units.gu(8)
       leadingActions: ListItemActions {
                     actions: [
                         Action {
@@ -87,7 +87,7 @@ ListView {
                         Action {
                             iconName: "edit"
                             onTriggered: {
-        pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+        pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
     }
                         }
                     ]
@@ -97,7 +97,7 @@ ListView {
 
 Row {
         anchors.fill: parent
-        anchors.margins: units.gu(2)
+        anchors.margins: units.gu(1)
         
 Column {
             width: parent.width - units.gu(12)
