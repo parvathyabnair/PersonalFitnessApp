@@ -26,7 +26,7 @@ Page {
     text: i18n.tr(" Session Overview")
 
     onTriggered: {
-        pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+        pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
     }
 }]
     }
@@ -87,7 +87,7 @@ ListView {
                         Action {
                             iconName: "edit"
                             onTriggered: {
-        pageLayout.push(Qt.resolvedUrl("SessionCreatePage.qml"))
+        pageStack.push(Qt.resolvedUrl("SessionCreatePage.qml"))
     }
                         }
                     ]

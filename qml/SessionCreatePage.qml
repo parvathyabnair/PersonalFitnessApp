@@ -32,7 +32,7 @@ Page {
     text: i18n.tr("Save Session")
 
     // onTriggered: {
-    //     pageLayout.push(Qt.resolvedUrl("AddSessionPage.qml"))
+    //     pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
     // }
 },
 
@@ -41,7 +41,7 @@ Page {
     text: "Edit Session"
 
     // onTriggered: {
-    //     pageLayout.push(Qt.resolvedUrl("AddSessionPage.qml"))
+    //     pageStack.push(Qt.resolvedUrl("AddSessionPage.qml"))
     // }
 } ]
     }
@@ -228,7 +228,7 @@ Component {
 
     PopupUtils.close(dialog)
 
-    pageLayout.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+    pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
 }
 
                     // onClicked: {
@@ -245,7 +245,7 @@ Component {
 
                     //     PopupUtils.close(dialog)
 
-                    //     pageLayout.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
+                    //     pageStack.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
                     // }
                 }
             }

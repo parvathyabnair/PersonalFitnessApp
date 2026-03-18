@@ -60,7 +60,7 @@ Rectangle {
         repeat: false
     }
 
-    // Content wrapper (fade only this, not the root) - prevents glitches in pageLayout/Loader
+    // Content wrapper (fade only this, not the root) - prevents glitches in pageStack/Loader
     Item {
         id: contentWrapper
         anchors.fill: parent
