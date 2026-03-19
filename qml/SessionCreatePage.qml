@@ -22,6 +22,8 @@ Page {
     property var weightsArray: []
     property var weightFields: []
     property string selectedDate: ""
+    property var currentSessionId: -1
+property string currentWorkout: ""
 
     header: PageHeader {
         title: isEditMode ? "Edit Session" : "Create New Session"
@@ -30,6 +32,41 @@ Page {
             foregroundColor: "white"
             backgroundColor: "#f78787"
         }
+
+         trailingActionBar.numberOfSlots: 2
+            trailingActionBar.actions: [
+               Action {
+    iconName: "save"
+    text: "Save Session"
+
+    onTriggered: {
+
+        var workoutVal = workoutSelector.model[workoutSelector.selectedIndex]
+        var setsVal = setSelector.model[setSelector.selectedIndex]
+
+        var weightsArray = []
+        for (var i = 0; i < weightFields.length; i++) {
+            weightsArray.push(weightFields[i].text)
+        }
+
+        var weightVal = JSON.stringify(weightsArray)
+        var dateVal = selectedDate
+
+        if (isEditMode) {
+            DB.updateSession(sessionId, workoutVal, setsVal, weightVal, dateVal)
+            currentSessionId = sessionId
+        } else {
+            currentSessionId = DB.insertSession(workoutVal, setsVal, weightVal, dateVal)
+        }
+
+        currentWorkout = workoutVal   
+
+        console.log("Saved Session ID:", currentSessionId)
+    }
+}
+              
+               ]
+
     }
 
      
@@ -221,49 +258,36 @@ Page {
                         onClicked: PopupUtils.close(dialog)
                     }
 
-                    Button {
-                        text: "Save & Start"
+                  Button {
+    text: "Start Session"
 
-                        onClicked: {
+    onClicked: {
 
-    var workoutVal = workoutSelector.model[workoutSelector.selectedIndex]
-    var setsVal = setSelector.model[setSelector.selectedIndex]
+        //  IF NOT SAVED
+        if (currentSessionId === -1) {
+            console.log("Please save first!")
+            return
+        }
+        
 
-    var weightsArray = []
-    for (var i = 0; i < weightFields.length; i++) {
-        weightsArray.push(weightFields[i].text)
-    }
+        PopupUtils.close(dialog)
 
-    var weightVal = JSON.stringify(weightsArray)
-    var dateVal = selectedDate
-
-    var currentSessionId
-
-    if (isEditMode) {
-        //  UPDATE EXISTING SESSION
-        DB.updateSession(sessionId, workoutVal, setsVal, weightVal, dateVal)
-        currentSessionId = sessionId
-    } else {
-        //  CREATE NEW SESSION
-        currentSessionId = DB.insertSession(workoutVal, setsVal, weightVal, dateVal)
-    }
-
-    PopupUtils.close(dialog)
-
-    // SAFE NAVIGATION
-    if (pageLayout) {
-        pageLayout.addPageToNextColumn(createSessionPage,Qt.resolvedUrl("ActiveSessionPage.qml"),
-            {
-                pageLayout: pageLayout,
-                sessionId: currentSessionId,
-                workout: workoutVal
-            }
-        )
-    } else {
-        console.log("ERROR: pageLayout is undefined")
+        //  NAVIGATE
+        if (pageLayout) {
+            pageLayout.addPageToNextColumn(
+                createSessionPage,
+                Qt.resolvedUrl("ActiveSessionPage.qml"),
+                {
+                    pageLayout: pageLayout,
+                    sessionId: currentSessionId,
+                    workout: currentWorkout
+                }
+            )
+        } else {
+            console.log("ERROR: pageLayout undefined")
+        }
     }
 }
-                    }
                 }
             }
         }
