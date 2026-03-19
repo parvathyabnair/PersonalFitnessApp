@@ -13,6 +13,8 @@ Page {
  
     property bool isEditMode: false
     property int sessionId: -1
+    property bool isSaved: false
+    property bool formReady: false
 
     property string workout: ""
     property string sets: ""
@@ -24,6 +26,33 @@ Page {
     property string selectedDate: ""
     property var currentSessionId: -1
 property string currentWorkout: ""
+
+    function navigateToActiveSession() {
+        if (currentSessionId === -1) {
+            console.log("Please save first!")
+            return
+        }
+
+        if (pageLayout) {
+            // INITIALIZE GLOBAL SESSION STATE
+            root.activeSessionId = currentSessionId
+            root.activeSessionWorkout = currentWorkout
+            root.activeSessionSeconds = 0
+            root.activeSessionRunning = true
+
+            pageLayout.addPageToNextColumn(
+                createSessionPage,
+                Qt.resolvedUrl("ActiveSessionPage.qml"),
+                {
+                    pageLayout: pageLayout,
+                    sessionId: currentSessionId,
+                    workout: currentWorkout
+                }
+            )
+        } else {
+            console.log("ERROR: pageLayout undefined")
+        }
+    }
 
     header: PageHeader {
         title: isEditMode ? "Edit Session" : "Create New Session"
@@ -60,6 +89,12 @@ property string currentWorkout: ""
         }
 
         currentWorkout = workoutVal   
+        // MARK AS SAVED
+        isSaved = true
+
+        // SET ACTIVE SESSION
+        DB.ACTIVE_SESSION_ID = currentSessionId
+        DB.ACTIVE_WORKOUT = currentWorkout
 
         console.log("Saved Session ID:", currentSessionId)
     }
@@ -101,6 +136,8 @@ property string currentWorkout: ""
                 selectedDate = date
             }
         }
+
+        formReady = true
     }
 
     Flickable {
@@ -128,6 +165,10 @@ property string currentWorkout: ""
                     "Squats",
                     "Deadlift"
                 ]
+                onSelectedIndexChanged: {
+                    if (createSessionPage.formReady)
+                        createSessionPage.isSaved = false
+                }
             }
 
             // Sets
@@ -138,6 +179,8 @@ property string currentWorkout: ""
                 model: ["1","2","3","4","5"]
                 onSelectedIndexChanged: {
     weightFields = []
+    if (createSessionPage.formReady)
+        createSessionPage.isSaved = false
 }
             }
 
@@ -161,6 +204,10 @@ property string currentWorkout: ""
 
     
     text: (isEditMode && weightsArray.length > index) ? weightsArray[index] : ""
+    onTextChanged: {
+        if (activeFocus)
+            createSessionPage.isSaved = false
+    }
 
     Component.onCompleted: {
         weightFields[index] = this
@@ -181,9 +228,7 @@ property string currentWorkout: ""
                 id: dateButton
 
                 text: selectedDate === "" ?
-                      "Select Date" :
-                      new Date(selectedDate)
-                      .toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
+                      "Select Date" :new Date(selectedDate).toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
 
                 onClicked: {
                     PopupUtils.open(datePickerPopover, dateButton)
@@ -196,7 +241,12 @@ property string currentWorkout: ""
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 onClicked: {
-                    PopupUtils.open(saveDialog)
+                    if (!isSaved || currentSessionId === -1) {
+                        PopupUtils.open(saveDialog)
+                        return
+                    }
+
+                    navigateToActiveSession()
                 }
             }
         }
@@ -223,6 +273,8 @@ property string currentWorkout: ""
 
                     onClicked: {
                         selectedDate = picker.date.toISOString()
+                        if (createSessionPage.formReady)
+                            createSessionPage.isSaved = false
                         PopupUtils.close(pop)
                     }
                 }
@@ -236,7 +288,7 @@ property string currentWorkout: ""
 
         Dialog {
             id: dialog
-            title: "Save Session"
+            title: "Save Session First"
 
             Column {
                 spacing: units.gu(2)
@@ -246,7 +298,7 @@ property string currentWorkout: ""
                     width: parent.width
         wrapMode: Text.WordWrap
         horizontalAlignment: Text.AlignJustify
-        text: i18n.tr("Save the session before starting")
+        text: i18n.tr("Please save the session using the Save icon before starting.")
                 }
 
                 Row {
@@ -254,38 +306,9 @@ property string currentWorkout: ""
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     Button {
-                        text: "Cancel"
+                        text: "OK"
                         onClicked: PopupUtils.close(dialog)
                     }
-
-                  Button {
-    text: "Start Session"
-
-    onClicked: {
-
-        //  IF NOT SAVED
-        if (currentSessionId === -1) {
-            console.log("Please save first!")
-            return
-        }
-        
-
-        PopupUtils.close(dialog)
-
-        //  NAVIGATE
-        if (pageLayout) {
-            pageLayout.addPageToNextColumn(createSessionPage,Qt.resolvedUrl("ActiveSessionPage.qml"),
-                {
-                    pageLayout: pageLayout,
-                    sessionId: currentSessionId,
-                    workout: currentWorkout
-                }
-            )
-        } else {
-            console.log("ERROR: pageLayout undefined")
-        }
-    }
-}
                 }
             }
         }

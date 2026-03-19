@@ -8,6 +8,7 @@ import QtGraphicalEffects 1.0
 import "database.js" as DB
 
 Page {
+    property var pageLayout
     header: PageHeader {
         title: i18n.tr("Session Overview")
         trailingActionBar.numberOfSlots: 1

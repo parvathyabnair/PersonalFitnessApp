@@ -44,7 +44,7 @@ property var pageLayout
                 text: "Add Session"
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("AddSessionPage.qml"))
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("AddSessionPage.qml"),{pageLayout: pageLayout})
                 }
             },
 
@@ -53,7 +53,7 @@ property var pageLayout
                 text: i18n.tr("Active Session")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("ActiveSessionPage.qml"))
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("ActiveSessionPage.qml"),{pageLayout: pageLayout})
                 }
             },
 

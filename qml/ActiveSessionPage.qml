@@ -12,9 +12,9 @@ Page {
     property int sessionId: -1
     property string workout: "Workout"
 
-    // TIMER PROPERTIES
-    property int secondsElapsed: 0
-    property bool isRunning: true
+    // TIMER PROPERTIES (BIND TO GLOBAL)
+    property int secondsElapsed: root.activeSessionSeconds
+    property bool isRunning: root.activeSessionRunning
 
     // NEXT EXERCISE CONFIRM FLAG
     property bool confirmNext: false
@@ -42,15 +42,17 @@ Page {
                Action {
     iconName: "save"
     text: i18n.tr("Save Session")
+    enabled: root.activeSessionId !== -1
 
            onTriggered: {
-    var timeTaken = secondsElapsed
+    var timeTaken = root.activeSessionSeconds
 
     console.log("Saving time:", timeTaken)
 
-    DB.updateSessionTime(sessionId, timeTaken)
+    DB.updateSessionTime(root.activeSessionId, timeTaken)
 
     isSaved = true   
+    root.activeSessionRunning = false
 
     PopupUtils.open(savedDialog)
 }
@@ -59,22 +61,24 @@ Page {
 }]
     }
 
-    // TIMER
-    Timer {
-        interval: 1000
-        running: isRunning
-        repeat: true
-        onTriggered: secondsElapsed++
+    // NO ACTIVE SESSIONS VIEW
+    Label {
+        anchors.centerIn: parent
+        text: i18n.tr("No active sessions")
+        visible: root.activeSessionId === -1
+        font.pixelSize: units.gu(3)
+        color: LomiriColors.slate
     }
 
     //  MAIN UI (CENTERED)
     Column {
         anchors.centerIn: parent
         spacing: units.gu(3)
+        visible: root.activeSessionId !== -1
 
         //  WORKOUT NAME
         Label {
-            text: workout
+            text: root.activeSessionWorkout
             font.bold: true
             font.pixelSize: units.gu(3)
             anchors.horizontalCenter: parent.horizontalCenter
@@ -94,8 +98,8 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
 
             Button {
-                text: isRunning ? "Stop" : "Resume"
-                onClicked: isRunning = !isRunning
+                text: root.activeSessionRunning ? "Stop" : "Resume"
+                onClicked: root.activeSessionRunning = !root.activeSessionRunning
             }
 
             Button {
@@ -115,10 +119,13 @@ Page {
         return
     }
 
+    // CLEAR GLOBAL SESSION STATE AS WE ARE STARTING A NEW ONE
+    root.activeSessionId = -1
+    root.activeSessionRunning = false
+    root.activeSessionSeconds = 0
+
     // ALLOW NAVIGATION ONLY AFTER SAVE
-    pageLayout.addPageToNextColumn(
-        activePage,
-        Qt.resolvedUrl("SessionCreatePage.qml"),
+    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
         {
             pageLayout: pageLayout
         }
@@ -141,7 +148,7 @@ Page {
                     width: parent.width
         wrapMode: Text.WordWrap
         horizontalAlignment: Text.AlignJustify
-        text: i18n.tr("Save the session before starting")
+        text: i18n.tr("Stop and Save the session before starting")
                 }
 
                 Button {

@@ -32,7 +32,19 @@ MainView {
     height: units.gu(75)
     property bool showSplash: true
     
-    
+    // GLOBAL SESSION STATE
+    property int activeSessionId: -1
+    property string activeSessionWorkout: ""
+    property int activeSessionSeconds: 0
+    property bool activeSessionRunning: false
+
+    Timer {
+        id: globalSessionTimer
+        interval: 1000
+        running: activeSessionRunning
+        repeat: true
+        onTriggered: activeSessionSeconds++
+    }
     Component.onCompleted: {
     DB.createTable()
 }

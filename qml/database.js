@@ -1,5 +1,7 @@
 .pragma library
 .import QtQuick.LocalStorage 2.0 as LS
+var ACTIVE_SESSION_ID = -1
+var ACTIVE_WORKOUT = ""
 
 function getDatabase() {
 

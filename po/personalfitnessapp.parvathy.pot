@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-19 06:59+0000\n"
+"POT-Creation-Date: 2026-03-19 11:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,19 +25,23 @@ msgstr ""
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:144 ../qml/SessionCreatePage.qml:249
+#: ../qml/ActiveSessionPage.qml:67
+msgid "No active sessions"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:151
 msgid "Save the session before starting"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:172
+#: ../qml/ActiveSessionPage.qml:179
 msgid "Session saved successfully!"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:12
+#: ../qml/AddSessionPage.qml:13
 msgid "Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:26
+#: ../qml/AddSessionPage.qml:27
 msgid " Session Overview"
 msgstr ""
 
@@ -63,6 +67,10 @@ msgstr ""
 
 #: ../qml/HomePage.qml:125
 msgid "Swipe up to start session"
+msgstr ""
+
+#: ../qml/SessionCreatePage.qml:301
+msgid "Please save the session using the Save icon before starting."
 msgstr ""
 
 #: ../qml/SettingsPage.qml:35
