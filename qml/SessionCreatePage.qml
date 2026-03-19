@@ -274,9 +274,7 @@ property string currentWorkout: ""
 
         //  NAVIGATE
         if (pageLayout) {
-            pageLayout.addPageToNextColumn(
-                createSessionPage,
-                Qt.resolvedUrl("ActiveSessionPage.qml"),
+            pageLayout.addPageToNextColumn(createSessionPage,Qt.resolvedUrl("ActiveSessionPage.qml"),
                 {
                     pageLayout: pageLayout,
                     sessionId: currentSessionId,

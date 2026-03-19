@@ -18,6 +18,7 @@ Page {
 
     // NEXT EXERCISE CONFIRM FLAG
     property bool confirmNext: false
+    property bool isSaved: false
 
     // FORMAT TIME
     property string timeString: {
@@ -42,15 +43,17 @@ Page {
     iconName: "save"
     text: i18n.tr("Save Session")
 
-            onTriggered: {
-                var timeTaken = secondsElapsed
+           onTriggered: {
+    var timeTaken = secondsElapsed
 
-                console.log("Saving time:", timeTaken)
+    console.log("Saving time:", timeTaken)
 
-                DB.updateSessionTime(sessionId, timeTaken)
+    DB.updateSessionTime(sessionId, timeTaken)
 
-                PopupUtils.open(savedDialog)
-            }
+    isSaved = true   
+
+    PopupUtils.open(savedDialog)
+}
 
     
 }]
@@ -105,21 +108,22 @@ Page {
     }
 
     //  NEXT EXERCISE FUNCTION
-    function handleNextExercise() {
+   function handleNextExercise() {
 
-        if (!confirmNext) {
-            PopupUtils.open(confirmDialog)
-            confirmNext = true
-        } else {
-            pageLayout.addPageToNextColumn(
-                activePage,
-                Qt.resolvedUrl("SessionCreatePage.qml"),
-                {
-                    pageLayout: pageLayout
-                }
-            )
-        }
+    if (!isSaved) {
+        PopupUtils.open(confirmDialog)   
+        return
     }
+
+    // ALLOW NAVIGATION ONLY AFTER SAVE
+    pageLayout.addPageToNextColumn(
+        activePage,
+        Qt.resolvedUrl("SessionCreatePage.qml"),
+        {
+            pageLayout: pageLayout
+        }
+    )
+}
 
     //  CONFIRM DIALOG
     Component {
