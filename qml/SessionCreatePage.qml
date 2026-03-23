@@ -228,7 +228,7 @@ property string currentWorkout: ""
                 id: dateButton
 
                 text: selectedDate === "" ?
-                      "Select Date" :new Date(selectedDate).toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
+                      "Select Date" : Qt.formatDate(new Date(selectedDate), "MM/dd/yyyy")
 
                 onClicked: {
                     PopupUtils.open(datePickerPopover, dateButton)

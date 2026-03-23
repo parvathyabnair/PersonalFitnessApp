@@ -23,9 +23,10 @@ Page {
 
     // FORMAT TIME
     property string timeString: {
-        var mins = Math.floor(secondsElapsed / 60)
+        var hours = Math.floor(secondsElapsed / 3600)
+        var mins = Math.floor((secondsElapsed % 3600) / 60)
         var secs = secondsElapsed % 60
-        return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+        return ("0" + hours).slice(-2) + ":" + ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
     }
 
     header: PageHeader {

@@ -60,7 +60,8 @@ Page {
     sets: sessions[i].sets,
     weight: sessions[i].weight,
     date: sessions[i].date,
-    duration: sessions[i].duration 
+    duration: sessions[i].duration,
+    calories: sessions[i].calories
 })
     }
       //var weightsArray = JSON.parse(weight)
@@ -143,12 +144,22 @@ Column {
             }
         }
 
-        Label {
-            text: new Date(model.date).toLocaleDateString(Qt.locale(), "MMMM d, yyyy")
-
+        Column {
             anchors.verticalCenter: parent.verticalCenter
-            color: LomiriColors.slate
-            font.bold: true
+            
+            Label {
+                text: Qt.formatDate(new Date(model.date), "MM/dd/yyyy")
+                color: LomiriColors.slate
+                font.bold: true
+            }
+
+            Label {
+                text: model.calories ? model.calories.toFixed(2) + " kcal" : "0.00 kcal"
+                color: "#f78787" // Matching theme color
+                font.pixelSize: units.gu(1.5)
+                horizontalAlignment: Text.AlignRight
+                width: parent.width
+            }
         }
     }
 }
@@ -157,11 +168,12 @@ Column {
 
 }
 function formatTime(sec) {
-    if (!sec) return "00:00"
+    if (!sec) return "00:00:00"
 
-    var mins = Math.floor(sec / 60)
+    var hours = Math.floor(sec / 3600)
+    var mins = Math.floor((sec % 3600) / 60)
     var secs = sec % 60
-    return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+    return ("0" + hours).slice(-2) + ":" + ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
 }
 
 }
