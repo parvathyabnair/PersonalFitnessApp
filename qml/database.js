@@ -74,14 +74,22 @@ function insertSession(workout, sets, weight, date) {
 
 
 
-function getSessions() {
+function getSessions(searchQuery) {
 
     var db = getDatabase();
     var results = [];
 
     db.transaction(function(tx) {
+        var sql = "SELECT * FROM sessions";
+        var params = [];
+        if (searchQuery) {
+            sql += " WHERE workout LIKE ? OR date LIKE ?";
+            params.push("%" + searchQuery + "%");
+            params.push("%" + searchQuery + "%");
+        }
+        sql += " ORDER BY id DESC";
 
-        var rs = tx.executeSql("SELECT * FROM sessions ORDER BY id DESC");
+        var rs = tx.executeSql(sql, params);
 
         for (var i = 0; i < rs.rows.length; i++) {
 

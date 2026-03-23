@@ -9,9 +9,10 @@ import "database.js" as DB
 
 Page {
     property var pageLayout
+    property bool showSearch: false
     header: PageHeader {
         title: i18n.tr("Session Overview")
-        trailingActionBar.numberOfSlots: 1
+        trailingActionBar.numberOfSlots: 2
         
 
          StyleHints {
@@ -22,6 +23,16 @@ Page {
             trailingActionBar.actions: [
         
               
+               Action {
+    iconName: "find"
+    text: i18n.tr("Search")
+    onTriggered: {
+        showSearch = !showSearch
+        if (!showSearch) {
+            refreshModel("")
+        }
+    }
+},
                Action {
     iconName: "add"
     text: i18n.tr(" Session Overview")
@@ -38,39 +49,49 @@ Page {
     }
 }]
     }
-    Flickable {
-        anchors.fill: parent
-        anchors.topMargin: header.height + units.gu(0.5)
+    function refreshModel(query) {
+        sessionModel.clear()
+        var sessions = DB.getSessions(query)
+        for(var i=0; i<sessions.length; i++) {
+            sessionModel.append({
+                id: sessions[i].id,
+                workout: sessions[i].workout,
+                sets: sessions[i].sets,
+                weight: sessions[i].weight,
+                date: sessions[i].date,
+                duration: sessions[i].duration,
+                calories: sessions[i].calories
+            })
+        }
+    }
+
+    Component.onCompleted: {
+        refreshModel("")
+    }
+
     ListModel {
         id: sessionModel
-        
-       
     }
 
- Component.onCompleted: {
 
-    var sessions = DB.getSessions()
-  
+    Column {
+        anchors.fill: parent
+        anchors.topMargin: header.height + units.gu(0.5)
 
-    for(var i=0; i<sessions.length; i++) {
+        TextField {
+            id: searchField
+            visible: showSearch
+            placeholderText: i18n.tr("Search workouts...")
+            width: parent.width
+            anchors.margins: units.gu(1)
+            onTextChanged: refreshModel(text)
+        }
 
-    sessionModel.append({
-    id: sessions[i].id,
-    workout: sessions[i].workout,
-    sets: sessions[i].sets,
-    weight: sessions[i].weight,
-    date: sessions[i].date,
-    duration: sessions[i].duration,
-    calories: sessions[i].calories
-})
-    }
-      //var weightsArray = JSON.parse(weight)
-}
-
-
-ListView {
-    anchors.fill: parent
-    model: sessionModel
+        ListView {
+            width: parent.width
+            height: parent.height - (searchField.visible ? searchField.height : 0)
+            model: sessionModel
+            clip: true
 
 
     delegate: ListItem {
@@ -162,10 +183,8 @@ Column {
             }
         }
     }
-}
-}
-
-
+        }
+    }
 }
 function formatTime(sec) {
     if (!sec) return "00:00:00"

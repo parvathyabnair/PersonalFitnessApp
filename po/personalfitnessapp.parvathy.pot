@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-23 09:26+0000\n"
+"POT-Creation-Date: 2026-03-23 11:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,12 +38,20 @@ msgid ""
 "Session saved successfully! Your total calories burned for this session is "
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:13
+#: ../qml/AddSessionPage.qml:14
 msgid "Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:27
+#: ../qml/AddSessionPage.qml:28
+msgid "Search"
+msgstr ""
+
+#: ../qml/AddSessionPage.qml:38
 msgid " Session Overview"
+msgstr ""
+
+#: ../qml/AddSessionPage.qml:84
+msgid "Search workouts or dates..."
 msgstr ""
 
 #: ../qml/HomePage.qml:11 personalfitnessapp.desktop.in.h:1
