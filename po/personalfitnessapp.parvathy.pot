@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-23 07:16+0000\n"
+"POT-Creation-Date: 2026-03-23 08:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,25 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/ActiveSessionPage.qml:31 ../qml/HomePage.qml:53
+#: ../qml/ActiveSessionPage.qml:32 ../qml/HomePage.qml:53
 msgid "Active Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:44
+#: ../qml/ActiveSessionPage.qml:45
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:67
+#: ../qml/ActiveSessionPage.qml:79
 msgid "No active sessions"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:151
+#: ../qml/ActiveSessionPage.qml:163
 msgid "Stop and Save the session before starting"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:179
-msgid "Session saved successfully!"
+#: ../qml/ActiveSessionPage.qml:191
+msgid ""
+"Session saved successfully! Your total calories burned for this session is "
 msgstr ""
 
 #: ../qml/AddSessionPage.qml:13

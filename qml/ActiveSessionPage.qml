@@ -19,6 +19,7 @@ Page {
     // NEXT EXERCISE CONFIRM FLAG
     property bool confirmNext: false
     property bool isSaved: false
+    property real caloriesBurned: 0.0
 
     // FORMAT TIME
     property string timeString: {
@@ -46,10 +47,21 @@ Page {
 
            onTriggered: {
     var timeTaken = root.activeSessionSeconds
+    var weight = 70 // default
+    var settings = DB.getSettings()
+    if (settings && settings.weight) {
+        weight = parseFloat(settings.weight)
+    }
+
+    // Calories burned = MET (4) * weight (kg) * duration (hours)
+    var durationHours = timeTaken / 3600
+    caloriesBurned = 4 * weight * durationHours
 
     console.log("Saving time:", timeTaken)
+    console.log("Calculated calories:", caloriesBurned)
 
     DB.updateSessionTime(root.activeSessionId, timeTaken)
+    DB.updateSessionCalories(root.activeSessionId, caloriesBurned)
 
     isSaved = true   
     root.activeSessionRunning = false
@@ -176,7 +188,7 @@ Page {
                        width: parent.width
         wrapMode: Text.WordWrap
         horizontalAlignment: Text.AlignJustify
-        text: i18n.tr("Session saved successfully!")
+        text: i18n.tr("Session saved successfully! Your total calories burned for this session is " + caloriesBurned.toFixed(2) + " kcal.")
                     
                 }
 

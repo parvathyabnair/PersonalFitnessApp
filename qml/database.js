@@ -26,7 +26,8 @@ function createTable() {
             "sets TEXT," +
             "weight TEXT," +
             "date TEXT," +
-            "duration INTEGER" +
+            "duration INTEGER," +
+            "calories REAL" +
             ")"
         )
 
@@ -45,7 +46,12 @@ function createTable() {
         try {
             tx.executeSql("ALTER TABLE sessions ADD COLUMN duration INTEGER")
         } catch(e) {
-            console.log("Column may already exist")
+            console.log("Duration column may already exist")
+        }
+        try {
+            tx.executeSql("ALTER TABLE sessions ADD COLUMN calories REAL")
+        } catch(e) {
+            console.log("Calories column may already exist")
         }
     })
 }
@@ -123,6 +129,17 @@ function updateSessionTime(id, time) {
         tx.executeSql(
             "UPDATE sessions SET duration = ? WHERE id = ?",
             [time, id]
+        )
+    })
+}
+
+function updateSessionCalories(id, calories) {
+    var db = getDatabase();
+
+    db.transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE sessions SET calories = ? WHERE id = ?",
+            [calories, id]
         )
     })
 }
