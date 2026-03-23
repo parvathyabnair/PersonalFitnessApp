@@ -41,7 +41,7 @@ property var pageLayout
 
             Action {
                 iconName: "add"
-                text: "Add Session"
+                text: "Session Overview"
 
                 onTriggered: {
                     pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("AddSessionPage.qml"),{pageLayout: pageLayout})
@@ -126,4 +126,23 @@ property var pageLayout
         anchors.horizontalCenter: parent.horizontalCenter
     }
 }
+Button {
+            id: fab
+             iconName: "add"
+            color: "#f78787"
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: units.gu(2)
+            width: units.gu(5)
+            height: units.gu(5)
+            font.pixelSize: units.gu(4)
+            onTriggered: {
+                console.log("FAB Clicked - Create new item")
+                pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
+    {
+        pageLayout: pageLayout    
+    }
+)
+            }
+        }
 }

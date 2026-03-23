@@ -30,6 +30,17 @@ function createTable() {
             ")"
         )
 
+        // Create settings table if not exists
+        tx.executeSql(
+            "CREATE TABLE IF NOT EXISTS settings (" +
+            "id INTEGER PRIMARY KEY," +
+            "weight TEXT," +
+            "kcal_target TEXT," +
+            "num_workouts TEXT," +
+            "date TEXT" +
+            ")"
+        )
+
         //  Add new column (if not exists)
         try {
             tx.executeSql("ALTER TABLE sessions ADD COLUMN duration INTEGER")
@@ -114,6 +125,31 @@ function updateSessionTime(id, time) {
             [time, id]
         )
     })
+}
+
+function upsertSettings(weight, kcal, workouts, date) {
+    var db = getDatabase();
+
+    db.transaction(function(tx) {
+        tx.executeSql(
+            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date) VALUES (1, ?, ?, ?, ?)",
+            [weight, kcal, workouts, date]
+        )
+    })
+}
+
+function getSettings() {
+    var db = getDatabase();
+    var settings = null;
+
+    db.transaction(function(tx) {
+        var rs = tx.executeSql("SELECT * FROM settings WHERE id = 1");
+        if (rs.rows.length > 0) {
+            settings = rs.rows.item(0);
+        }
+    });
+
+    return settings;
 }
 
 

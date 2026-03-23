@@ -3,11 +3,14 @@ import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import Lomiri.Components.Pickers 1.3
 import QtQuick.Layouts 1.3
+ import "database.js" as DB
 
 Page {
     id: createSessionPage
+   
 
     property string selectedDate: ""
+    property bool isEditing: false
 
     header: PageHeader {
         title: "Settings"
@@ -23,20 +26,28 @@ Page {
               
                Action {
     iconName: "save"
-    text: i18n.tr("Save Session")
+    text: i18n.tr("Save Settings")
+    enabled: isEditing
 
-    // onTriggered: {
-    //     pageLayout.push(Qt.resolvedUrl("AddSessionPage.qml"))
-    // }
+    onTriggered: {
+        var weight = setWeight.model[setWeight.selectedIndex]
+        var kcal = workoutSelector.model[workoutSelector.selectedIndex]
+        var workouts = setSelector.model[setSelector.selectedIndex]
+        
+        DB.upsertSettings(weight, kcal, workouts, selectedDate)
+        isEditing = false
+        PopupUtils.open(successDialog)
+    }
 },
 
             Action {
     iconName: "edit"
-    text: i18n.tr("Edit Session")
+    text: i18n.tr("Edit Settings")
+    enabled: !isEditing
 
-    // onTriggered: {
-    //     pageLayout.push(Qt.resolvedUrl("AddSessionPage.qml"))
-    // }
+    onTriggered: {
+        isEditing = true
+    }
 } ]
     }
 
@@ -61,6 +72,7 @@ Page {
             OptionSelector {
                 id: setWeight
                 model: ["50","55","60","65","70", "75", "80"]
+                enabled: isEditing
             }
 
             // Workout selection
@@ -78,6 +90,7 @@ Page {
                     "700",
                     "800"
                 ]
+                enabled: isEditing
             }
 
             // Number of sets
@@ -88,6 +101,7 @@ Page {
             OptionSelector {
                 id: setSelector
                 model: ["1","2","3","4","5"]
+                enabled: isEditing
             }
 
             // Dynamic weight inputs
@@ -103,6 +117,7 @@ Page {
           Button {
     id: dateButton
     text: selectedDate === "" ? "Date" : selectedDate
+    enabled: isEditing
 
     onClicked: {
         PopupUtils.open(datePickerPopover, dateButton)
@@ -116,6 +131,7 @@ Page {
           Button {
     text: i18n.tr("Save")
     anchors.horizontalCenter: parent.horizontalCenter
+    enabled: isEditing
 
     onClicked: {
         PopupUtils.open(saveDialog)
@@ -186,25 +202,57 @@ Component {
                 Button {
                     text: i18n.tr("Save")
 
-                    // onClicked: {
-
-                    //     var workoutName =
-                    //         workoutSelector.model[workoutSelector.selectedIndex]
-
-                    //     var sets =
-                    //         setSelector.model[setSelector.selectedIndex]
-
-                    //     console.log("Workout:", workoutName)
-                    //     console.log("Sets:", sets)
-                    //     console.log("Date:", selectedDate)
-
-                    //     PopupUtils.close(dialog)
-
-                    //     pageLayout.push(Qt.resolvedUrl("ActiveSessionPage.qml"))
-                    // }
+                    onClicked: {
+                        var weight = setWeight.model[setWeight.selectedIndex]
+                        var kcal = workoutSelector.model[workoutSelector.selectedIndex]
+                        var workouts = setSelector.model[setSelector.selectedIndex]
+                        
+                        DB.upsertSettings(weight, kcal, workouts, selectedDate)
+                        isEditing = false
+                        PopupUtils.close(dialog)
+                        PopupUtils.open(successDialog)
+                    }
                 }
             }
         }
+    }
+}
+
+Component {
+    id: successDialog
+
+    Dialog {
+        id: dialog
+        title: i18n.tr("Success")
+
+        Column {
+            spacing: units.gu(2)
+            Label {
+                text: i18n.tr("Settings saved successfully")
+                width: parent.width
+                wrapMode: Text.WordWrap
+            }
+            Button {
+                text: i18n.tr("OK")
+                onClicked: PopupUtils.close(dialog)
+            }
+        }
+    }
+}
+
+Component.onCompleted: {
+    var settings = DB.getSettings()
+    if (settings) {
+        var weightIdx = setWeight.model.indexOf(settings.weight)
+        if (weightIdx !== -1) setWeight.selectedIndex = weightIdx
+
+        var kcalIdx = workoutSelector.model.indexOf(settings.kcal_target)
+        if (kcalIdx !== -1) workoutSelector.selectedIndex = kcalIdx
+
+        var workoutsIdx = setSelector.model.indexOf(settings.num_workouts)
+        if (workoutsIdx !== -1) setSelector.selectedIndex = workoutsIdx
+
+        selectedDate = settings.date
     }
 }
 
