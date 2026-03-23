@@ -60,7 +60,7 @@ Rectangle {
         repeat: false
     }
 
-    // Content wrapper (fade only this, not the root) - prevents glitches in PageStack/Loader
+    // Content wrapper (fade only this, not the root) - prevents glitches in pageLayout/Loader
     Item {
         id: contentWrapper
         anchors.fill: parent
@@ -115,7 +115,7 @@ Rectangle {
             Label {
                 text: "Loading..."
                 font.pixelSize: units.gu(1.5)
-                color: Qt.rgba(0.75, 0.2, 0.2)
+                color: Qt.rgba(1, 1, 1)
                 anchors.horizontalCenter: parent.horizontalCenter
             }
         }

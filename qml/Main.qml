@@ -19,6 +19,8 @@ import Lomiri.Components 1.3
 //import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
+import "database.js" as DB
+
 
 MainView {
     id: root
@@ -29,18 +31,33 @@ MainView {
     width: units.gu(45)
     height: units.gu(75)
     property bool showSplash: true
+    
+    // GLOBAL SESSION STATE
+    property int activeSessionId: -1
+    property string activeSessionWorkout: ""
+    property int activeSessionSeconds: 0
+    property bool activeSessionRunning: false
 
-    PageStack {
-        id: pageStack
-        anchors.fill: parent
-
-        Component.onCompleted: push(homePage)
+    Timer {
+        id: globalSessionTimer
+        interval: 1000
+        running: activeSessionRunning
+        repeat: true
+        onTriggered: activeSessionSeconds++
     }
+    Component.onCompleted: {
+    DB.createTable()
+}
 
-    Component {
-        id: homePage
-        HomePage { }
+
+    AdaptivePageLayout {
+    id: pageLayout
+    anchors.fill: parent
+
+    primaryPage: HomePage {
+        pageLayout: pageLayout
     }
+}
 
     SplashScreen {
         id: splashScreen
