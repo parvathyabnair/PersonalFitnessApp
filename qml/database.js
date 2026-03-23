@@ -38,7 +38,8 @@ function createTable() {
             "weight TEXT," +
             "kcal_target TEXT," +
             "num_workouts TEXT," +
-            "date TEXT" +
+            "date TEXT," +
+            "goal_weight TEXT" +
             ")"
         )
 
@@ -52,6 +53,11 @@ function createTable() {
             tx.executeSql("ALTER TABLE sessions ADD COLUMN calories REAL")
         } catch(e) {
             console.log("Calories column may already exist")
+        }
+        try {
+            tx.executeSql("ALTER TABLE settings ADD COLUMN goal_weight TEXT")
+        } catch(e) {
+            console.log("Goal weight column may already exist")
         }
     })
 }
@@ -152,13 +158,13 @@ function updateSessionCalories(id, calories) {
     })
 }
 
-function upsertSettings(weight, kcal, workouts, date) {
+function upsertSettings(weight, kcal, workouts, date, goal_weight) {
     var db = getDatabase();
 
     db.transaction(function(tx) {
         tx.executeSql(
-            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date) VALUES (1, ?, ?, ?, ?)",
-            [weight, kcal, workouts, date]
+            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date, goal_weight) VALUES (1, ?, ?, ?, ?, ?)",
+            [weight, kcal, workouts, date, goal_weight]
         )
     })
 }

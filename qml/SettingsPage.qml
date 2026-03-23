@@ -33,8 +33,9 @@ Page {
         var weight = setWeight.model[setWeight.selectedIndex]
         var kcal = workoutSelector.model[workoutSelector.selectedIndex]
         var workouts = setSelector.model[setSelector.selectedIndex]
+        var goalWeight = goalWeightField.text
         
-        DB.upsertSettings(weight, kcal, workouts, selectedDate)
+        DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight)
         isEditing = false
         PopupUtils.open(successDialog)
     }
@@ -65,6 +66,17 @@ Page {
                 right: parent.right
                 margins: units.gu(2)
             }
+
+            Label {
+                text: i18n.tr("Set Target Weight")
+            }
+
+            TextField {
+                id: goalWeightField
+                placeholderText: i18n.tr("Enter goal weight")
+                enabled: isEditing
+            }
+
             Label {
                 text: i18n.tr("Current Weight")
             }
@@ -206,8 +218,9 @@ Component {
                         var weight = setWeight.model[setWeight.selectedIndex]
                         var kcal = workoutSelector.model[workoutSelector.selectedIndex]
                         var workouts = setSelector.model[setSelector.selectedIndex]
+                        var goalWeight = goalWeightField.text
                         
-                        DB.upsertSettings(weight, kcal, workouts, selectedDate)
+                        DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight)
                         isEditing = false
                         PopupUtils.close(dialog)
                         PopupUtils.open(successDialog)
@@ -253,6 +266,7 @@ Component.onCompleted: {
         if (workoutsIdx !== -1) setSelector.selectedIndex = workoutsIdx
 
         selectedDate = settings.date
+        goalWeightField.text = settings.goal_weight || ""
     }
 }
 
