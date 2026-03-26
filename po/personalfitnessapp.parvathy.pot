@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-23 11:46+0000\n"
+"POT-Creation-Date: 2026-03-26 12:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,54 +86,66 @@ msgstr ""
 msgid "Save Settings"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:46
+#: ../qml/SettingsPage.qml:47
 msgid "Edit Settings"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:71
+#: ../qml/SettingsPage.qml:73
+msgid "Gender"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:115
+msgid "Male"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:156
+msgid "Female"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:163
 msgid "Set Target Weight"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:76
+#: ../qml/SettingsPage.qml:168
 msgid "Enter goal weight"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:81
+#: ../qml/SettingsPage.qml:173
 msgid "Current Weight"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:92
+#: ../qml/SettingsPage.qml:184
 msgid "Kcal should burn"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:110
+#: ../qml/SettingsPage.qml:202
 msgid "No. of workout"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:124
+#: ../qml/SettingsPage.qml:216
 msgid "Select Date"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:144 ../qml/SettingsPage.qml:215
+#: ../qml/SettingsPage.qml:236 ../qml/SettingsPage.qml:307
 msgid "Save"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:171 ../qml/SettingsPage.qml:249
+#: ../qml/SettingsPage.qml:263 ../qml/SettingsPage.qml:342
 msgid "OK"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:199
+#: ../qml/SettingsPage.qml:291
 msgid "Save the settings before starting new session"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:207
+#: ../qml/SettingsPage.qml:299
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:239
+#: ../qml/SettingsPage.qml:332
 msgid "Success"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:244
+#: ../qml/SettingsPage.qml:337
 msgid "Settings saved successfully"
 msgstr ""

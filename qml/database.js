@@ -39,7 +39,8 @@ function createTable() {
             "kcal_target TEXT," +
             "num_workouts TEXT," +
             "date TEXT," +
-            "goal_weight TEXT" +
+            "goal_weight TEXT," +
+            "gender TEXT" +
             ")"
         )
 
@@ -58,6 +59,11 @@ function createTable() {
             tx.executeSql("ALTER TABLE settings ADD COLUMN goal_weight TEXT")
         } catch(e) {
             console.log("Goal weight column may already exist")
+        }
+        try {
+            tx.executeSql("ALTER TABLE settings ADD COLUMN gender TEXT")
+        } catch(e) {
+            console.log("Gender column may already exist")
         }
     })
 }
@@ -158,13 +164,13 @@ function updateSessionCalories(id, calories) {
     })
 }
 
-function upsertSettings(weight, kcal, workouts, date, goal_weight) {
+function upsertSettings(weight, kcal, workouts, date, goal_weight, gender) {
     var db = getDatabase();
 
     db.transaction(function(tx) {
         tx.executeSql(
-            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date, goal_weight) VALUES (1, ?, ?, ?, ?, ?)",
-            [weight, kcal, workouts, date, goal_weight]
+            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date, goal_weight, gender) VALUES (1, ?, ?, ?, ?, ?, ?)",
+            [weight, kcal, workouts, date, goal_weight, gender]
         )
     })
 }
@@ -182,6 +188,3 @@ function getSettings() {
 
     return settings;
 }
-
-
-
