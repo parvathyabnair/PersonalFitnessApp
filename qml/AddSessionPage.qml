@@ -52,16 +52,39 @@ Page {
     function refreshModel(query) {
         sessionModel.clear()
         var sessions = DB.getSessions(query)
+        
+        var today = new Date()
+        var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        var todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
+        
+        var weekStart = new Date(todayStart.getTime() - today.getDay() * 24 * 60 * 60 * 1000)
+        var monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+        
         for(var i=0; i<sessions.length; i++) {
-            sessionModel.append({
-                id: sessions[i].id,
-                workout: sessions[i].workout,
-                sets: sessions[i].sets,
-                weight: sessions[i].weight,
-                date: sessions[i].date,
-                duration: sessions[i].duration,
-                calories: sessions[i].calories
-            })
+            var s = sessions[i]
+            var sessionDate = new Date(s.date)
+            var sessionDateStart = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate())
+            
+            var include = true
+            if (topFilterBar.currentFilter === topFilterBar.filter1) { 
+                if (sessionDateStart < todayStart || sessionDateStart >= todayEnd) include = false
+            } else if (topFilterBar.currentFilter === topFilterBar.filter2) { 
+                if (sessionDateStart < weekStart || sessionDateStart >= todayEnd) include = false 
+            } else if (topFilterBar.currentFilter === topFilterBar.filter3) { 
+                if (sessionDateStart < monthStart || sessionDateStart >= todayEnd) include = false
+            }
+            
+            if (include) {
+                sessionModel.append({
+                    id: s.id,
+                    workout: s.workout,
+                    sets: s.sets,
+                    weight: s.weight,
+                    date: s.date,
+                    duration: s.duration,
+                    calories: s.calories
+                })
+            }
         }
     }
 
@@ -73,23 +96,115 @@ Page {
         id: sessionModel
     }
 
-
     Column {
         anchors.fill: parent
         anchors.topMargin: header.height + units.gu(0.5)
+
+        Rectangle {
+            id: topFilterBar
+            width: parent.width
+            height: units.gu(4)
+            //color: '#cea8a8'
+
+            property string label1: "Today"
+            property string label2: "This Week"
+            property string label3: "This Month"
+            property string label6: "All"
+
+            property string filter1: "today"
+            property string filter2: "this_week"
+            property string filter3: "this_month"
+            property string filter6: "all"
+
+            property string currentFilter: filter1
+
+            signal filterSelected(string filterKey)
+            
+            onFilterSelected: {
+                refreshModel(searchField.visible ? searchField.text : "")
+            }
+
+            Flickable {
+                id: flickable
+                width: parent.width
+                height: units.gu(4)
+                contentWidth: rowLayout.width
+                contentHeight: rowLayout.height
+                clip: true
+                flickableDirection: Flickable.HorizontalFlick
+
+                Row {
+                    id: rowLayout
+                    spacing: 0
+
+                    Button {
+                        text: topFilterBar.label1
+                        width: units.gu(12)
+                        height: units.gu(4)
+                        property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter1
+                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+
+                        onClicked: {
+                            topFilterBar.currentFilter = topFilterBar.filter1
+                            topFilterBar.filterSelected(topFilterBar.filter1)
+                        }
+                    }
+
+                    Button {
+                        text: topFilterBar.label2
+                        width: units.gu(12)
+                        height: units.gu(4)
+                        property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter2
+                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+
+                        onClicked: {
+                            topFilterBar.currentFilter = topFilterBar.filter2
+                            topFilterBar.filterSelected(topFilterBar.filter2)
+                        }
+                    }
+
+                    Button {
+                        text: topFilterBar.label3
+                        width: units.gu(12)
+                        height: units.gu(4)
+                        property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter3
+                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+
+                        onClicked: {
+                            topFilterBar.currentFilter = topFilterBar.filter3
+                            topFilterBar.filterSelected(topFilterBar.filter3)
+                        }
+                    }
+
+                    Button {
+                        text: topFilterBar.label6
+                        width: units.gu(10)
+                        height: units.gu(4)
+                        property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter6
+                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+
+                        onClicked: {
+                            topFilterBar.currentFilter = topFilterBar.filter6
+                            topFilterBar.filterSelected(topFilterBar.filter6)
+                        }
+                    }
+                }
+            }
+        }
 
         TextField {
             id: searchField
             visible: showSearch
             placeholderText: i18n.tr("Search workouts...")
-            width: parent.width
+            width: parent.width - units.gu(2)
+            anchors.horizontalCenter: parent.horizontalCenter
             anchors.margins: units.gu(1)
             onTextChanged: refreshModel(text)
         }
 
         ListView {
             width: parent.width
-            height: parent.height - (searchField.visible ? searchField.height : 0)
+            height: parent.height - topFilterBar.height - (searchField.visible ? searchField.height + units.gu(2) : 0)
             model: sessionModel
             clip: true
 
@@ -112,6 +227,7 @@ Page {
                     ]
                     
                 }
+                
 
                 trailingActions: ListItemActions {
                     actions: [
