@@ -69,6 +69,16 @@ property var pageLayout
     }
 
     Label {
+        id: dateLabel
+        anchors.top: header.bottom
+        anchors.topMargin: units.gu(2)
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: Qt.formatDate(new Date(), "dddd, d MMMM yyyy")
+        font.pixelSize: units.gu(2.5)
+        font.bold: true
+    }
+
+    Label {
         anchors.centerIn: parent
         text: i18n.tr("Hello!")
     }

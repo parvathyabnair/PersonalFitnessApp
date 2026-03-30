@@ -139,7 +139,7 @@ Page {
 
                     Button {
                         text: topFilterBar.label1
-                        width: units.gu(12)
+                        width: units.gu(10)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter1
                         color: isHighlighted ? "#f78787" : "#E0E0E0"
@@ -152,7 +152,7 @@ Page {
 
                     Button {
                         text: topFilterBar.label2
-                        width: units.gu(12)
+                        width: units.gu(10)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter2
                         color: isHighlighted ? "#f78787" : "#E0E0E0"
@@ -165,7 +165,7 @@ Page {
 
                     Button {
                         text: topFilterBar.label3
-                        width: units.gu(12)
+                        width: units.gu(10)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter3
                         color: isHighlighted ? "#f78787" : "#E0E0E0"
