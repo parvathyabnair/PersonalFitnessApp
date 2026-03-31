@@ -136,10 +136,9 @@ Page {
                 Row {
                     id: rowLayout
                     spacing: 1
-
                     Button {
                         text: topFilterBar.label1
-                        width: units.gu(11)
+                        width: units.gu(11.2)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter1
                         color: isHighlighted ? "#f78787" : "#b4dff0"
@@ -152,7 +151,7 @@ Page {
 
                     Button {
                         text: topFilterBar.label2
-                        width: units.gu(11)
+                        width: units.gu(11.2)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter2
                         color: isHighlighted ? "#f78787" : "#b4dff0"
@@ -165,7 +164,7 @@ Page {
 
                     Button {
                         text: topFilterBar.label3
-                        width: units.gu(11)
+                        width: units.gu(11.2)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter3
                         color: isHighlighted ? "#f78787" : '#b4dff0'
@@ -178,7 +177,7 @@ Page {
 
                     Button {
                         text: topFilterBar.label6
-                        width: units.gu(11)
+                        width: units.gu(11.2)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter6
                         color: isHighlighted ? "#f78787" : "#b4dff0"

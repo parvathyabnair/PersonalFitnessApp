@@ -36,6 +36,7 @@ Page {
         var goalWeight = goalWeightField.text
         var gender = femaleRadio.checked ? "Female" : "Male"
         
+        
         DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight, gender)
         isEditing = false
         PopupUtils.open(successDialog)
@@ -234,6 +235,7 @@ Page {
             // Start session button
           Button {
     text: i18n.tr("Save")
+    color: "#b4dff0"
     anchors.horizontalCenter: parent.horizontalCenter
     enabled: isEditing
 
@@ -363,9 +365,11 @@ Component.onCompleted: {
         
         if (settings.gender === "Female") {
             femaleRadio.checked = true
+            //color: "#b4dff0"
             maleRadio.checked = false
         } else if (settings.gender === "Male") {
             maleRadio.checked = true
+            color: "#b4dff0"
             femaleRadio.checked = false
         }
     }

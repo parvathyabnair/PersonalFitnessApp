@@ -2,10 +2,34 @@ import QtQuick 2.7
 import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
+import "database.js" as DB
 
 Page {
     anchors.fill: parent
-property var pageLayout
+    property var pageLayout
+    property string currentWeight: "0"
+    property string todaysCalories: "0"
+    property string goalWeight: "0"
+
+    function loadOverviewData() {
+        var settings = DB.getSettings()
+        if (settings) {
+            currentWeight = settings.weight ? settings.weight : "0"
+            goalWeight = settings.goal_weight ? settings.goal_weight : "0"
+        }
+        var cal = DB.getTodaysCalories()
+        todaysCalories = Math.round(cal).toString()
+    }
+
+    Component.onCompleted: {
+        loadOverviewData()
+    }
+
+    onVisibleChanged: {
+        if (visible) {
+            loadOverviewData()
+        }
+    }
     header: PageHeader {
         id: header
         title: i18n.tr("Fitness App")
@@ -78,9 +102,98 @@ property var pageLayout
         font.bold: true
     }
 
-    Label {
-        anchors.centerIn: parent
-        text: i18n.tr("Hello!")
+    Row {
+        id: overviewCards
+        anchors.top: dateLabel.bottom
+        anchors.topMargin: units.gu(4)
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: units.gu(1.5)
+
+        // Today's Weight Card
+        Rectangle {
+            width: units.gu(10)
+            height: units.gu(9)
+            radius: units.dp(8)
+            border.color: "#E0E0E0"
+            border.width: units.dp(1)
+            color: "#b4dff0"
+
+            Column {
+                anchors.centerIn: parent
+                spacing: units.gu(0.5)
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: currentWeight + "kg"
+                    font.pixelSize: units.gu(2.8)
+                    font.bold: true
+                }
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: i18n.tr("Todays Weight")
+                    font.pixelSize: units.gu(1.2)
+                    color: "gray"
+                    //font.bold: true
+                }
+            }
+        }
+
+        // Today's Calories Card
+        Rectangle {
+            width: units.gu(10)
+            height: units.gu(9)
+            radius: units.dp(8)
+            border.color: "#E0E0E0"
+            border.width: units.dp(1)
+            color: "#b4dff0"
+
+            Column {
+                anchors.centerIn: parent
+                spacing: units.gu(0.5)
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: todaysCalories + "kcal"
+                    font.pixelSize: units.gu(2.8)
+                    font.bold: true
+                }
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: i18n.tr("Todays Calories")
+                    font.pixelSize: units.gu(1.2)
+                    color: "gray"
+                }
+            }
+        }
+
+        // Goal Weight Card
+        Rectangle {
+            width: units.gu(10)
+            height: units.gu(9)
+            radius: units.dp(8)
+            border.color: "#E0E0E0"
+            border.width: units.dp(1)
+            color: "#b4dff0"
+
+            Column {
+                anchors.centerIn: parent
+                spacing: units.gu(0.5)
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: goalWeight + "kg"
+                    font.pixelSize: units.gu(2.8)
+                    font.bold: true
+                    //color: "gray"
+                }
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: i18n.tr("Goal")
+                    font.pixelSize: units.gu(1.2)
+                    color: "gray"
+                }
+            }
+        }
     }
 
     /* Swipe Gesture */
@@ -102,9 +215,7 @@ property var pageLayout
 
                 console.log("Swipe Up Detected")
 
-                pageLayout.addPageToNextColumn(
-    pageLayout.primaryPage,
-    Qt.resolvedUrl("SessionCreatePage.qml"),
+                pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
     {
         pageLayout: pageLayout    
     }
@@ -132,8 +243,9 @@ property var pageLayout
     }
 
     Label {
-        text: i18n.tr("Swipe up to start session")
+        text: i18n.tr("Swipe up to start new session")
         anchors.horizontalCenter: parent.horizontalCenter
+        font.bold: true
     }
 }
 Button {

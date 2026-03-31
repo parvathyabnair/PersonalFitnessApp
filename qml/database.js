@@ -175,6 +175,42 @@ function upsertSettings(weight, kcal, workouts, date, goal_weight, gender) {
     })
 }
 
+function getTodaysCalories() {
+    var db = getDatabase();
+    var totalCalories = 0;
+    
+    var today = new Date();
+    var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    db.transaction(function(tx) {
+        var sql = "SELECT date, calories FROM sessions";
+        var rs = tx.executeSql(sql, []);
+        
+        for (var i = 0; i < rs.rows.length; i++) {
+            var s = rs.rows.item(i);
+            
+            if (!s.date) continue;
+            
+            var sessionDate = new Date(s.date);
+            if (isNaN(sessionDate.getTime())) continue;
+
+            var sessionDateStart = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+            
+            var include = true;
+            if (sessionDateStart < todayStart || sessionDateStart >= todayEnd) {
+                include = false;
+            }
+            
+            if (include && s.calories) {
+                totalCalories += parseFloat(s.calories) || 0;
+            }
+        }
+    });
+
+    return totalCalories || 0;
+}
+
 function getSettings() {
     var db = getDatabase();
     var settings = null;

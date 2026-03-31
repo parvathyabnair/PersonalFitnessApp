@@ -239,6 +239,7 @@ property string currentWorkout: ""
             Button {
                 text: "Start Session"
                 anchors.horizontalCenter: parent.horizontalCenter
+                color: "#b4dff0"
 
                 onClicked: {
                     if (!isSaved || currentSessionId === -1) {
@@ -307,6 +308,7 @@ property string currentWorkout: ""
 
                     Button {
                         text: "OK"
+                        color: "#b4dff0"
                         onClicked: PopupUtils.close(dialog)
                     }
                 }

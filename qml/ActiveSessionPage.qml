@@ -112,11 +112,13 @@ Page {
 
             Button {
                 text: root.activeSessionRunning ? "Stop" : "Resume"
+                color: "#b4dff0"
                 onClicked: root.activeSessionRunning = !root.activeSessionRunning
             }
 
             Button {
                 text: "Next Exercise"
+                color: "#b4dff0"
                 onClicked: handleNextExercise()
             }
         }
