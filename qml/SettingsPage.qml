@@ -188,6 +188,7 @@ Page {
             OptionSelector {
                 id: workoutSelector
                 model: [
+                    "10",
                     "300",
                     "400",
                     "500",

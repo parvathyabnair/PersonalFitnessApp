@@ -10,15 +10,21 @@ Page {
     property string currentWeight: "0"
     property string todaysCalories: "0"
     property string goalWeight: "0"
+    property real targetCalories: 1
+    property real progressPercentage: 0
 
     function loadOverviewData() {
         var settings = DB.getSettings()
         if (settings) {
             currentWeight = settings.weight ? settings.weight : "0"
             goalWeight = settings.goal_weight ? settings.goal_weight : "0"
+            targetCalories = parseFloat(settings.kcal_target) || 1
         }
         var cal = DB.getTodaysCalories()
         todaysCalories = Math.round(cal).toString()
+        var pct = (cal / targetCalories) * 100
+        if (pct > 100) pct = 100
+        progressPercentage = Math.round(pct)
     }
 
     Component.onCompleted: {
@@ -192,6 +198,47 @@ Page {
                     font.pixelSize: units.gu(1.2)
                     color: "gray"
                 }
+            }
+        }
+    }
+
+    Column {
+        id: progressContainer
+        anchors.top: overviewCards.bottom
+        anchors.topMargin: units.gu(4)
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: units.gu(4)
+        anchors.rightMargin: units.gu(4)
+        spacing: units.gu(1)
+
+        RowLayout {
+            width: parent.width
+
+            Label {
+                text: i18n.tr("Workout Progress for today")
+                font.bold: true
+                font.pixelSize: units.gu(1.6)
+            }
+            Item { Layout.fillWidth: true }
+            Label {
+                text: progressPercentage + i18n.tr("% Complete")
+                font.bold: true
+                font.pixelSize: units.gu(1.4)
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: units.gu(1.2)
+            radius: height / 2
+            color: "#E0E0E0"
+
+            Rectangle {
+                width: parent.width * (progressPercentage / 100)
+                height: parent.height
+                radius: parent.radius
+                color: "#f78787"
             }
         }
     }
