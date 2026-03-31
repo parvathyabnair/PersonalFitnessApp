@@ -135,14 +135,14 @@ Page {
 
                 Row {
                     id: rowLayout
-                    spacing: 0
+                    spacing: 1
 
                     Button {
                         text: topFilterBar.label1
-                        width: units.gu(10)
+                        width: units.gu(11)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter1
-                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+                        color: isHighlighted ? "#f78787" : "#b4dff0"
 
                         onClicked: {
                             topFilterBar.currentFilter = topFilterBar.filter1
@@ -152,10 +152,10 @@ Page {
 
                     Button {
                         text: topFilterBar.label2
-                        width: units.gu(10)
+                        width: units.gu(11)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter2
-                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+                        color: isHighlighted ? "#f78787" : "#b4dff0"
 
                         onClicked: {
                             topFilterBar.currentFilter = topFilterBar.filter2
@@ -165,10 +165,10 @@ Page {
 
                     Button {
                         text: topFilterBar.label3
-                        width: units.gu(10)
+                        width: units.gu(11)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter3
-                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+                        color: isHighlighted ? "#f78787" : '#b4dff0'
 
                         onClicked: {
                             topFilterBar.currentFilter = topFilterBar.filter3
@@ -178,10 +178,10 @@ Page {
 
                     Button {
                         text: topFilterBar.label6
-                        width: units.gu(10)
+                        width: units.gu(11)
                         height: units.gu(4)
                         property bool isHighlighted: topFilterBar.currentFilter === topFilterBar.filter6
-                        color: isHighlighted ? "#f78787" : "#E0E0E0"
+                        color: isHighlighted ? "#f78787" : "#b4dff0"
 
                         onClicked: {
                             topFilterBar.currentFilter = topFilterBar.filter6
