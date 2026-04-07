@@ -266,6 +266,7 @@ Page {
             anchors.topMargin: units.gu(2)
             anchors.horizontalCenter: parent.horizontalCenter
             text: i18n.tr("Weekly Progress")
+            color: "black"
             font.bold: true
             font.pixelSize: units.gu(2.0)
         }
@@ -284,7 +285,7 @@ Page {
                 ctx.clearRect(0, 0, width, height);
 
                 // calculate max value for y scaling
-                var maxVal = 500; // default min max
+                var maxVal = 500; // default max value
                 for (var i = 0; i < weeklyData.length; i++) {
                     if (weeklyData[i].value > maxVal) {
                         maxVal = weeklyData[i].value;
@@ -293,9 +294,11 @@ Page {
                 maxVal = Math.ceil(maxVal / 100) * 100;
 
                 var paddingLeft = units.gu(4);
+                var paddingRight = units.gu(3);
                 var paddingBottom = units.gu(2);
-                var chartWidth = width - paddingLeft;
-                var chartHeight = height - paddingBottom;
+                var paddingTop = units.gu(2);
+                var chartWidth = width - paddingLeft - paddingRight;
+                var chartHeight = height - paddingBottom - paddingTop;
                 
                 // Draw horizontal grid lines and labels
                 ctx.strokeStyle = "#F0F0F0";
@@ -307,11 +310,11 @@ Page {
                 var steps = 5;
                 for (var j = 1; j <= steps; j++) {
                     var yVal = (maxVal / steps) * j;
-                    var yPos = chartHeight - (yVal / maxVal) * chartHeight;
+                    var yPos = paddingTop + chartHeight - (yVal / maxVal) * chartHeight;
                     
                     ctx.beginPath();
                     ctx.moveTo(paddingLeft, yPos);
-                    ctx.lineTo(width, yPos);
+                    ctx.lineTo(width - paddingRight, yPos);
                     ctx.stroke();
                     
                     ctx.fillText(yVal.toString(), paddingLeft - units.gu(1), yPos + 4);
@@ -327,19 +330,19 @@ Page {
                 
                 // Draw line chart
                 ctx.beginPath();
-                ctx.moveTo(paddingLeft, chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
+                ctx.moveTo(paddingLeft, paddingTop + chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
                 for (var m = 1; m < weeklyData.length; m++) {
                     var px = paddingLeft + m * pointSpacing;
-                    var py = chartHeight - (weeklyData[m].value / maxVal) * chartHeight;
+                    var py = paddingTop + chartHeight - (weeklyData[m].value / maxVal) * chartHeight;
                     ctx.lineTo(px, py);
                 }
                 
                 // Area fill gradient
-                ctx.lineTo(paddingLeft + (weeklyData.length - 1) * pointSpacing, chartHeight);
-                ctx.lineTo(paddingLeft, chartHeight);
+                ctx.lineTo(paddingLeft + (weeklyData.length - 1) * pointSpacing, paddingTop + chartHeight);
+                ctx.lineTo(paddingLeft, paddingTop + chartHeight);
                 ctx.closePath();
                 
-                var grad = ctx.createLinearGradient(0, 0, 0, chartHeight);
+                var grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + chartHeight);
                 grad.addColorStop(0, "rgba(42, 130, 240, 0.3)");
                 grad.addColorStop(1, "rgba(42, 130, 240, 0.0)");
                 ctx.fillStyle = grad;
@@ -347,10 +350,10 @@ Page {
                 
                 // Draw line again over the area
                 ctx.beginPath();
-                ctx.moveTo(paddingLeft, chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
+                ctx.moveTo(paddingLeft, paddingTop + chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
                 for (var n = 1; n < weeklyData.length; n++) {
                     var px2 = paddingLeft + n * pointSpacing;
-                    var py2 = chartHeight - (weeklyData[n].value / maxVal) * chartHeight;
+                    var py2 = paddingTop + chartHeight - (weeklyData[n].value / maxVal) * chartHeight;
                     ctx.lineTo(px2, py2);
                 }
                 ctx.strokeStyle = "rgba(42, 130, 240, 1.0)";
@@ -360,7 +363,7 @@ Page {
                 // Draw latest point dot
                 if (weeklyData.length > 0) {
                     var lastX = paddingLeft + (weeklyData.length - 1) * pointSpacing;
-                    var lastY = chartHeight - (weeklyData[weeklyData.length - 1].value / maxVal) * chartHeight;
+                    var lastY = paddingTop + chartHeight - (weeklyData[weeklyData.length - 1].value / maxVal) * chartHeight;
                     ctx.beginPath();
                     ctx.arc(lastX, lastY, units.dp(5), 0, 2 * Math.PI, false);
                     ctx.fillStyle = "rgba(42, 130, 240, 1.0)";
@@ -451,7 +454,7 @@ Page {
     anchors.bottom: parent.bottom
     anchors.bottomMargin: units.gu(3)
 
-    spacing: units.gu(1)
+    spacing: units.gu(0.1)
 
     //horizontalAlignment: Text.AlignHCenter
 
