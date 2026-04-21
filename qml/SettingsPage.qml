@@ -34,8 +34,10 @@ Page {
         var kcal = workoutSelector.model[workoutSelector.selectedIndex]
         var workouts = setSelector.model[setSelector.selectedIndex]
         var goalWeight = goalWeightField.text
+        var gender = femaleRadio.checked ? "Female" : "Male"
         
-        DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight)
+        
+        DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight, gender)
         isEditing = false
         PopupUtils.open(successDialog)
     }
@@ -54,7 +56,7 @@ Page {
 
     Flickable {
         anchors.fill: parent
-        anchors.topMargin: header.height + units.gu(2)
+        anchors.topMargin: header.height + units.gu(1)
 
         Column {
             id: column
@@ -65,6 +67,97 @@ Page {
                 left: parent.left
                 right: parent.right
                 margins: units.gu(2)
+            }
+            
+            // Gender selection
+            Label {
+                text: i18n.tr("Gender")
+            }
+
+            Row {
+                spacing: units.gu(4)
+
+                // Male Option
+                Row {
+                    spacing: units.gu(1)
+                    
+                    Item {
+                        id: maleRadio
+                        property bool checked: true
+                        width: units.gu(2.5)
+                        height: units.gu(2.5)
+                        anchors.verticalCenter: parent.verticalCenter
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: width / 2
+                            border.color: isEditing ? "grey" : "lightgrey"
+                            border.width: units.dp(2)
+                            color: "transparent"
+                            
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: units.dp(4)
+                                radius: width / 2
+                                color: "grey"
+                                visible: maleRadio.checked
+                            }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: isEditing
+                            onClicked: {
+                                maleRadio.checked = true
+                                femaleRadio.checked = false
+                            }
+                        }
+                    }
+                    Label {
+                        text: i18n.tr("Male")
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                // Female Option
+                Row {
+                    spacing: units.gu(1)
+                    
+                    Item {
+                        id: femaleRadio
+                        property bool checked: false
+                        width: units.gu(2.5)
+                        height: units.gu(2.5)
+                        anchors.verticalCenter: parent.verticalCenter
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: width / 2
+                            border.color: isEditing ? "grey" : "lightgrey"
+                            border.width: units.dp(2)
+                            color: "transparent"
+                            
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: units.dp(4)
+                                radius: width / 2
+                                color: "grey"
+                                visible: femaleRadio.checked
+                            }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: isEditing
+                            onClicked: {
+                                femaleRadio.checked = true
+                                maleRadio.checked = false
+                            }
+                        }
+                    }
+                    Label {
+                        text: i18n.tr("Female")
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
             }
 
             Label {
@@ -95,6 +188,7 @@ Page {
             OptionSelector {
                 id: workoutSelector
                 model: [
+                    "10",
                     "300",
                     "400",
                     "500",
@@ -142,6 +236,7 @@ Page {
             // Start session button
           Button {
     text: i18n.tr("Save")
+    color: "#b4dff0"
     anchors.horizontalCenter: parent.horizontalCenter
     enabled: isEditing
 
@@ -219,8 +314,9 @@ Component {
                         var kcal = workoutSelector.model[workoutSelector.selectedIndex]
                         var workouts = setSelector.model[setSelector.selectedIndex]
                         var goalWeight = goalWeightField.text
+                        var gender = femaleRadio.checked ? "Female" : "Male"
                         
-                        DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight)
+                        DB.upsertSettings(weight, kcal, workouts, selectedDate, goalWeight, gender)
                         isEditing = false
                         PopupUtils.close(dialog)
                         PopupUtils.open(successDialog)
@@ -267,6 +363,16 @@ Component.onCompleted: {
 
         selectedDate = settings.date
         goalWeightField.text = settings.goal_weight || ""
+        
+        if (settings.gender === "Female") {
+            femaleRadio.checked = true
+            //color: "#b4dff0"
+            maleRadio.checked = false
+        } else if (settings.gender === "Male") {
+            maleRadio.checked = true
+            color: "#b4dff0"
+            femaleRadio.checked = false
+        }
     }
 }
 

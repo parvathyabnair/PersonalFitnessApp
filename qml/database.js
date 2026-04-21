@@ -39,7 +39,8 @@ function createTable() {
             "kcal_target TEXT," +
             "num_workouts TEXT," +
             "date TEXT," +
-            "goal_weight TEXT" +
+            "goal_weight TEXT," +
+            "gender TEXT" +
             ")"
         )
 
@@ -58,6 +59,11 @@ function createTable() {
             tx.executeSql("ALTER TABLE settings ADD COLUMN goal_weight TEXT")
         } catch(e) {
             console.log("Goal weight column may already exist")
+        }
+        try {
+            tx.executeSql("ALTER TABLE settings ADD COLUMN gender TEXT")
+        } catch(e) {
+            console.log("Gender column may already exist")
         }
     })
 }
@@ -158,15 +164,51 @@ function updateSessionCalories(id, calories) {
     })
 }
 
-function upsertSettings(weight, kcal, workouts, date, goal_weight) {
+function upsertSettings(weight, kcal, workouts, date, goal_weight, gender) {
     var db = getDatabase();
 
     db.transaction(function(tx) {
         tx.executeSql(
-            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date, goal_weight) VALUES (1, ?, ?, ?, ?, ?)",
-            [weight, kcal, workouts, date, goal_weight]
+            "INSERT OR REPLACE INTO settings (id, weight, kcal_target, num_workouts, date, goal_weight, gender) VALUES (1, ?, ?, ?, ?, ?, ?)",
+            [weight, kcal, workouts, date, goal_weight, gender]
         )
     })
+}
+
+function getTodaysCalories() {
+    var db = getDatabase();
+    var totalCalories = 0;
+    
+    var today = new Date();
+    var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    db.transaction(function(tx) {
+        var sql = "SELECT date, calories FROM sessions";
+        var rs = tx.executeSql(sql, []);
+        
+        for (var i = 0; i < rs.rows.length; i++) {
+            var s = rs.rows.item(i);
+            
+            if (!s.date) continue;
+            
+            var sessionDate = new Date(s.date);
+            if (isNaN(sessionDate.getTime())) continue;
+
+            var sessionDateStart = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+            
+            var include = true;
+            if (sessionDateStart < todayStart || sessionDateStart >= todayEnd) {
+                include = false;
+            }
+            
+            if (include && s.calories) {
+                totalCalories += parseFloat(s.calories) || 0;
+            }
+        }
+    });
+
+    return totalCalories || 0;
 }
 
 function getSettings() {
@@ -183,5 +225,59 @@ function getSettings() {
     return settings;
 }
 
+function getWeeklyCalories() {
+    var db = getDatabase();
+    var results = [];
+    var today = new Date();
+    var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var weekStart = new Date(todayStart.getTime() - today.getDay() * 24 * 60 * 60 * 1000);
+    
+    // Create entries for this week (Sunday to Saturday)
+    for (var d = 0; d < 7; d++) {
+        var dayDate = new Date(weekStart.getTime() + d * 24 * 60 * 60 * 1000);
+        
+        var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var label = dayDate.getDate().toString();
+        if (d === 0) { // first day in chart
+             label = monthNames[dayDate.getMonth()] + " " + label;
+        }
+        
+        results.push({
+            dateObj: dayDate,
+            dateLabel: label,
+            calories: 0
+        });
+    }
 
+    db.transaction(function(tx) {
+        var sql = "SELECT date, calories FROM sessions";
+        var rs = tx.executeSql(sql, []);
+        
+        for (var i = 0; i < rs.rows.length; i++) {
+            var s = rs.rows.item(i);
+            if (!s.date) continue;
+            
+            var sessionDate = new Date(s.date);
+            if (isNaN(sessionDate.getTime())) continue;
 
+            var sYear = sessionDate.getFullYear();
+            var sMonth = sessionDate.getMonth();
+            var sDate = sessionDate.getDate();
+            
+            for (var j = 0; j < 7; j++) {
+                var dObj = results[j].dateObj;
+                if (dObj.getFullYear() === sYear && 
+                    dObj.getMonth() === sMonth && 
+                    dObj.getDate() === sDate) {
+                    
+                    if (s.calories) {
+                        results[j].calories += parseFloat(s.calories);
+                    }
+                    break;
+                }
+            }
+        }
+    });
+
+    return results;
+}
