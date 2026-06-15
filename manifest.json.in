@@ -2,7 +2,8 @@
     "name": "personalfitnessapp.parvathy",
     "description": "The Personal Fitness App is a Qt/QML-based mobile application designed for Ubuntu Touch that helps users track and manage their daily workout activities.",
     "architecture": "@CLICK_ARCH@",
-    "title": "Fitness App",
+    "title": "Personal Fitness App",
+    "icon": "assets/download.png",
     "hooks": {
         "personalfitnessapp": {
             "apparmor": "personalfitnessapp.apparmor",

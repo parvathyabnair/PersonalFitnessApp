@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 09:00+0000\n"
+"POT-Creation-Date: 2026-06-15 09:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,40 +17,40 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/ActiveSessionPage.qml:33 ../qml/HomePage.qml:94
+#: ../qml/ActiveSessionPage.qml:34 ../qml/HomePage.qml:94
 msgid "Active Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:46
+#: ../qml/ActiveSessionPage.qml:47
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:80
-msgid "No active sessions"
+#: ../qml/ActiveSessionPage.qml:81 ../qml/components/EmptyState.qml:6
+msgid "You haven't logged a workout today. Let's get moving!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:166
+#: ../qml/ActiveSessionPage.qml:164
 msgid "Stop and Save the session before starting"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:194
+#: ../qml/ActiveSessionPage.qml:192
 msgid ""
 "Session saved successfully! Your total calories burned for this session is "
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:14
+#: ../qml/AddSessionPage.qml:15
 msgid "Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:28
+#: ../qml/AddSessionPage.qml:29
 msgid "Search"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:38
+#: ../qml/AddSessionPage.qml:39
 msgid " Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:197
+#: ../qml/AddSessionPage.qml:198
 msgid "Search workouts..."
 msgstr ""
 
