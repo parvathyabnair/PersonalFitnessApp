@@ -6,6 +6,7 @@ import QtQml.Models 2.3
 import QtGraphicalEffects 1.0
 //mport "components"
 import "database.js" as DB
+import "components"
 
 Page {
     property var pageLayout
@@ -202,13 +203,14 @@ Page {
         }
 
         ListView {
+            id: listView
             width: parent.width
             height: parent.height - topFilterBar.height - (searchField.visible ? searchField.height + units.gu(2) : 0)
             model: sessionModel
             clip: true
+            visible: count > 0
 
-
-    delegate: ListItem {
+            delegate: ListItem {
 
     width: parent.width
     height: units.gu(10)
@@ -299,6 +301,10 @@ Column {
         }
     }
         }
+    }
+
+    EmptyState {
+        visible: sessionModel.count === 0
     }
 }
 function formatTime(sec) {

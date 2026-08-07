@@ -3,6 +3,7 @@ import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
 import "database.js" as DB
+import "components"
 
 Page {
     id: activePage
@@ -75,12 +76,9 @@ Page {
     }
 
     // NO ACTIVE SESSIONS VIEW
-    Label {
-        anchors.centerIn: parent
-        text: i18n.tr("No active sessions")
+    EmptyState {
         visible: root.activeSessionId === -1
-        font.pixelSize: units.gu(3)
-        color: LomiriColors.slate
+        message: i18n.tr("You haven't logged a workout today. Let's get moving!")
     }
 
     //  MAIN UI (CENTERED)
