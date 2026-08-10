@@ -24,6 +24,7 @@ function createTable() {
             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
             "workout TEXT," +
             "sets TEXT," +
+            "reps TEXT," +
             "weight TEXT," +
             "date TEXT," +
             "duration INTEGER," +
@@ -65,18 +66,23 @@ function createTable() {
         } catch(e) {
             console.log("Gender column may already exist")
         }
+        try {
+            tx.executeSql("ALTER TABLE sessions ADD COLUMN reps TEXT")
+        } catch(e) {
+            console.log("Reps column may already exist")
+        }
     })
 }
 
 
-function insertSession(workout, sets, weight, date) {
+function insertSession(workout, sets, reps, weight, date) {
      var db = getDatabase();
     var insertedId = -1
 
     db.transaction(function(tx) {
         var rs = tx.executeSql(
-            "INSERT INTO sessions (workout, sets, weight, date) VALUES (?, ?, ?, ?)",
-            [workout, sets, weight, date]
+            "INSERT INTO sessions (workout, sets, reps, weight, date) VALUES (?, ?, ?, ?, ?)",
+            [workout, sets, reps, weight, date]
         )
         insertedId = rs.insertId    
     })
@@ -128,14 +134,14 @@ function deleteSession(id) {
 
     });
 }
-function updateSession(id, workout, sets, weight, date) {
+function updateSession(id, workout, sets, reps, weight, date) {
 
     var db = getDatabase();
 
     db.transaction(function(tx) {
         tx.executeSql(
-            "UPDATE sessions SET workout=?, sets=?, weight=?, date=? WHERE id=?",
-            [workout, sets, weight, date, id]
+            "UPDATE sessions SET workout=?, sets=?, reps=?, weight=?, date=? WHERE id=?",
+            [workout, sets, reps, weight, date, id]
         );
     });
 }

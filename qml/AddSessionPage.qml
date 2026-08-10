@@ -80,6 +80,7 @@ Page {
                     id: s.id,
                     workout: s.workout,
                     sets: s.sets,
+                    reps: s.reps,
                     weight: s.weight,
                     date: s.date,
                     duration: s.duration,
@@ -213,7 +214,7 @@ Page {
             delegate: ListItem {
 
     width: parent.width
-    height: units.gu(10)
+    height: units.gu(11)
       leadingActions: ListItemActions {
                     actions: [
                         Action {
@@ -244,6 +245,7 @@ Page {
         sessionId: model.id,
         workout: model.workout,
         sets: model.sets,
+        reps: model.reps,
         weight: model.weight,
         date: model.date
     }
@@ -265,20 +267,29 @@ Column {
 
             Label { 
                 text: model.workout
-             font.bold: true 
-             }
+                font.bold: true 
+            }
             Label { 
-                text: "Sets: " + model.sets
-                 }
-
-                 Label {
-    text: "Time: " + formatTime(model.duration)
-}
- Label {
+                text: "Sets: " + model.sets + "  |  Time: " + formatTime(model.duration)
+            }
+            Label {
                 text: {
-                    var weightsArray = JSON.parse(model.weight)
-                    return "Weights: " + weightsArray.join(", ")
+                    var weights = [];
+                    try { weights = JSON.parse(model.weight); } catch(e) {}
+                    var reps = [];
+                    if (model.reps) {
+                        try { reps = JSON.parse(model.reps); } catch(e) {}
+                    }
+                    var details = [];
+                    var maxLen = Math.max(weights ? weights.length : 0, reps ? reps.length : 0);
+                    for (var i = 0; i < maxLen; i++) {
+                        var w = (weights && weights[i] !== undefined) ? weights[i] : "0";
+                        var r = (reps && reps[i] !== undefined) ? reps[i] : "0";
+                        details.push(r + " reps of " + w + "kg");
+                    }
+                    return "Details: " + (details.length > 0 ? details.join(", ") : "None");
                 }
+                elide: Text.ElideRight
             }
         }
 
@@ -305,6 +316,7 @@ Column {
 
     EmptyState {
         visible: sessionModel.count === 0
+        anchors.centerIn: parent
     }
 }
 function formatTime(sec) {

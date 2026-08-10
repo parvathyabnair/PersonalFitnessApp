@@ -18,14 +18,17 @@ Page {
 
     property string workout: ""
     property string sets: ""
+    property string reps: ""
     property string weight: ""
     property string date: ""
  
     property var weightsArray: []
     property var weightFields: []
+    property var repsArray: []
+    property var repsFields: []
     property string selectedDate: ""
     property var currentSessionId: -1
-property string currentWorkout: ""
+    property string currentWorkout: ""
 
     function navigateToActiveSession() {
         if (currentSessionId === -1) {
@@ -73,19 +76,28 @@ property string currentWorkout: ""
         var workoutVal = workoutSelector.model[workoutSelector.selectedIndex]
         var setsVal = setSelector.model[setSelector.selectedIndex]
 
+        var numSets = parseInt(setsVal)
+
         var weightsArray = []
-        for (var i = 0; i < weightFields.length; i++) {
-            weightsArray.push(weightFields[i].text)
+        for (var i = 0; i < numSets; i++) {
+            weightsArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
         }
 
         var weightVal = JSON.stringify(weightsArray)
+
+        var repsArray = []
+        for (var i = 0; i < numSets; i++) {
+            repsArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
+        }
+
+        var repsVal = JSON.stringify(repsArray)
         var dateVal = selectedDate
 
         if (isEditMode) {
-            DB.updateSession(sessionId, workoutVal, setsVal, weightVal, dateVal)
+            DB.updateSession(sessionId, workoutVal, setsVal, repsVal, weightVal, dateVal)
             currentSessionId = sessionId
         } else {
-            currentSessionId = DB.insertSession(workoutVal, setsVal, weightVal, dateVal)
+            currentSessionId = DB.insertSession(workoutVal, setsVal, repsVal, weightVal, dateVal)
         }
 
         currentWorkout = workoutVal   
@@ -128,6 +140,13 @@ property string currentWorkout: ""
                 weightsArray = []
             }
 
+            // Reps
+            if (reps && reps !== "") {
+                repsArray = JSON.parse(reps)
+            } else {
+                repsArray = []
+            }
+
             // Wait for UI
           
 
@@ -163,7 +182,8 @@ property string currentWorkout: ""
                     "Dumbbell Bench Press",
                     "Push Ups",
                     "Squats",
-                    "Deadlift"
+                    "Deadlift",
+                    "Default"
                 ]
                 onSelectedIndexChanged: {
                     if (createSessionPage.formReady)
@@ -179,12 +199,13 @@ property string currentWorkout: ""
                 model: ["1","2","3","4","5"]
                 onSelectedIndexChanged: {
     weightFields = []
+    repsFields = []
     if (createSessionPage.formReady)
         createSessionPage.isSaved = false
 }
             }
 
-            // Weights
+            // Weights and Reps
             Column {
                 width: parent.width
 
@@ -196,27 +217,64 @@ property string currentWorkout: ""
                         spacing: units.gu(1)
 
                         Label {
-                            text: "Set " + (index + 1) + " Weight (kg)"
+                            text: "Set " + (index + 1)
+                            font.bold: true
                         }
 
-                      TextField {
-    placeholderText: "Enter weight"
+                        Row {
+                            width: parent.width
+                            spacing: units.gu(2)
 
-    
-    text: (isEditMode && weightsArray.length > index) ? weightsArray[index] : ""
-    onTextChanged: {
-        if (activeFocus)
-            createSessionPage.isSaved = false
-    }
+                            Column {
+                                width: (parent.width - units.gu(2)) / 2
+                                spacing: units.gu(0.5)
+                                Label {
+                                    text: "Weight (kg)"
+                                    font.pixelSize: units.gu(1.4)
+                                }
+                                TextField {
+                                    placeholderText: "Enter weight"
+                                    width: parent.width
+                                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                    text: (isEditMode && weightsArray.length > index) ? weightsArray[index] : ""
+                                    onTextChanged: {
+                                        if (activeFocus)
+                                            createSessionPage.isSaved = false
+                                    }
+                                    Component.onCompleted: {
+                                        weightFields[index] = this
+                                    }
+                                    Component.onDestruction: {
+                                        weightFields[index] = null
+                                    }
+                                }
+                            }
 
-    Component.onCompleted: {
-        weightFields[index] = this
-    }
-
-    Component.onDestruction: {
-        weightFields[index] = null
-    }
-}
+                            Column {
+                                width: (parent.width - units.gu(2)) / 2
+                                spacing: units.gu(0.5)
+                                Label {
+                                    text: "Reps"
+                                    font.pixelSize: units.gu(1.4)
+                                }
+                                TextField {
+                                    placeholderText: "Enter reps"
+                                    width: parent.width
+                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    text: (isEditMode && repsArray.length > index) ? repsArray[index] : ""
+                                    onTextChanged: {
+                                        if (activeFocus)
+                                            createSessionPage.isSaved = false
+                                    }
+                                    Component.onCompleted: {
+                                        repsFields[index] = this
+                                    }
+                                    Component.onDestruction: {
+                                        repsFields[index] = null
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

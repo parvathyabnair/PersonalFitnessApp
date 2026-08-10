@@ -6,7 +6,6 @@ Column {
     property string message: i18n.tr("You haven't logged a workout today. Let's get moving!")
     property string imageSource: theme.name === "Ubuntu.Components.Themes.SuruDark" ? "../../assets/person_darkmode.png" : "../../assets/person_whitemode.png"
     
-    anchors.centerIn: parent
     width: parent.width * 0.8
     spacing: units.gu(3)
     

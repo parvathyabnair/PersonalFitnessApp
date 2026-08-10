@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 09:11+0000\n"
+"POT-Creation-Date: 2026-08-10 06:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,15 +25,19 @@ msgstr ""
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:81 ../qml/components/EmptyState.qml:6
+#: ../qml/ActiveSessionPage.qml:87 ../qml/components/EmptyState.qml:6
 msgid "You haven't logged a workout today. Let's get moving!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:164
+#: ../qml/ActiveSessionPage.qml:91
+msgid "Quick Start"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:189
 msgid "Stop and Save the session before starting"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:192
+#: ../qml/ActiveSessionPage.qml:217
 msgid ""
 "Session saved successfully! Your total calories burned for this session is "
 msgstr ""
@@ -50,7 +54,7 @@ msgstr ""
 msgid " Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:198
+#: ../qml/AddSessionPage.qml:199
 msgid "Search workouts..."
 msgstr ""
 
@@ -98,7 +102,7 @@ msgstr ""
 msgid "Swipe up to start new session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:302
+#: ../qml/SessionCreatePage.qml:360
 msgid "Please save the session using the Save icon before starting."
 msgstr ""
 

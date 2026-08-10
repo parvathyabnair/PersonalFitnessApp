@@ -76,9 +76,34 @@ Page {
     }
 
     // NO ACTIVE SESSIONS VIEW
-    EmptyState {
+    Column {
+        anchors.centerIn: parent
+        spacing: units.gu(3)
         visible: root.activeSessionId === -1
-        message: i18n.tr("You haven't logged a workout today. Let's get moving!")
+        width: parent.width
+
+        EmptyState {
+            anchors.horizontalCenter: parent.horizontalCenter
+            message: i18n.tr("You haven't logged a workout today. Let's get moving!")
+        }
+
+        Button {
+            text: i18n.tr("Quick Start")
+            color: "#f78787"
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: units.gu(20)
+            onClicked: {
+                var today = new Date().toISOString()
+                var id = DB.insertSession("Default", "[]", "[]", "[]", today)
+                if (id !== -1) {
+                    root.activeSessionId = id
+                    root.activeSessionWorkout = "Default"
+                    root.activeSessionSeconds = 0
+                    root.activeSessionRunning = true
+                    root.isSaved = false
+                }
+            }
+        }
     }
 
     //  MAIN UI (CENTERED)
