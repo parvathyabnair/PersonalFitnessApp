@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 06:13+0000\n"
+"POT-Creation-Date: 2026-08-10 06:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,7 +54,7 @@ msgstr ""
 msgid " Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:199
+#: ../qml/AddSessionPage.qml:204
 msgid "Search workouts..."
 msgstr ""
 

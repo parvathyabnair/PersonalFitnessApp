@@ -98,12 +98,17 @@ Page {
         id: sessionModel
     }
 
-    Column {
+    Item {
         anchors.fill: parent
         anchors.topMargin: header.height + units.gu(0.5)
 
-        Rectangle {
-            id: topFilterBar
+        Column {
+            id: topSection
+            width: parent.width
+            spacing: showSearch ? units.gu(1) : 0
+
+            Rectangle {
+                id: topFilterBar
             width: parent.width
             height: units.gu(4)
             //color: '#cea8a8'
@@ -193,20 +198,22 @@ Page {
             }
         }
 
-        TextField {
-            id: searchField
-            visible: showSearch
-            placeholderText: i18n.tr("Search workouts...")
-            width: parent.width - units.gu(2)
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.margins: units.gu(1)
-            onTextChanged: refreshModel(text)
+            TextField {
+                id: searchField
+                visible: showSearch
+                placeholderText: i18n.tr("Search workouts...")
+                width: parent.width - units.gu(2)
+                x: (parent.width - width) / 2
+                onTextChanged: refreshModel(text)
+            }
         }
 
         ListView {
             id: listView
             width: parent.width
-            height: parent.height - topFilterBar.height - (searchField.visible ? searchField.height + units.gu(2) : 0)
+            anchors.top: topSection.bottom
+            anchors.topMargin: units.gu(1)
+            anchors.bottom: parent.bottom
             model: sessionModel
             clip: true
             visible: count > 0
@@ -260,10 +267,10 @@ Page {
 Row {
         anchors.fill: parent
         anchors.margins: units.gu(1)
+        spacing: units.gu(0.5)
         
-Column {
-            width: parent.width - units.gu(12)
-            
+        Column {
+            width: parent.width - units.gu(18)
 
             Label { 
                 text: model.workout
@@ -290,21 +297,61 @@ Column {
                     return "Details: " + (details.length > 0 ? details.join(", ") : "None");
                 }
                 elide: Text.ElideRight
+                width: parent.width
+            }
+        }
+
+        MouseArea {
+            width: units.gu(4)
+            height: units.gu(4)
+            anchors.verticalCenter: parent.verticalCenter
+            onClicked: {
+                pageLayout.addPageToNextColumn(
+                    pageLayout.primaryPage,
+                    Qt.resolvedUrl("SessionCreatePage.qml"),
+                    {
+                        pageLayout: pageLayout,   
+                        isEditMode: true,
+                        sessionId: model.id,
+                        workout: model.workout,
+                        sets: model.sets,
+                        reps: model.reps,
+                        weight: model.weight,
+                        date: model.date
+                    }
+                )
+            }
+            Image {
+                id: showIcon
+                anchors.centerIn: parent
+                source: Qt.resolvedUrl("../assets/show.png")
+                width: units.gu(2.5)
+                height: units.gu(2.5)
+                fillMode: Image.PreserveAspectFit
+                visible: false
+            }
+            ColorOverlay {
+                anchors.fill: showIcon
+                source: showIcon
+                color: "#b4dff0"
             }
         }
 
         Column {
+            width: units.gu(12)
             anchors.verticalCenter: parent.verticalCenter
             
             Label {
                 text: Qt.formatDate(new Date(model.date), "MM/dd/yyyy")
                 color: LomiriColors.slate
                 font.bold: true
+                horizontalAlignment: Text.AlignRight
+                width: parent.width
             }
 
             Label {
                 text: model.calories ? model.calories.toFixed(2) + " kcal" : "0.00 kcal"
-                color: "#f78787" // Matching theme color
+                color: "#b4dff0" // Matching theme color
                 font.pixelSize: units.gu(1.5)
                 horizontalAlignment: Text.AlignRight
                 width: parent.width
