@@ -7,8 +7,8 @@ import "database.js" as DB
 
 Page {
     id: createSessionPage
+    anchors.fill: parent
 
-   
     property var pageLayout
  
     property bool isEditMode: false
@@ -21,27 +21,138 @@ Page {
     property string reps: ""
     property string weight: ""
     property string date: ""
+    property int duration: 0
+    readonly property bool isTimeBased: categorySelector && (categorySelector.selectedIndex === 1 || categorySelector.selectedIndex === 2 || categorySelector.selectedIndex === 3)
  
     property var weightsArray: []
     property var weightFields: []
     property var repsArray: []
     property var repsFields: []
-    property string selectedDate: ""
+    property string selectedDate: new Date().toISOString()
     property var currentSessionId: -1
     property string currentWorkout: ""
 
+    property var strengthWorkouts: [
+        "Dumbbell Bench Press",
+        "Push Ups",
+        "Squats",
+        "Deadlift",
+        "Shoulder Press",
+        "Lunges",
+        "Triceps",
+        "Lateral Raises",
+        "Leg Extensions and Curls",
+        "Calf Raises",
+        "Bicep Curls",
+        "Planks",
+        "Pull-ups and Chin-ups",
+        "Bench Press"
+    ]
+
+    property var cardioWorkouts: [
+        "Running",
+        "Cycling",
+        "Swimming",
+        "Rowing",
+        "Elliptical",
+        "Stair Climber",
+        "Jump Rope",
+        "Treadmill Walk"
+    ]
+
+    property var customWorkouts: [
+        "Push",
+        "Pull",
+        "Full Body",
+        "Manual Entry"
+    ]
+
+    function getSelectedWorkoutName() {
+        var category = categorySelector.model[categorySelector.selectedIndex]
+        if (category === "Strength Training") {
+            return strengthSelector.model[strengthSelector.selectedIndex]
+        } else if (category === "Cardio") {
+            return cardioSelector.model[cardioSelector.selectedIndex]
+        } else if (category === "HIIT Workout") {
+            return "HIIT Workout"
+        } else if (category === "Zumba") {
+            return "Zumba"
+        } else if (category === "Custom Workout") {
+            if (customSelector.selectedIndex === 3) {
+                return customTextField.text.trim() !== "" ? customTextField.text.trim() : "Custom Workout"
+            } else {
+                return customSelector.model[customSelector.selectedIndex]
+            }
+        }
+        return "Workout"
+    }
+
+    function saveSessionData() {
+        var workoutVal = getSelectedWorkoutName()
+        var dateVal = selectedDate !== "" ? selectedDate : new Date().toISOString()
+
+        if (isTimeBased) {
+            var mins = parseFloat(durationSelector.model[durationSelector.selectedIndex])
+            var targetSecs = (mins > 0) ? Math.round(mins * 60) : 0
+
+            if (isEditMode) {
+                DB.updateSession(sessionId, workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
+                DB.updateSessionTime(sessionId, targetSecs)
+                currentSessionId = sessionId
+            } else {
+                currentSessionId = DB.insertSession(workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
+                DB.updateSessionTime(currentSessionId, targetSecs)
+            }
+            currentWorkout = workoutVal
+        } else {
+            var setsVal = setSelector.model[setSelector.selectedIndex]
+            var numSets = parseInt(setsVal)
+
+            var wArray = []
+            for (var i = 0; i < numSets; i++) {
+                wArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
+            }
+            var weightVal = JSON.stringify(wArray)
+
+            var rArray = []
+            for (var i = 0; i < numSets; i++) {
+                rArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
+            }
+            var repsVal = JSON.stringify(rArray)
+
+            if (isEditMode) {
+                DB.updateSession(sessionId, workoutVal, setsVal, repsVal, weightVal, dateVal)
+                currentSessionId = sessionId
+            } else {
+                currentSessionId = DB.insertSession(workoutVal, setsVal, repsVal, weightVal, dateVal)
+            }
+            currentWorkout = workoutVal   
+        }
+
+        isSaved = true
+        selectedDate = dateVal
+        DB.ACTIVE_SESSION_ID = currentSessionId
+        DB.ACTIVE_WORKOUT = currentWorkout
+        return currentSessionId
+    }
+
     function navigateToActiveSession() {
         if (currentSessionId === -1) {
-            console.log("Please save first!")
-            return
+            saveSessionData()
         }
 
         if (pageLayout) {
-            // INITIALIZE GLOBAL SESSION STATE
             root.activeSessionId = currentSessionId
             root.activeSessionWorkout = currentWorkout
             root.activeSessionSeconds = 0
             root.activeSessionRunning = true
+            
+            if (isTimeBased) {
+                var mins = parseFloat(durationSelector.model[durationSelector.selectedIndex])
+                root.activeSessionTargetSeconds = (mins > 0) ? Math.round(mins * 60) : -1
+            } else {
+                root.activeSessionTargetSeconds = -1
+            }
 
             pageLayout.addPageToNextColumn(
                 createSessionPage,
@@ -52,266 +163,443 @@ Page {
                     workout: currentWorkout
                 }
             )
-        } else {
-            console.log("ERROR: pageLayout undefined")
         }
     }
 
     header: PageHeader {
-        title: isEditMode ? "Edit Session" : "Create New Session"
+        title: isEditMode ? i18n.tr("Edit Session") : i18n.tr("Create Session")
 
         StyleHints {
             foregroundColor: "white"
-            backgroundColor: "#f78787"
+            backgroundColor: root.primaryColor
+            dividerColor: LomiriColors.slate
         }
 
-         trailingActionBar.numberOfSlots: 2
-            trailingActionBar.actions: [
-               Action {
-    iconName: "save"
-    text: "Save Session"
-
-    onTriggered: {
-
-        var workoutVal = workoutSelector.model[workoutSelector.selectedIndex]
-        var setsVal = setSelector.model[setSelector.selectedIndex]
-
-        var numSets = parseInt(setsVal)
-
-        var weightsArray = []
-        for (var i = 0; i < numSets; i++) {
-            weightsArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
-        }
-
-        var weightVal = JSON.stringify(weightsArray)
-
-        var repsArray = []
-        for (var i = 0; i < numSets; i++) {
-            repsArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
-        }
-
-        var repsVal = JSON.stringify(repsArray)
-        var dateVal = selectedDate
-
-        if (isEditMode) {
-            DB.updateSession(sessionId, workoutVal, setsVal, repsVal, weightVal, dateVal)
-            currentSessionId = sessionId
-        } else {
-            currentSessionId = DB.insertSession(workoutVal, setsVal, repsVal, weightVal, dateVal)
-        }
-
-        currentWorkout = workoutVal   
-        // MARK AS SAVED
-        isSaved = true
-
-        // SET ACTIVE SESSION
-        DB.ACTIVE_SESSION_ID = currentSessionId
-        DB.ACTIVE_WORKOUT = currentWorkout
-
-        console.log("Saved Session ID:", currentSessionId)
-    }
-}
-              
-               ]
-
+        trailingActionBar.numberOfSlots: 1
+        trailingActionBar.actions: [
+            Action {
+                iconName: "save"
+                text: i18n.tr("Save")
+                onTriggered: {
+                    saveSessionData()
+                    PopupUtils.open(successDialog)
+                }
+            }
+        ]
     }
 
-     
     Component.onCompleted: {
-
-        console.log("Edit Mode:", isEditMode)
-
         if (isEditMode) {
+            var strengthIdx = strengthWorkouts.indexOf(workout)
+            var cardioIdx = cardioWorkouts.indexOf(workout)
+            
+            if (strengthIdx !== -1) {
+                categorySelector.selectedIndex = 0
+                strengthSelector.selectedIndex = strengthIdx
+            } else if (cardioIdx !== -1) {
+                categorySelector.selectedIndex = 1
+                cardioSelector.selectedIndex = cardioIdx
+            } else if (workout === "HIIT Workout") {
+                categorySelector.selectedIndex = 2
+            } else if (workout === "Zumba") {
+                categorySelector.selectedIndex = 3
+            } else {
+                categorySelector.selectedIndex = 4
+                var customIdx = customWorkouts.indexOf(workout)
+                if (customIdx !== -1 && customIdx !== 3) {
+                    customSelector.selectedIndex = customIdx
+                } else {
+                    customSelector.selectedIndex = 3
+                    customTextField.text = workout
+                }
+            }
 
-            // Workout
-            var workoutIndex = workoutSelector.model.indexOf(workout)
-            if (workoutIndex !== -1)
-                workoutSelector.selectedIndex = workoutIndex
-
-            // Sets
             var setsIndex = setSelector.model.indexOf(sets)
-            if (setsIndex !== -1)
-                setSelector.selectedIndex = setsIndex
+            if (setsIndex !== -1) setSelector.selectedIndex = setsIndex
 
-            // Weights
             if (weight && weight !== "") {
-                weightsArray = JSON.parse(weight)
-            } else {
-                weightsArray = []
+                try { weightsArray = JSON.parse(weight); } catch(e) { weightsArray = []; }
             }
-
-            // Reps
             if (reps && reps !== "") {
-                repsArray = JSON.parse(reps)
-            } else {
-                repsArray = []
+                try { repsArray = JSON.parse(reps); } catch(e) { repsArray = []; }
             }
 
-            // Wait for UI
-          
+            if (duration) {
+                var minsVal = Math.round(duration / 60).toString()
+                var durIndex = durationSelector.model.indexOf(minsVal)
+                if (durIndex !== -1) durationSelector.selectedIndex = durIndex
+            }
 
-            // Date
             if (date) {
                 selectedDate = date
             }
         }
-
         formReady = true
     }
 
     Flickable {
-        anchors.fill: parent
-        anchors.topMargin: header.height + units.gu(2)
+        anchors.top: header.bottom
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        contentWidth: width
+        contentHeight: contentColumn.height + units.gu(6)
+        clip: true
+        flickableDirection: Flickable.VerticalFlick
+        boundsBehavior: Flickable.DragOverBounds
 
         Column {
-            width: parent.width
+            id: contentColumn
+            width: parent.width - units.gu(3)
+            anchors.horizontalCenter: parent.horizontalCenter
             spacing: units.gu(2)
+            topPadding: units.gu(2)
+            bottomPadding: units.gu(3)
 
-            anchors {
-                left: parent.left
-                right: parent.right
-                margins: units.gu(2)
-            }
+            // SECTION 1: WORKOUT CATEGORY & EXERCISE
+            Rectangle {
+                width: parent.width
+                height: catColumn.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
 
-            // Workout
-            Label { text: "Select Workout" }
+                Column {
+                    id: catColumn
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
 
-            OptionSelector {
-                id: workoutSelector
-                model: [
-                    "Dumbbell Bench Press",
-                    "Push Ups",
-                    "Squats",
-                    "Deadlift",
-                    "Default"
-                ]
-                onSelectedIndexChanged: {
-                    if (createSessionPage.formReady)
-                        createSessionPage.isSaved = false
+                    Label {
+                        text: i18n.tr("Workout Category")
+                        font.bold: true
+                        font.pixelSize: units.gu(1.6)
+                        color: root.textPrimaryColor
+                    }
+
+                    OptionSelector {
+                        id: categorySelector
+                        model: [
+                            "Strength Training",
+                            "Cardio",
+                            "HIIT Workout",
+                            "Zumba",
+                            "Custom Workout"
+                        ]
+                        onSelectedIndexChanged: {
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
+
+                    // Strength Training Sub-selector
+                    Label {
+                        text: i18n.tr("Exercise")
+                        visible: categorySelector.selectedIndex === 0
+                        font.bold: true
+                        font.pixelSize: units.gu(1.5)
+                        color: root.textPrimaryColor
+                    }
+                    OptionSelector {
+                        id: strengthSelector
+                        model: strengthWorkouts
+                        visible: categorySelector.selectedIndex === 0
+                        onSelectedIndexChanged: {
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
+
+                    // Cardio Sub-selector
+                    Label {
+                        text: i18n.tr("Cardio Activity")
+                        visible: categorySelector.selectedIndex === 1
+                        font.bold: true
+                        font.pixelSize: units.gu(1.5)
+                        color: root.textPrimaryColor
+                    }
+                    OptionSelector {
+                        id: cardioSelector
+                        model: cardioWorkouts
+                        visible: categorySelector.selectedIndex === 1
+                        onSelectedIndexChanged: {
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
+
+                    // Custom Sub-selector
+                    Label {
+                        text: i18n.tr("Routine Type")
+                        visible: categorySelector.selectedIndex === 4
+                        font.bold: true
+                        font.pixelSize: units.gu(1.5)
+                        color: root.textPrimaryColor
+                    }
+                    OptionSelector {
+                        id: customSelector
+                        model: customWorkouts
+                        visible: categorySelector.selectedIndex === 4
+                        onSelectedIndexChanged: {
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
+
+                    // Custom Workout Name TextField
+                    TextField {
+                        id: customTextField
+                        placeholderText: i18n.tr("Enter workout name...")
+                        width: parent.width
+                        visible: categorySelector.selectedIndex === 4 && customSelector.selectedIndex === 3
+                        onTextChanged: {
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
                 }
             }
 
-            // Sets
-            Label { text: "No. of sets" }
+            // SECTION 2: WORKOUT PARAMETERS (SETS OR DURATION)
+            Rectangle {
+                width: parent.width
+                height: paramColumn.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
 
-            OptionSelector {
-                id: setSelector
-                model: ["1","2","3","4","5"]
-                onSelectedIndexChanged: {
-    weightFields = []
-    repsFields = []
-    if (createSessionPage.formReady)
-        createSessionPage.isSaved = false
-}
+                Column {
+                    id: paramColumn
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    Label {
+                        text: isTimeBased ? i18n.tr("Target Duration") : i18n.tr("Number of Sets")
+                        font.bold: true
+                        font.pixelSize: units.gu(1.6)
+                        color: root.textPrimaryColor
+                    }
+
+                    OptionSelector {
+                        id: setSelector
+                        model: ["1", "2", "3", "4", "5"]
+                        visible: !isTimeBased
+                        onSelectedIndexChanged: {
+                            weightFields = []
+                            repsFields = []
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
+
+                    OptionSelector {
+                        id: durationSelector
+                        model: ["5", "10", "15", "20", "25", "30", "45", "60", "90", "120"]
+                        visible: isTimeBased
+                        onSelectedIndexChanged: {
+                            if (createSessionPage.formReady)
+                                createSessionPage.isSaved = false
+                        }
+                    }
+                }
             }
 
-            // Weights and Reps
-            Column {
+            // SECTION 3: WEIGHT & REPS PER SET
+            Rectangle {
                 width: parent.width
+                height: setsColumn.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+                visible: !isTimeBased
 
-                Repeater {
-                    model: parseInt(setSelector.model[setSelector.selectedIndex])
+                Column {
+                    id: setsColumn
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.5)
+
+                    Label {
+                        text: i18n.tr("Sets Breakdown")
+                        font.bold: true
+                        font.pixelSize: units.gu(1.6)
+                        color: root.textPrimaryColor
+                    }
+
+                    Repeater {
+                        model: parseInt(setSelector.model[setSelector.selectedIndex])
+
+                        Rectangle {
+                            width: parent.width
+                            height: units.gu(8.5)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#2C2D32" : "#F8F9FA"
+                            border.color: root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            Column {
+                                anchors.fill: parent
+                                anchors.margins: units.gu(1)
+                                spacing: units.gu(0.5)
+
+                                Label {
+                                    text: i18n.tr("SET ") + (index + 1)
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.3)
+                                    color: root.primaryColor
+                                }
+
+                                Row {
+                                    width: parent.width
+                                    spacing: units.gu(1.5)
+
+                                    // Weight Input
+                                    Row {
+                                        width: (parent.width - units.gu(1.5)) / 2
+                                        spacing: units.gu(0.5)
+
+                                        TextField {
+                                            width: parent.width - units.gu(3.5)
+                                            placeholderText: i18n.tr("Weight")
+                                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                            text: (isEditMode && weightsArray.length > index) ? weightsArray[index] : ""
+                                            onTextChanged: {
+                                                if (activeFocus) createSessionPage.isSaved = false
+                                            }
+                                            Component.onCompleted: weightFields[index] = this
+                                            Component.onDestruction: weightFields[index] = null
+                                        }
+
+                                        Label {
+                                            text: "kg"
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            font.pixelSize: units.gu(1.3)
+                                            color: root.textSecondaryColor
+                                        }
+                                    }
+
+                                    // Reps Input
+                                    Row {
+                                        width: (parent.width - units.gu(1.5)) / 2
+                                        spacing: units.gu(0.5)
+
+                                        TextField {
+                                            width: parent.width - units.gu(4.5)
+                                            placeholderText: i18n.tr("Reps")
+                                            inputMethodHints: Qt.ImhDigitsOnly
+                                            text: (isEditMode && repsArray.length > index) ? repsArray[index] : ""
+                                            onTextChanged: {
+                                                if (activeFocus) createSessionPage.isSaved = false
+                                            }
+                                            Component.onCompleted: repsFields[index] = this
+                                            Component.onDestruction: repsFields[index] = null
+                                        }
+
+                                        Label {
+                                            text: "reps"
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            font.pixelSize: units.gu(1.3)
+                                            color: root.textSecondaryColor
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // SECTION 4: DATE SELECTION
+            Rectangle {
+                width: parent.width
+                height: dateRowLayout.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                RowLayout {
+                    id: dateRowLayout
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
 
                     Column {
-                        width: parent.width
-                        spacing: units.gu(1)
+                        Layout.fillWidth: true
+                        spacing: units.gu(0.3)
 
                         Label {
-                            text: "Set " + (index + 1)
+                            text: i18n.tr("Workout Date")
                             font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            color: root.textPrimaryColor
                         }
 
-                        Row {
-                            width: parent.width
-                            spacing: units.gu(2)
+                        Label {
+                            text: selectedDate === "" ? 
+                                  Qt.formatDate(new Date(), "dddd, MMM d, yyyy") : 
+                                  Qt.formatDate(new Date(selectedDate), "dddd, MMM d, yyyy")
+                            font.pixelSize: units.gu(1.3)
+                            color: root.textSecondaryColor
+                        }
+                    }
 
-                            Column {
-                                width: (parent.width - units.gu(2)) / 2
-                                spacing: units.gu(0.5)
-                                Label {
-                                    text: "Weight (kg)"
-                                    font.pixelSize: units.gu(1.4)
-                                }
-                                TextField {
-                                    placeholderText: "Enter weight"
-                                    width: parent.width
-                                    inputMethodHints: Qt.ImhFormattedNumbersOnly
-                                    text: (isEditMode && weightsArray.length > index) ? weightsArray[index] : ""
-                                    onTextChanged: {
-                                        if (activeFocus)
-                                            createSessionPage.isSaved = false
-                                    }
-                                    Component.onCompleted: {
-                                        weightFields[index] = this
-                                    }
-                                    Component.onDestruction: {
-                                        weightFields[index] = null
-                                    }
-                                }
-                            }
-
-                            Column {
-                                width: (parent.width - units.gu(2)) / 2
-                                spacing: units.gu(0.5)
-                                Label {
-                                    text: "Reps"
-                                    font.pixelSize: units.gu(1.4)
-                                }
-                                TextField {
-                                    placeholderText: "Enter reps"
-                                    width: parent.width
-                                    inputMethodHints: Qt.ImhDigitsOnly
-                                    text: (isEditMode && repsArray.length > index) ? repsArray[index] : ""
-                                    onTextChanged: {
-                                        if (activeFocus)
-                                            createSessionPage.isSaved = false
-                                    }
-                                    Component.onCompleted: {
-                                        repsFields[index] = this
-                                    }
-                                    Component.onDestruction: {
-                                        repsFields[index] = null
-                                    }
-                                }
-                            }
+                    Button {
+                        id: dateButton
+                        text: i18n.tr("Change")
+                        color: root.cardBorderColor
+                        height: units.gu(4)
+                        onClicked: {
+                            PopupUtils.open(datePickerPopover, dateButton)
                         }
                     }
                 }
             }
 
-            // Date
-            Label { text: "Select Date" }
+            // SECTION 5: ACTION BUTTONS (SEAMLESS ONE-TAP START & SAVE)
+            Row {
+                width: parent.width
+                spacing: units.gu(1.5)
 
-            Button {
-                id: dateButton
+                Button {
+                    text: i18n.tr("Start Workout Now")
+                    color: root.primaryColor
+                    width: (parent.width - units.gu(1.5)) * 0.6
+                    height: units.gu(5)
 
-                text: selectedDate === "" ?
-                      "Select Date" : Qt.formatDate(new Date(selectedDate), "MM/dd/yyyy")
-
-                onClicked: {
-                    PopupUtils.open(datePickerPopover, dateButton)
-                }
-            }
-
-            // Start button
-            Button {
-                text: "Start Session"
-                anchors.horizontalCenter: parent.horizontalCenter
-                color: "#b4dff0"
-
-                onClicked: {
-                    if (!isSaved || currentSessionId === -1) {
-                        PopupUtils.open(saveDialog)
-                        return
+                    onClicked: {
+                        saveSessionData()
+                        navigateToActiveSession()
                     }
+                }
 
-                    navigateToActiveSession()
+                Button {
+                    text: isEditMode ? i18n.tr("Save Changes") : i18n.tr("Save to Log")
+                    color: root.cardBorderColor
+                    width: (parent.width - units.gu(1.5)) * 0.4
+                    height: units.gu(5)
+
+                    onClicked: {
+                        saveSessionData()
+                        PopupUtils.open(successDialog)
+                    }
                 }
             }
         }
     }
 
-    
+    // DATE PICKER POPOVER
     Component {
         id: datePickerPopover
 
@@ -327,8 +615,10 @@ Page {
                 }
 
                 Button {
-                    text: "OK"
+                    text: i18n.tr("Confirm")
+                    color: root.primaryColor
                     anchors.horizontalCenter: parent.horizontalCenter
+                    width: units.gu(14)
 
                     onClicked: {
                         selectedDate = picker.date.toISOString()
@@ -341,33 +631,41 @@ Page {
         }
     }
 
-    
+    // SUCCESS DIALOG
     Component {
-        id: saveDialog
+        id: successDialog
 
         Dialog {
-            id: dialog
-            title: "Save Session First"
+            id: succDialog
+            title: i18n.tr("Success! 🎉")
 
             Column {
                 spacing: units.gu(2)
 
                 Label {
-
                     width: parent.width
-        wrapMode: Text.WordWrap
-        horizontalAlignment: Text.AlignJustify
-        text: i18n.tr("Please save the session using the Save icon before starting.")
+                    wrapMode: Text.WordWrap
+                    color: root.textPrimaryColor
+                    text: i18n.tr("Session saved successfully!")
                 }
 
                 Row {
-                    spacing: units.gu(2)
+                    spacing: units.gu(1.5)
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     Button {
-                        text: "OK"
-                        color: "#b4dff0"
-                        onClicked: PopupUtils.close(dialog)
+                        text: i18n.tr("Back to Overview")
+                        color: root.cardBorderColor
+                        onClicked: {
+                            PopupUtils.close(succDialog)
+                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
+                        }
+                    }
+
+                    Button {
+                        text: i18n.tr("OK")
+                        color: root.primaryColor
+                        onClicked: PopupUtils.close(succDialog)
                     }
                 }
             }

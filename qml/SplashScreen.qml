@@ -16,48 +16,43 @@ Rectangle {
 
     property bool _done: false
 
-    // Hide splash when both conditions are true (with _done protection)
-    states: [
-        State {
-            name: "done"
-            when: root.ready && !minTimer.running && !root._done
+    function finishSplash() {
+        if (_done) return;
+        _done = true;
+        fadeAnim.start();
+    }
+
+    SequentialAnimation {
+        id: fadeAnim
+        NumberAnimation {
+            target: contentWrapper
+            property: "opacity"
+            from: 1.0
+            to: 0.0
+            duration: 450
         }
-    ]
-
-    transitions: [
-        Transition {
-            from: ""
-            to: "done"
-            reversible: false
-
-            OpacityAnimator {
-                target: contentWrapper
-                from: 1.0
-                to: 0.0
-                duration: 450
-            }
-
-            ScriptAction {
-                script: {
-                    if (!root._done) {
-                        root._done = true
-                        root.finished()
-                        if (root.autoDestroy) {
-                            Qt.callLater(function() {
-                                root.destroy()
-                            })
-                        }
-                    }
+        ScriptAction {
+            script: {
+                root.finished()
+                if (root.autoDestroy) {
+                    Qt.callLater(function() {
+                        root.destroy()
+                    })
                 }
             }
         }
-    ]
+    }
 
     Timer {
         id: minTimer
         interval: minimumTime
         running: true
         repeat: false
+        onTriggered: {
+            if (root.ready) {
+                root.finishSplash()
+            }
+        }
     }
 
     // Content wrapper (fade only this, not the root) - prevents glitches in pageLayout/Loader
@@ -108,7 +103,7 @@ Rectangle {
                     height: parent.height
                     width: 0
                     radius: height / 2
-                    color: '#f78787'
+                    color: '#FF5252'
                 }
             }
 
@@ -152,7 +147,7 @@ Rectangle {
     // Safety: prevent multiple state evaluations from triggering multiple finishes
     onReadyChanged: {
         if (ready && !minTimer.running && !root._done) {
-            // State will handle transition
+            root.finishSplash()
         }
     }
 }

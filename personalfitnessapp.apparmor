@@ -1,4 +1,4 @@
 {
-    "policy_groups": [],
+    "policy_groups": ["networking", "camera", "audio"],
     "policy_version": 20.04
 }

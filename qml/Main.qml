@@ -32,40 +32,68 @@ MainView {
     height: units.gu(75)
     property bool showSplash: true
     
+    // THEME PALETTE HELPERS (Used consistently across all pages)
+    readonly property bool isDarkMode: Theme.name === "Ubuntu.Components.Themes.SuruDark"
+    readonly property color primaryColor: "#FF5252"
+    readonly property color primaryHoverColor: "#FF6E6E"
+    readonly property color primaryLightColor: isDarkMode ? "#3D2224" : "#FFEAEA"
+    readonly property color cardBgColor: isDarkMode ? "#25262B" : "#FFFFFF"
+    readonly property color cardBorderColor: isDarkMode ? "#373A40" : "#E9ECEF"
+    readonly property color textPrimaryColor: isDarkMode ? "#F8F9FA" : "#1A1B1E"
+    readonly property color textSecondaryColor: isDarkMode ? "#A0A0A5" : "#6C757D"
+    readonly property color accentBlue: isDarkMode ? "#38BDF8" : "#0284C7"
+    readonly property color accentGreen: isDarkMode ? "#34D399" : "#10B981"
+    readonly property color accentOrange: isDarkMode ? "#FB923C" : "#F97316"
+    
     // GLOBAL SESSION STATE
     property int activeSessionId: -1
     property string activeSessionWorkout: ""
     property int activeSessionSeconds: 0
     property bool activeSessionRunning: false
+    property int activeSessionTargetSeconds: -1
+
+    // WEARABLE BLUETOOTH BACKEND BRIDGE (Xiaomi Band 9 / Gadgetbridge)
+    readonly property alias backendBridge: backendBridgeInstance
+    BackendBridge {
+        id: backendBridgeInstance
+    }
+
+    onActiveSessionRunningChanged: {
+        backendBridgeInstance.setWorkoutMode(activeSessionRunning)
+    }
 
     Timer {
         id: globalSessionTimer
         interval: 1000
         running: activeSessionRunning
         repeat: true
-        onTriggered: activeSessionSeconds++
+        onTriggered: {
+            activeSessionSeconds++
+            if (activeSessionTargetSeconds > 0 && activeSessionSeconds === activeSessionTargetSeconds) {
+                activeSessionRunning = false
+            }
+        }
     }
     Component.onCompleted: {
-    DB.createTable()
-}
-
+        DB.createTable()
+    }
 
     AdaptivePageLayout {
-    id: pageLayout
-    anchors.fill: parent
+        id: pageLayout
+        anchors.fill: parent
 
-    primaryPage: HomePage {
-        pageLayout: pageLayout
+        primaryPage: HomePage {
+            pageLayout: pageLayout
+        }
     }
-}
 
     SplashScreen {
         id: splashScreen
         anchors.fill: parent
         appName: "Personal Fitness App"
         appVersion: "1.0.0"
-        minimumTime: 5000 // 5 seconds
-        ready: true // Set to true to allow splash to finish after minimumTime
+        minimumTime: 1800 // Snappy and responsive splash
+        ready: true
         visible: showSplash
         z: 1000
 
@@ -73,6 +101,4 @@ MainView {
             showSplash = false
         }
     }
-
-   
 }

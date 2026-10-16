@@ -15,7 +15,7 @@ Item {
         // Fallback if logo doesn't exist
         Rectangle {
             anchors.fill: parent
-            color: '#f78787' // Ubuntu orange
+            color: '#FF5252'
             radius: width / 2
             visible: logo.status === Image.Error || logo.status === Image.Null
             

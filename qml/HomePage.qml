@@ -1,17 +1,17 @@
 import QtQuick 2.7
 import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
-import QtQuick.Shapes 1.0
 import Qt.labs.settings 1.0
 import "database.js" as DB
 
 Page {
+    id: homePage
     anchors.fill: parent
     property var pageLayout
     property string currentWeight: "0"
     property string todaysCalories: "0"
     property string goalWeight: "0"
-    property real targetCalories: 1
+    property real targetCalories: 500
     property real progressPercentage: 0
     property var weeklyData: []
 
@@ -20,11 +20,11 @@ Page {
         if (settings) {
             currentWeight = settings.weight ? settings.weight : "0"
             goalWeight = settings.goal_weight ? settings.goal_weight : "0"
-            targetCalories = parseFloat(settings.kcal_target) || 1
+            targetCalories = parseFloat(settings.kcal_target) || 500
         }
         var cal = DB.getTodaysCalories()
         todaysCalories = Math.round(cal).toString()
-        var pct = (cal / targetCalories) * 100
+        var pct = targetCalories > 0 ? (cal / targetCalories) * 100 : 0
         if (pct > 100) pct = 100
         progressPercentage = Math.round(pct)
         
@@ -48,27 +48,27 @@ Page {
             loadOverviewData()
         }
     }
+
     header: PageHeader {
         id: header
-        title: i18n.tr("Fitness App")
+        title: i18n.tr("Personal Fitness")
 
         StyleHints {
             foregroundColor: "white"
-            backgroundColor: "#f78787"
+            backgroundColor: root.primaryColor
             dividerColor: LomiriColors.slate
         }
 
         trailingActionBar.numberOfSlots: 2
 
         trailingActionBar.actions: [
-
             Action {
                 iconName: theme.name === "Ubuntu.Components.Themes.SuruDark" ?
-                          "weather-clear-night-symbolic" :
-                          "weather-clear-symbolic"
+                          "weather-clear-symbolic" :
+                          "weather-clear-night-symbolic"
 
                 text: theme.name === "Ubuntu.Components.Themes.SuruDark" ?
-                      i18n.tr("Light Mode") :  i18n.tr("Dark Mode")
+                      i18n.tr("Light Mode") : i18n.tr("Dark Mode")
 
                 onTriggered: {
                     var newTheme =
@@ -77,24 +77,27 @@ Page {
                         "Ubuntu.Components.Themes.SuruDark"
 
                     Theme.name = newTheme
+                    if (typeof chartCanvas !== "undefined" && chartCanvas.requestPaint) {
+                        chartCanvas.requestPaint();
+                    }
                 }
             },
 
             Action {
-                iconName: "add"
-                text: "Session Overview"
-
-                onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("AddSessionPage.qml"),{pageLayout: pageLayout})
-                }
-            },
-
-            Action {
-                iconName: "info"
+                iconName: "media-playback-start"
                 text: i18n.tr("Active Session")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("ActiveSessionPage.qml"),{pageLayout: pageLayout})
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("ActiveSessionPage.qml"), {pageLayout: pageLayout})
+                }
+            },
+
+            Action {
+                iconSource: Qt.resolvedUrl("../assets/show.png")
+                text: i18n.tr("Session Overview")
+
+                onTriggered: {
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
                 }
             },
 
@@ -103,391 +106,609 @@ Page {
                 text: i18n.tr("Settings")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SettingsPage.qml"))
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SettingsPage.qml"))
+                }
+            },
+
+            Action {
+                iconName: "find"
+                text: i18n.tr("Wearables & Band 9")
+
+                onTriggered: {
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("WearablesPage.qml"), {pageLayout: pageLayout})
+                }
+            },
+
+            Action {
+                iconSource: Qt.resolvedUrl("../assets/show.png")
+                text: i18n.tr("Private Media Vault 🔒")
+
+                onTriggered: {
+                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
                 }
             }
         ]
     }
 
-    Label {
-        id: dateLabel
+    // Scrollable Main Content to prevent any overflow on mobile
+    Flickable {
+        id: mainFlickable
         anchors.top: header.bottom
-        anchors.topMargin: units.gu(2)
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: Qt.formatDate(new Date(), "dddd, d MMMM yyyy")
-        font.pixelSize: units.gu(2.5)
-        font.bold: true
-    }
-    Item {
-        id: overviewCards
-        anchors.top: dateLabel.bottom
-        anchors.topMargin: units.gu(4)
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: cardsRow.width + units.gu(4)
-        height: cardsRow.height + units.gu(4)
-
-        Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            border.color: '#d5cccc'
-            border.width: units.dp(2)
-            radius: units.dp(8)
-        }
-
-        Rectangle {
-            id: animatedCircle
-            width: units.gu(2)
-            height: units.gu(2)
-            radius: width / 2
-            color: "#f78787"
-            z: 2
-            x: 0
-            y: 0
-        }
-
-        SequentialAnimation {
-            loops: Animation.Infinite
-            running: true
-
-            NumberAnimation { target: animatedCircle; property: "x"; from: 0; to: overviewCards.width - animatedCircle.width; duration: 2000 }
-            NumberAnimation { target: animatedCircle; property: "y"; from: 0; to: overviewCards.height - animatedCircle.height; duration: 1000 }
-            NumberAnimation { target: animatedCircle; property: "x"; from: overviewCards.width - animatedCircle.width; to: 0; duration: 2000 }
-            NumberAnimation { target: animatedCircle; property: "y"; from: overviewCards.height - animatedCircle.height; to: 0; duration: 1000 }
-        }
-
-        Row {
-            id: cardsRow
-            anchors.centerIn: parent
-            spacing: units.gu(1.5)
-
-            // Today's Weight Card
-            Rectangle {
-                width: units.gu(10)
-                height: units.gu(9)
-                radius: units.dp(8)
-                border.color: "#E0E0E0"
-                border.width: units.dp(1)
-                color: "#b4dff0"
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: units.gu(0.5)
-
-                    Label {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: currentWeight + "kg"
-                        font.pixelSize: units.gu(2.8)
-                        font.bold: true
-                    }
-                    Label {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: i18n.tr("Current Weight")
-                        font.pixelSize: units.gu(1.2)
-                        color: "gray"
-                    }
-                }
-            }
-
-            // Today's Calories Card
-            Rectangle {
-                width: units.gu(10)
-                height: units.gu(9)
-                radius: units.dp(8)
-                border.color: "#E0E0E0"
-                border.width: units.dp(1)
-                color: "#b4dff0"
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: units.gu(0.5)
-
-                    Label {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: todaysCalories + "kcal"
-                        font.pixelSize: units.gu(2.8)
-                        font.bold: true
-                    }
-                    Label {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: i18n.tr("Todays Calories")
-                        font.pixelSize: units.gu(1.2)
-                        color: "gray"
-                    }
-                }
-            }
-
-            // Goal Weight Card
-            Rectangle {
-                width: units.gu(10)
-                height: units.gu(9)
-                radius: units.dp(8)
-                border.color: "#E0E0E0"
-                border.width: units.dp(1)
-                color: "#b4dff0"
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: units.gu(0.5)
-
-                    Label {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: goalWeight + "kg"
-                        font.pixelSize: units.gu(2.8)
-                        font.bold: true
-                    }
-                    Label {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: i18n.tr("Goal")
-                        font.pixelSize: units.gu(1.2)
-                        color: "gray"
-                    }
-                }
-            }
-        }
-    }
-
-    Rectangle {
-        id: weeklyChartRect
-        anchors.top: overviewCards.bottom
-        anchors.topMargin: units.gu(3)
+        anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.leftMargin: units.gu(4)
-        anchors.rightMargin: units.gu(4)
-        height: units.gu(28)
-        radius: units.dp(8)
-        border.color: "#E0E0E0"
-        border.width: units.dp(1)
-        color: "white"
+        contentWidth: width
+        contentHeight: contentColumn.height + units.gu(8)
+        clip: true
+        flickableDirection: Flickable.VerticalFlick
+        boundsBehavior: Flickable.DragOverBounds
 
-        Label {
-            id: chartTitle
-            anchors.top: parent.top
-            anchors.topMargin: units.gu(2)
+        Column {
+            id: contentColumn
+            width: parent.width - units.gu(3)
             anchors.horizontalCenter: parent.horizontalCenter
-            text: i18n.tr("Weekly Progress")
-            color: "black"
-            font.bold: true
-            font.pixelSize: units.gu(2.0)
-        }
+            spacing: units.gu(2)
+            topPadding: units.gu(2)
+            bottomPadding: units.gu(2)
 
-        Canvas {
-            id: chartCanvas
-            anchors.top: chartTitle.bottom
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: units.gu(2)
-            
-            onPaint: {
-                if (weeklyData.length === 0) return;
-                var ctx = getContext("2d");
-                ctx.clearRect(0, 0, width, height);
+            // GREETING & DATE BANNER
+            RowLayout {
+                width: parent.width
 
-                // calculate max value for y scaling
-                var maxVal = 500; // default max value
-                for (var i = 0; i < weeklyData.length; i++) {
-                    if (weeklyData[i].value > maxVal) {
-                        maxVal = weeklyData[i].value;
+                Column {
+                    Layout.fillWidth: true
+                    spacing: units.gu(0.3)
+
+                    Label {
+                        text: i18n.tr("Welcome Back! 💪")
+                        font.pixelSize: units.gu(2.4)
+                        font.bold: true
+                        color: root.textPrimaryColor
+                    }
+
+                    Label {
+                        text: Qt.formatDate(new Date(), "dddd, d MMMM yyyy")
+                        font.pixelSize: units.gu(1.4)
+                        color: root.textSecondaryColor
                     }
                 }
-                maxVal = Math.ceil(maxVal / 100) * 100;
 
-                var paddingLeft = units.gu(4);
-                var paddingRight = units.gu(3);
-                var paddingBottom = units.gu(2);
-                var paddingTop = units.gu(2);
-                var chartWidth = width - paddingLeft - paddingRight;
-                var chartHeight = height - paddingBottom - paddingTop;
-                
-                // Draw horizontal grid lines and labels
-                ctx.strokeStyle = "#F0F0F0";
-                ctx.lineWidth = units.dp(1);
-                ctx.font = "10px sans-serif";
-                ctx.fillStyle = "gray";
-                ctx.textAlign = "right";
-                
-                var steps = 5;
-                for (var j = 1; j <= steps; j++) {
-                    var yVal = (maxVal / steps) * j;
-                    var yPos = paddingTop + chartHeight - (yVal / maxVal) * chartHeight;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(paddingLeft, yPos);
-                    ctx.lineTo(width - paddingRight, yPos);
-                    ctx.stroke();
-                    
-                    ctx.fillText(yVal.toString(), paddingLeft - units.gu(1), yPos + 4);
-                }
-                
-                // Draw x-axis labels
-                ctx.textAlign = "center";
-                var pointSpacing = chartWidth / (weeklyData.length - 1);
-                for (var k = 0; k < weeklyData.length; k++) {
-                    var xPos = paddingLeft + k * pointSpacing;
-                    ctx.fillText(weeklyData[k].label, xPos, height - 2);
-                }
-                
-                // Draw line chart
-                ctx.beginPath();
-                ctx.moveTo(paddingLeft, paddingTop + chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
-                for (var m = 1; m < weeklyData.length; m++) {
-                    var px = paddingLeft + m * pointSpacing;
-                    var py = paddingTop + chartHeight - (weeklyData[m].value / maxVal) * chartHeight;
-                    ctx.lineTo(px, py);
-                }
-                
-                // Area fill gradient
-                ctx.lineTo(paddingLeft + (weeklyData.length - 1) * pointSpacing, paddingTop + chartHeight);
-                ctx.lineTo(paddingLeft, paddingTop + chartHeight);
-                ctx.closePath();
-                
-                var grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + chartHeight);
-                grad.addColorStop(0, "rgba(42, 130, 240, 0.3)");
-                grad.addColorStop(1, "rgba(42, 130, 240, 0.0)");
-                ctx.fillStyle = grad;
-                ctx.fill();
-                
-                // Draw line again over the area
-                ctx.beginPath();
-                ctx.moveTo(paddingLeft, paddingTop + chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
-                for (var n = 1; n < weeklyData.length; n++) {
-                    var px2 = paddingLeft + n * pointSpacing;
-                    var py2 = paddingTop + chartHeight - (weeklyData[n].value / maxVal) * chartHeight;
-                    ctx.lineTo(px2, py2);
-                }
-                ctx.strokeStyle = "rgba(42, 130, 240, 1.0)";
-                ctx.lineWidth = units.dp(3);
-                ctx.stroke();
-                
-                // Draw latest point dot
-                if (weeklyData.length > 0) {
-                    var lastX = paddingLeft + (weeklyData.length - 1) * pointSpacing;
-                    var lastY = paddingTop + chartHeight - (weeklyData[weeklyData.length - 1].value / maxVal) * chartHeight;
-                    ctx.beginPath();
-                    ctx.arc(lastX, lastY, units.dp(5), 0, 2 * Math.PI, false);
-                    ctx.fillStyle = "rgba(42, 130, 240, 1.0)";
-                    ctx.fill();
-                    
-                    ctx.beginPath();
-                    ctx.arc(lastX, lastY, units.dp(8), 0, 2 * Math.PI, false);
-                    ctx.fillStyle = "rgba(42, 130, 240, 0.3)";
-                    ctx.fill();
+                // Active Workout Quick Indicator if session is live
+                Rectangle {
+                    visible: root.activeSessionRunning
+                    height: units.gu(3.5)
+                    width: activeSessionLabel.width + units.gu(3)
+                    radius: height / 2
+                    color: root.primaryColor
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: units.gu(0.8)
+
+                        Rectangle {
+                            width: units.gu(1)
+                            height: units.gu(1)
+                            radius: width / 2
+                            color: "white"
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 1.0; to: 0.2; duration: 600 }
+                                NumberAnimation { from: 0.2; to: 1.0; duration: 600 }
+                            }
+                        }
+
+                        Label {
+                            id: activeSessionLabel
+                            text: i18n.tr("Live Session")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.3)
+                            color: "white"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("ActiveSessionPage.qml"), {pageLayout: pageLayout})
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    Column {
-        id: progressContainer
-        anchors.top: weeklyChartRect.bottom
-        anchors.topMargin: units.gu(4)
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: units.gu(4)
-        anchors.rightMargin: units.gu(4)
-        spacing: units.gu(1)
-
-        RowLayout {
-            width: parent.width
-
-            Label {
-                text: i18n.tr("Workout Progress for today")
-                font.bold: true
-                font.pixelSize: units.gu(1.6)
-            }
-            Item { Layout.fillWidth: true }
-            Label {
-                text: progressPercentage + i18n.tr("% Complete")
-                font.bold: true
-                font.pixelSize: units.gu(1.4)
-            }
-        }
-
-        Rectangle {
-            width: parent.width
-            height: units.gu(1.2)
-            radius: height / 2
-            color: "#E0E0E0"
-
+            // WEARABLE SENSOR QUICK BANNER (Xiaomi Band 9)
             Rectangle {
-                width: parent.width * (progressPercentage / 100)
-                height: parent.height
-                radius: parent.radius
-                color: "#f78787"
+                width: parent.width
+                height: units.gu(5.5)
+                radius: units.dp(10)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: units.gu(1.5)
+                    anchors.rightMargin: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    Label {
+                        text: "⌚"
+                        font.pixelSize: units.gu(2.2)
+                    }
+
+                    Column {
+                        Layout.fillWidth: true
+                        spacing: units.gu(0.1)
+
+                        Row {
+                            spacing: units.gu(0.8)
+
+                            Label {
+                                text: root.backendBridge.deviceName
+                                font.bold: true
+                                font.pixelSize: units.gu(1.3)
+                                color: root.textPrimaryColor
+                            }
+
+                            Rectangle {
+                                width: units.gu(0.8)
+                                height: units.gu(0.8)
+                                radius: width / 2
+                                color: root.backendBridge.connected ? "#10B981" : "#EF4444"
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        Label {
+                            text: root.backendBridge.connected ?
+                                  ("❤️ " + root.backendBridge.heartRate + " BPM (" + root.backendBridge.heartRateZone + ") • 👣 " + root.backendBridge.steps.toLocaleString() + " steps") :
+                                  i18n.tr("Device Disconnected • Tap to pair")
+                            font.pixelSize: units.gu(1.1)
+                            color: root.textSecondaryColor
+                        }
+                    }
+
+                    Icon {
+                        name: "next"
+                        width: units.gu(1.8)
+                        height: units.gu(1.8)
+                        color: root.textSecondaryColor
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("WearablesPage.qml"), {pageLayout: pageLayout})
+                    }
+                }
+            }
+
+            // HERO METRIC CARDS ROW
+            Row {
+                id: cardsRow
+                width: parent.width
+                spacing: units.gu(1.2)
+
+                // Today's Calories Card
+                Rectangle {
+                    width: (parent.width - units.gu(2.4)) / 3
+                    height: units.gu(11)
+                    radius: units.dp(12)
+                    color: root.cardBgColor
+                    border.color: root.cardBorderColor
+                    border.width: units.dp(1)
+
+                    Rectangle {
+                        width: parent.width
+                        height: units.dp(4)
+                        anchors.top: parent.top
+                        radius: units.dp(12)
+                        color: root.accentOrange
+                    }
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: units.gu(0.4)
+                        width: parent.width - units.gu(1)
+
+                        Label {
+                            text: "🔥"
+                            font.pixelSize: units.gu(2)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: todaysCalories
+                            font.pixelSize: units.gu(2.4)
+                            font.bold: true
+                            color: root.textPrimaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: i18n.tr("Calories (kcal)")
+                            font.pixelSize: units.gu(1.1)
+                            color: root.textSecondaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+
+                // Current Weight Card
+                Rectangle {
+                    width: (parent.width - units.gu(2.4)) / 3
+                    height: units.gu(11)
+                    radius: units.dp(12)
+                    color: root.cardBgColor
+                    border.color: root.cardBorderColor
+                    border.width: units.dp(1)
+
+                    Rectangle {
+                        width: parent.width
+                        height: units.dp(4)
+                        anchors.top: parent.top
+                        radius: units.dp(12)
+                        color: root.accentBlue
+                    }
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: units.gu(0.4)
+                        width: parent.width - units.gu(1)
+
+                        Label {
+                            text: "⚖️"
+                            font.pixelSize: units.gu(2)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: currentWeight + " kg"
+                            font.pixelSize: units.gu(2.4)
+                            font.bold: true
+                            color: root.textPrimaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: i18n.tr("Current Weight")
+                            font.pixelSize: units.gu(1.1)
+                            color: root.textSecondaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+
+                // Goal Weight Card
+                Rectangle {
+                    width: (parent.width - units.gu(2.4)) / 3
+                    height: units.gu(11)
+                    radius: units.dp(12)
+                    color: root.cardBgColor
+                    border.color: root.cardBorderColor
+                    border.width: units.dp(1)
+
+                    Rectangle {
+                        width: parent.width
+                        height: units.dp(4)
+                        anchors.top: parent.top
+                        radius: units.dp(12)
+                        color: root.accentGreen
+                    }
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: units.gu(0.4)
+                        width: parent.width - units.gu(1)
+
+                        Label {
+                            text: "🎯"
+                            font.pixelSize: units.gu(2)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: goalWeight + " kg"
+                            font.pixelSize: units.gu(2.4)
+                            font.bold: true
+                            color: root.textPrimaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: i18n.tr("Goal Target")
+                            font.pixelSize: units.gu(1.1)
+                            color: root.textSecondaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+            }
+
+            // DAILY CALORIE GOAL PROGRESS CARD
+            Rectangle {
+                width: parent.width
+                height: units.gu(9.5)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Label {
+                            text: i18n.tr("Daily Calorie Target")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            color: root.textPrimaryColor
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: todaysCalories + " / " + Math.round(targetCalories) + " kcal (" + progressPercentage + "%)"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.4)
+                            color: root.primaryColor
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: units.gu(1.4)
+                        radius: height / 2
+                        color: root.isDarkMode ? "#373A40" : "#E9ECEF"
+
+                        Rectangle {
+                            width: Math.min(parent.width, Math.max(units.gu(1.4), parent.width * (progressPercentage / 100)))
+                            height: parent.height
+                            radius: parent.radius
+                            color: root.primaryColor
+
+                            Behavior on width {
+                                NumberAnimation { duration: 600; easing.type: Easing.OutQuad }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // WEEKLY PROGRESS CHART CARD
+            Rectangle {
+                id: weeklyChartRect
+                width: parent.width
+                height: units.gu(26)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Label {
+                            text: i18n.tr("Weekly Progress")
+                            color: root.textPrimaryColor
+                            font.bold: true
+                            font.pixelSize: units.gu(1.8)
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: i18n.tr("Calories (kcal)")
+                            color: root.textSecondaryColor
+                            font.pixelSize: units.gu(1.2)
+                        }
+                    }
+
+                    Canvas {
+                        id: chartCanvas
+                        width: parent.width
+                        height: parent.height - units.gu(3.5)
+                        
+                        onPaint: {
+                            if (weeklyData.length === 0) return;
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+
+                            var isDark = root.isDarkMode;
+                            var maxVal = 400;
+                            for (var i = 0; i < weeklyData.length; i++) {
+                                if (weeklyData[i].value > maxVal) {
+                                    maxVal = weeklyData[i].value;
+                                }
+                            }
+                            maxVal = Math.ceil(maxVal / 100) * 100;
+
+                            var paddingLeft = units.gu(3.5);
+                            var paddingRight = units.gu(2);
+                            var paddingBottom = units.gu(2.2);
+                            var paddingTop = units.gu(1.5);
+                            var chartWidth = width - paddingLeft - paddingRight;
+                            var chartHeight = height - paddingBottom - paddingTop;
+                            
+                            // Horizontal gridlines & axis numbers
+                            ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)";
+                            ctx.lineWidth = units.dp(1);
+                            ctx.font = "10px sans-serif";
+                            ctx.fillStyle = isDark ? "#A0A0A5" : "#888888";
+                            ctx.textAlign = "right";
+                            
+                            var steps = 4;
+                            for (var j = 0; j <= steps; j++) {
+                                var yVal = (maxVal / steps) * j;
+                                var yPos = paddingTop + chartHeight - (yVal / maxVal) * chartHeight;
+                                
+                                ctx.beginPath();
+                                ctx.moveTo(paddingLeft, yPos);
+                                ctx.lineTo(width - paddingRight, yPos);
+                                ctx.stroke();
+                                
+                                ctx.fillText(Math.round(yVal).toString(), paddingLeft - units.gu(0.8), yPos + 4);
+                            }
+                            
+                            // X-axis Day labels
+                            ctx.textAlign = "center";
+                            var pointSpacing = weeklyData.length > 1 ? chartWidth / (weeklyData.length - 1) : chartWidth;
+                            for (var k = 0; k < weeklyData.length; k++) {
+                                var xPos = paddingLeft + k * pointSpacing;
+                                ctx.fillText(weeklyData[k].label, xPos, height - 2);
+                            }
+                            
+                            // Area fill gradient
+                            ctx.beginPath();
+                            ctx.moveTo(paddingLeft, paddingTop + chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
+                            for (var m = 1; m < weeklyData.length; m++) {
+                                var px = paddingLeft + m * pointSpacing;
+                                var py = paddingTop + chartHeight - (weeklyData[m].value / maxVal) * chartHeight;
+                                ctx.lineTo(px, py);
+                            }
+                            ctx.lineTo(paddingLeft + (weeklyData.length - 1) * pointSpacing, paddingTop + chartHeight);
+                            ctx.lineTo(paddingLeft, paddingTop + chartHeight);
+                            ctx.closePath();
+                            
+                            var grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + chartHeight);
+                            grad.addColorStop(0, "rgba(255, 82, 82, 0.35)");
+                            grad.addColorStop(1, "rgba(255, 82, 82, 0.0)");
+                            ctx.fillStyle = grad;
+                            ctx.fill();
+                            
+                            // Line stroke
+                            ctx.beginPath();
+                            ctx.moveTo(paddingLeft, paddingTop + chartHeight - (weeklyData[0].value / maxVal) * chartHeight);
+                            for (var n = 1; n < weeklyData.length; n++) {
+                                var px2 = paddingLeft + n * pointSpacing;
+                                var py2 = paddingTop + chartHeight - (weeklyData[n].value / maxVal) * chartHeight;
+                                ctx.lineTo(px2, py2);
+                            }
+                            ctx.strokeStyle = "#FF5252";
+                            ctx.lineWidth = units.dp(2.5);
+                            ctx.stroke();
+                            
+                            // Data point dots
+                            for (var p = 0; p < weeklyData.length; p++) {
+                                var dotX = paddingLeft + p * pointSpacing;
+                                var dotY = paddingTop + chartHeight - (weeklyData[p].value / maxVal) * chartHeight;
+                                
+                                ctx.beginPath();
+                                ctx.arc(dotX, dotY, units.dp(4), 0, 2 * Math.PI, false);
+                                ctx.fillStyle = "#FF5252";
+                                ctx.fill();
+                                
+                                ctx.beginPath();
+                                ctx.arc(dotX, dotY, units.dp(2), 0, 2 * Math.PI, false);
+                                ctx.fillStyle = isDark ? "#25262B" : "#FFFFFF";
+                                ctx.fill();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // QUICK WORKOUT ACTIONS HERO CARD
+            Rectangle {
+                width: parent.width
+                height: units.gu(13)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Column {
+                            Layout.fillWidth: true
+                            spacing: units.gu(0.3)
+
+                            Label {
+                                text: i18n.tr("Ready to Workout?")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.8)
+                                color: root.textPrimaryColor
+                            }
+
+                            Label {
+                                text: i18n.tr("Log sets, track rest timers, and hit daily goals.")
+                                font.pixelSize: units.gu(1.3)
+                                color: root.textSecondaryColor
+                                wrapMode: Text.WordWrap
+                                width: parent.width
+                            }
+                        }
+                    }
+
+                    Row {
+                        spacing: units.gu(1.5)
+                        width: parent.width
+
+                        Button {
+                            text: i18n.tr("+ New Workout")
+                            color: root.primaryColor
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(4.5)
+                            onClicked: {
+                                pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                            }
+                        }
+
+                        Button {
+                            text: i18n.tr("Past Sessions")
+                            color: root.cardBorderColor
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(4.5)
+                            onClicked: {
+                                pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Bottom Spacing for FAB
+            Item {
+                width: parent.width
+                height: units.gu(5)
             }
         }
     }
 
-    /* Swipe Gesture */
+    // FLOATING ACTION BUTTON
+    Button {
+        id: fab
+        iconName: "add"
+        color: root.primaryColor
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: units.gu(2.5)
+        width: units.gu(5.5)
+        height: units.gu(5.5)
 
-    MultiPointTouchArea {
-        anchors.fill: parent
-
-        property real startY
-
-        onPressed: {
-            startY = touchPoints[0].y
-        }
-
-        onReleased: {
-
-            var endY = touchPoints[0].y
-
-            if (startY - endY > 120) {
-
-                console.log("Swipe Up Detected")
-
-                pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
-    {
-        pageLayout: pageLayout    
-    }
-)
-            }
+        onTriggered: {
+            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
         }
     }
-
-    /* Swipe Up Hint */
-
-    Column {
-    width: parent.width
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: units.gu(3)
-
-    spacing: units.gu(0.1)
-
-    //horizontalAlignment: Text.AlignHCenter
-
-    Icon {
-        name: "go-up"
-        width: units.gu(3)
-        height: units.gu(3)
-        anchors.horizontalCenter: parent.horizontalCenter
-    }
-
-    Label {
-        text: i18n.tr("Swipe up to start new session")
-        anchors.horizontalCenter: parent.horizontalCenter
-        font.bold: true
-    }
-}
-Button {
-            id: fab
-             iconName: "add"
-            color: "#f78787"
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.margins: units.gu(2)
-            width: units.gu(5)
-            height: units.gu(5)
-            font.pixelSize: units.gu(4)
-            onTriggered: {
-                console.log("FAB Clicked - Create new item")
-                pageLayout.addPageToNextColumn(pageLayout.primaryPage,Qt.resolvedUrl("SessionCreatePage.qml"),
-    {
-        pageLayout: pageLayout    
-    }
-)
-            }
-        }
 }

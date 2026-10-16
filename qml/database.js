@@ -45,6 +45,32 @@ function createTable() {
             ")"
         )
 
+        // Create routines table if not exists
+        tx.executeSql(
+            "CREATE TABLE IF NOT EXISTS routines (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "name TEXT," +
+            "exercises TEXT" +
+            ")"
+        )
+
+        // Create media vault table for private form-checks & progress photos
+        tx.executeSql(
+            "CREATE TABLE IF NOT EXISTS media_vault (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "session_id INTEGER," +
+            "exercise TEXT," +
+            "title TEXT," +
+            "media_type TEXT," +
+            "file_name TEXT," +
+            "file_url TEXT," +
+            "date TEXT," +
+            "duration INTEGER," +
+            "notes TEXT," +
+            "is_private INTEGER DEFAULT 1" +
+            ")"
+        )
+
         //  Add new column (if not exists)
         try {
             tx.executeSql("ALTER TABLE sessions ADD COLUMN duration INTEGER")
@@ -70,6 +96,18 @@ function createTable() {
             tx.executeSql("ALTER TABLE sessions ADD COLUMN reps TEXT")
         } catch(e) {
             console.log("Reps column may already exist")
+        }
+
+        // Pre-populate default routines if table is empty
+        try {
+            var rs = tx.executeSql("SELECT COUNT(*) as count FROM routines");
+            if (rs.rows.item(0).count === 0) {
+                tx.executeSql("INSERT INTO routines (name, exercises) VALUES (?, ?)", ["Push Day", JSON.stringify(["Dumbbell Bench Press", "Push Ups"])]);
+                tx.executeSql("INSERT INTO routines (name, exercises) VALUES (?, ?)", ["Legs", JSON.stringify(["Squats", "Deadlift"])]);
+                tx.executeSql("INSERT INTO routines (name, exercises) VALUES (?, ?)", ["Full Body", JSON.stringify(["Squats", "Deadlift", "Push Ups"])]);
+            }
+        } catch (e) {
+            console.log("Error checking/populating routines:", e)
         }
     })
 }
@@ -239,14 +277,10 @@ function getWeeklyCalories() {
     var weekStart = new Date(todayStart.getTime() - today.getDay() * 24 * 60 * 60 * 1000);
     
     // Create entries for this week (Sunday to Saturday)
+    var dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     for (var d = 0; d < 7; d++) {
         var dayDate = new Date(weekStart.getTime() + d * 24 * 60 * 60 * 1000);
-        
-        var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        var label = dayDate.getDate().toString();
-        if (d === 0) { // first day in chart
-             label = monthNames[dayDate.getMonth()] + " " + label;
-        }
+        var label = dayNames[dayDate.getDay()];
         
         results.push({
             dateObj: dayDate,
@@ -287,3 +321,81 @@ function getWeeklyCalories() {
 
     return results;
 }
+
+function getRoutines() {
+    var db = getDatabase();
+    var results = [];
+    db.transaction(function(tx) {
+        var rs = tx.executeSql("SELECT * FROM routines ORDER BY name ASC");
+        for (var i = 0; i < rs.rows.length; i++) {
+            results.push(rs.rows.item(i));
+        }
+    });
+    return results;
+}
+
+function insertRoutine(name, exercises) {
+    var db = getDatabase();
+    var insertedId = -1;
+    db.transaction(function(tx) {
+        var rs = tx.executeSql(
+            "INSERT INTO routines (name, exercises) VALUES (?, ?)",
+            [name, JSON.stringify(exercises)]
+        );
+        insertedId = rs.insertId;
+    });
+    return insertedId;
+}
+
+function deleteRoutine(id) {
+    var db = getDatabase();
+    db.transaction(function(tx) {
+        tx.executeSql("DELETE FROM routines WHERE id = ?", [id]);
+    });
+}
+
+// PRIVACY MEDIA VAULT FUNCTIONS (Form-checks & Progress Photos)
+function insertMediaVaultItem(sessionId, exercise, title, mediaType, fileName, fileUrl, date, duration, notes) {
+    var db = getDatabase();
+    var insertedId = -1;
+    db.transaction(function(tx) {
+        var rs = tx.executeSql(
+            "INSERT INTO media_vault (session_id, exercise, title, media_type, file_name, file_url, date, duration, notes, is_private) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+            [sessionId, exercise, title, mediaType, fileName, fileUrl, date, duration, notes]
+        );
+        insertedId = rs.insertId;
+    });
+    return insertedId;
+}
+
+function getMediaVaultItems(sessionId, mediaType) {
+    var db = getDatabase();
+    var results = [];
+    db.transaction(function(tx) {
+        var query = "SELECT * FROM media_vault WHERE 1=1";
+        var params = [];
+        if (sessionId && sessionId !== -1) {
+            query += " AND session_id = ?";
+            params.push(sessionId);
+        }
+        if (mediaType && mediaType !== "all") {
+            query += " AND media_type = ?";
+            params.push(mediaType);
+        }
+        query += " ORDER BY id DESC";
+        var rs = tx.executeSql(query, params);
+        for (var i = 0; i < rs.rows.length; i++) {
+            results.push(rs.rows.item(i));
+        }
+    });
+    return results;
+}
+
+function deleteMediaVaultItem(id) {
+    var db = getDatabase();
+    db.transaction(function(tx) {
+        tx.executeSql("DELETE FROM media_vault WHERE id = ?", [id]);
+    });
+}
+
