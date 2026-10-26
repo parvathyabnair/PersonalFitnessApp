@@ -18,8 +18,10 @@ Page {
         var goalWeight = goalWeightField.text.trim()
         var gender = femalePill.selected ? "Female" : "Male"
         var dateVal = selectedDate !== "" ? selectedDate : Qt.formatDate(new Date(), "MM/dd/yyyy")
+        var height = heightField.text.trim() !== "" ? heightField.text.trim() : "175"
+        var age = ageField.text.trim() !== "" ? ageField.text.trim() : "25"
         
-        DB.upsertSettings(weight, kcal, workouts, dateVal, goalWeight, gender)
+        DB.upsertSettings(weight, kcal, workouts, dateVal, goalWeight, gender, height, age)
         PopupUtils.open(successDialog)
     }
 
@@ -216,6 +218,216 @@ Page {
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                         }
                     }
+
+                    // Height and Age Inputs
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1.5)
+
+                        Column {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            spacing: units.gu(0.6)
+
+                            Label {
+                                text: i18n.tr("Height (cm)")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.textSecondaryColor
+                            }
+
+                            TextField {
+                                id: heightField
+                                placeholderText: "175"
+                                text: "175"
+                                width: parent.width
+                                inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            }
+                        }
+
+                        Column {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            spacing: units.gu(0.6)
+
+                            Label {
+                                text: i18n.tr("Age (years)")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.textSecondaryColor
+                            }
+
+                            TextField {
+                                id: ageField
+                                placeholderText: "25"
+                                text: "25"
+                                width: parent.width
+                                inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            }
+                        }
+                    }
+                }
+            }
+
+            // METABOLIC & BODY COMPOSITION PROFILE CARD
+            Rectangle {
+                width: parent.width
+                height: metabolicCol.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                readonly property var currentBmi: DB.calculateBMI(
+                    setWeight.model[setWeight.selectedIndex],
+                    heightField.text
+                )
+                readonly property int currentBmr: DB.calculateBMR(
+                    setWeight.model[setWeight.selectedIndex],
+                    heightField.text,
+                    ageField.text,
+                    femalePill.selected ? "Female" : "Male"
+                )
+
+                Column {
+                    id: metabolicCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.8)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Label {
+                                text: "🩺"
+                                font.pixelSize: units.gu(1.8)
+                            }
+
+                            Label {
+                                text: i18n.tr("Metabolic & Body Telemetry")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.6)
+                                color: root.textPrimaryColor
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: i18n.tr("Mifflin-St Jeor")
+                            font.pixelSize: units.gu(1.1)
+                            color: root.textSecondaryColor
+                        }
+                    }
+
+                    // BMI and BMR side-by-side
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1.5)
+
+                        // BMI card
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(9)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Row {
+                                    spacing: units.gu(0.5)
+                                    anchors.horizontalCenter: parent.horizontalCenter
+
+                                    Label {
+                                        text: parent.parent.parent.currentBmi.bmi
+                                        font.bold: true
+                                        font.pixelSize: units.gu(2.4)
+                                        color: root.textPrimaryColor
+                                    }
+
+                                    Label {
+                                        text: "BMI"
+                                        font.pixelSize: units.gu(1.2)
+                                        color: root.textSecondaryColor
+                                        anchors.bottom: parent.bottom
+                                        anchors.bottomMargin: units.gu(0.3)
+                                    }
+                                }
+
+                                Rectangle {
+                                    height: units.gu(2.4)
+                                    width: bmiStatusLabel.width + units.gu(1.6)
+                                    radius: height / 2
+                                    color: parent.parent.parent.currentBmi.color
+                                    anchors.horizontalCenter: parent.horizontalCenter
+
+                                    Label {
+                                        id: bmiStatusLabel
+                                        anchors.centerIn: parent
+                                        text: parent.parent.parent.parent.currentBmi.status
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.0)
+                                        color: "white"
+                                    }
+                                }
+                            }
+                        }
+
+                        // BMR card
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(9)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.3)
+
+                                Row {
+                                    spacing: units.gu(0.4)
+                                    anchors.horizontalCenter: parent.horizontalCenter
+
+                                    Label {
+                                        text: parent.parent.parent.currentBmr
+                                        font.bold: true
+                                        font.pixelSize: units.gu(2.4)
+                                        color: "#38BDF8"
+                                    }
+
+                                    Label {
+                                        text: "kcal"
+                                        font.pixelSize: units.gu(1.2)
+                                        color: root.textSecondaryColor
+                                        anchors.bottom: parent.bottom
+                                        anchors.bottomMargin: units.gu(0.3)
+                                    }
+                                }
+
+                                Label {
+                                    text: i18n.tr("Resting BMR (1.0 MET)")
+                                    font.pixelSize: units.gu(1.0)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+                    }
+
+                    // Guidance Note
+                    Label {
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                        text: i18n.tr("At 1.0 MET baseline rest, your body requires ~") + parent.parent.currentBmr + i18n.tr(" kcal/day. Adding physical workouts at higher METs accelerates fat loss and conditioning.")
+                        font.pixelSize: units.gu(1.1)
+                        color: root.textSecondaryColor
+                    }
                 }
             }
 
@@ -406,6 +618,13 @@ Page {
             } else {
                 malePill.selected = true
                 femalePill.selected = false
+            }
+
+            if (settings.height) {
+                heightField.text = settings.height
+            }
+            if (settings.age) {
+                ageField.text = settings.age
             }
         }
     }

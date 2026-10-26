@@ -15,6 +15,10 @@ Page {
     property real progressPercentage: 0
     property var weeklyData: []
 
+    property int todaysWater: 0
+    property int targetWater: 2500
+    property var workoutStats: ({ totalWorkouts: 0, streakDays: 0, thisMonthWorkouts: 0, totalDurationSeconds: 0, totalCalories: 0 })
+
     function loadOverviewData() {
         var settings = DB.getSettings()
         if (settings) {
@@ -37,6 +41,9 @@ Page {
         if (typeof chartCanvas !== "undefined" && chartCanvas.requestPaint) {
             chartCanvas.requestPaint();
         }
+
+        todaysWater = DB.getTodaysWater();
+        workoutStats = DB.getWorkoutStats();
     }
 
     Component.onCompleted: {
@@ -117,6 +124,15 @@ Page {
 
                 onTriggered: {
                     pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
+                }
+            },
+
+            Action {
+                iconName: "help"
+                text: i18n.tr("MET Sports Guide ⚡")
+
+                onTriggered: {
+                    metGuideModal.visible = true
                 }
             }
         ]
@@ -410,6 +426,259 @@ Page {
                 }
             }
 
+            // FITNESS STREAK & LIFETIME MILESTONES CARD
+            Rectangle {
+                width: parent.width
+                height: streakCol.height + units.gu(2.8)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    id: streakCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.4)
+                    spacing: units.gu(1)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.8)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Label {
+                                text: "🔥"
+                                font.pixelSize: units.gu(2)
+                            }
+
+                            Label {
+                                text: workoutStats.streakDays > 0 ?
+                                      (workoutStats.streakDays + i18n.tr("-Day Active Streak!")) :
+                                      i18n.tr("Workout Consistency")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.5)
+                                color: root.accentOrange
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            height: units.gu(2.4)
+                            width: monthBadge.width + units.gu(1.4)
+                            radius: height / 2
+                            color: Qt.rgba(16, 185, 129, 0.2)
+                            border.color: "#10B981"
+                            border.width: units.dp(1)
+
+                            Label {
+                                id: monthBadge
+                                anchors.centerIn: parent
+                                text: workoutStats.thisMonthWorkouts + i18n.tr(" workouts this month")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.0)
+                                color: "#10B981"
+                            }
+                        }
+                    }
+
+                    // Stats triplet row
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1)
+
+                        Rectangle {
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(6)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.2)
+
+                                Label {
+                                    text: workoutStats.totalWorkouts
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.8)
+                                    color: root.textPrimaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: i18n.tr("Total Sessions")
+                                    font.pixelSize: units.gu(0.9)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(6)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.2)
+
+                                Label {
+                                    text: (workoutStats.totalDurationSeconds / 3600).toFixed(1) + "h"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.8)
+                                    color: root.accentBlue
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: i18n.tr("Total Hours")
+                                    font.pixelSize: units.gu(0.9)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(6)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.2)
+
+                                Label {
+                                    text: Math.round(workoutStats.totalCalories)
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.8)
+                                    color: root.accentOrange
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: i18n.tr("Burned (kcal)")
+                                    font.pixelSize: units.gu(0.9)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // DAILY HYDRATION TRACKER CARD
+            Rectangle {
+                width: parent.width
+                height: waterCol.height + units.gu(2.8)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    id: waterCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.4)
+                    spacing: units.gu(1.2)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.8)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Label {
+                                text: "💧"
+                                font.pixelSize: units.gu(1.8)
+                            }
+
+                            Label {
+                                text: i18n.tr("Hydration Tracker")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.6)
+                                color: root.textPrimaryColor
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: todaysWater + " / " + targetWater + " ml (" + Math.min(100, Math.round((todaysWater / targetWater) * 100)) + "%)"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.3)
+                            color: "#38BDF8"
+                        }
+                    }
+
+                    // Water progress bar
+                    Rectangle {
+                        width: parent.width
+                        height: units.gu(1.4)
+                        radius: height / 2
+                        color: root.isDarkMode ? "#373A40" : "#E9ECEF"
+
+                        Rectangle {
+                            width: Math.min(parent.width, Math.max(units.gu(1.4), parent.width * Math.min(1.0, todaysWater / targetWater)))
+                            height: parent.height
+                            radius: parent.radius
+                            color: "#38BDF8"
+
+                            Behavior on width {
+                                NumberAnimation { duration: 400; easing.type: Easing.OutQuad }
+                            }
+                        }
+                    }
+
+                    // Quick Log Buttons
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1)
+
+                        Button {
+                            text: i18n.tr("+250 ml (Cup)")
+                            color: root.cardBorderColor
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(3.8)
+                            onClicked: {
+                                todaysWater = DB.addWater(250)
+                            }
+                        }
+
+                        Button {
+                            text: i18n.tr("+500 ml (Bottle)")
+                            color: "#0284C7"
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(3.8)
+                            onClicked: {
+                                todaysWater = DB.addWater(500)
+                            }
+                        }
+
+                        Button {
+                            text: i18n.tr("Reset")
+                            color: root.cardBorderColor
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(3.8)
+                            onClicked: {
+                                todaysWater = DB.resetTodaysWater()
+                            }
+                        }
+                    }
+                }
+            }
+
             // WEEKLY PROGRESS CHART CARD
             Rectangle {
                 id: weeklyChartRect
@@ -644,6 +913,235 @@ Page {
 
         onTriggered: {
             pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+        }
+    }
+
+    // MET SCIENTIFIC COMPENDIUM GUIDE MODAL
+    Rectangle {
+        id: metGuideModal
+        visible: false
+        z: 950
+        anchors.fill: parent
+        color: "#99000000"
+
+        // Prevent click-through
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
+        }
+
+        Rectangle {
+            width: Math.min(parent.width - units.gu(4), units.gu(55))
+            height: Math.min(parent.height - units.gu(6), units.gu(68))
+            anchors.centerIn: parent
+            radius: units.dp(16)
+            color: root.cardBgColor
+            border.color: root.cardBorderColor
+            border.width: units.dp(1)
+            clip: true
+
+            Column {
+                anchors.fill: parent
+                anchors.margins: units.gu(2)
+                spacing: units.gu(1.5)
+
+                RowLayout {
+                    width: parent.width
+
+                    Row {
+                        spacing: units.gu(1)
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Label {
+                            text: "⚡"
+                            font.pixelSize: units.gu(2)
+                        }
+
+                        Label {
+                            text: i18n.tr("MET Sports Guide")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.8)
+                            color: root.textPrimaryColor
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    AbstractButton {
+                        width: units.gu(3.5)
+                        height: units.gu(3.5)
+                        onClicked: metGuideModal.visible = false
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: units.dp(18)
+                            color: root.isDarkMode ? "#2C2E33" : "#E9ECEF"
+                            Label {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                font.bold: true
+                                color: root.textSecondaryColor
+                            }
+                        }
+                    }
+                }
+
+                // Formula card
+                Rectangle {
+                    width: parent.width
+                    height: formulaCol.height + units.gu(1.6)
+                    radius: units.dp(10)
+                    color: root.isDarkMode ? "#1C2438" : "#EBF5FF"
+                    border.color: "#38BDF8"
+                    border.width: units.dp(1)
+
+                    Column {
+                        id: formulaCol
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: units.gu(1)
+                        spacing: units.gu(0.4)
+
+                        Label {
+                            text: i18n.tr("Scientific Formula:")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.1)
+                            color: "#0284C7"
+                        }
+
+                        Label {
+                            text: "Calories = MET × Weight (kg) × Duration (hours)"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.3)
+                            color: root.textPrimaryColor
+                        }
+
+                        Label {
+                            text: i18n.tr("Standard Compendium of Physical Activities formula used across sports medicine and research.")
+                            font.pixelSize: units.gu(1.0)
+                            color: root.textSecondaryColor
+                            wrapMode: Text.WordWrap
+                            width: parent.width
+                        }
+                    }
+                }
+
+                // Scrollable Table of MET values
+                Flickable {
+                    width: parent.width
+                    height: parent.height - formulaCol.height - units.gu(13)
+                    contentWidth: width
+                    contentHeight: tableCol.height
+                    clip: true
+
+                    Column {
+                        id: tableCol
+                        width: parent.width
+                        spacing: units.gu(1.2)
+
+                        // Light Activity
+                        Rectangle {
+                            width: parent.width
+                            height: lightCol.height + units.gu(1.2)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#1A252C" : "#F0F9FF"
+                            border.color: "#38BDF8"
+                            border.width: units.dp(1)
+
+                            Column {
+                                id: lightCol
+                                anchors.top: parent.top
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.margins: units.gu(1)
+                                spacing: units.gu(0.5)
+
+                                Label {
+                                    text: i18n.tr("Light Activity (< 3.0 METs)")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.2)
+                                    color: "#0284C7"
+                                }
+                                Label { text: "• Sitting / Resting: 1.0 MET (Baseline)"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Walking slowly (strolling): 2.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Stretching (Hatha Yoga): 2.5 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Light calisthenics: 2.8 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                            }
+                        }
+
+                        // Moderate Activity
+                        Rectangle {
+                            width: parent.width
+                            height: modCol.height + units.gu(1.2)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#1B2A22" : "#F0FDF4"
+                            border.color: "#22C55E"
+                            border.width: units.dp(1)
+
+                            Column {
+                                id: modCol
+                                anchors.top: parent.top
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.margins: units.gu(1)
+                                spacing: units.gu(0.5)
+
+                                Label {
+                                    text: i18n.tr("Moderate Activity (3.0 – 6.0 METs)")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.2)
+                                    color: "#16A34A"
+                                }
+                                Label { text: "• Weightlifting (moderate gym): 3.5 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Calisthenics (moderate sets): 3.8 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Bicycling (leisurely < 10mph): 4.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Power Yoga / Vinyasa: 4.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Walking briskly (3.0 mph): 4.3 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                            }
+                        }
+
+                        // Vigorous Activity
+                        Rectangle {
+                            width: parent.width
+                            height: vigCol.height + units.gu(1.2)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#2D1D1C" : "#FFF7ED"
+                            border.color: "#F97316"
+                            border.width: units.dp(1)
+
+                            Column {
+                                id: vigCol
+                                anchors.top: parent.top
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.margins: units.gu(1)
+                                spacing: units.gu(0.5)
+
+                                Label {
+                                    text: i18n.tr("Vigorous Activity (> 6.0 METs)")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.2)
+                                    color: "#EA580C"
+                                }
+                                Label { text: "• Heavy Weightlifting / Powerlifting: 6.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Circuit Training / HIIT: 8.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Jogging (5.0 mph / 8 km/h): 8.3 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Running (6.0 mph / 9.6 km/h): 9.8 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Vigorous Bicycling (14-15 mph): 10.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                                Label { text: "• Jump Rope (moderate pace): 11.5 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
+                            }
+                        }
+                    }
+                }
+
+                Button {
+                    text: i18n.tr("Understood")
+                    color: root.primaryColor
+                    width: parent.width
+                    height: units.gu(4.5)
+                    onClicked: metGuideModal.visible = false
+                }
+            }
         }
     }
 }

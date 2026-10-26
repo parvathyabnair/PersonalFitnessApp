@@ -18,6 +18,14 @@ Page {
     property int secondsElapsed: root.activeSessionSeconds
     property bool isRunning: root.activeSessionRunning
 
+    // MET (Metabolic Equivalent of Task) Calculation Properties
+    property real intensityMultiplier: 1.0
+    property string intensityLevel: "standard" // "light", "standard", "vigorous"
+    property real baseMet: DB.getMetValue(root.activeSessionWorkout)
+    property real effectiveMet: baseMet * intensityMultiplier
+    property var metInfo: DB.getMetIntensityInfo(effectiveMet)
+    property bool showMetExplainer: false
+
     // NEXT EXERCISE CONFIRM FLAG
     property bool confirmNext: false
     property bool isSaved: false
@@ -60,9 +68,8 @@ Page {
             weight = parseFloat(settings.weight)
         }
 
-        // Calories burned = MET (4) * weight (kg) * duration (hours)
-        var durationHours = timeTaken / 3600
-        caloriesBurned = 4 * weight * durationHours
+        // Standard Compendium MET Formula: Calories Burned = MET Value × Weight (kg) × Duration (hours)
+        caloriesBurned = DB.calculateMetCalories(root.activeSessionWorkout, weight, timeTaken, intensityMultiplier)
 
         DB.updateSessionTime(root.activeSessionId, timeTaken)
         DB.updateSessionCalories(root.activeSessionId, caloriesBurned)
@@ -271,7 +278,7 @@ Page {
                         }
                     }
 
-                    // Active Workout Calories
+                    // Realtime MET Calorie Burn Rate Pill
                     Rectangle {
                         height: units.gu(3.2)
                         width: calLabel.width + units.gu(3)
@@ -286,12 +293,297 @@ Page {
                                 var weight = 70;
                                 var s = DB.getSettings();
                                 if (s && s.weight) weight = parseFloat(s.weight);
-                                var cal = 4 * weight * (root.activeSessionSeconds / 3600);
+                                var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
                                 return "🔥 " + cal.toFixed(1) + " kcal";
                             }
-                            font.pixelSize: units.gu(1.3)
+                            font.pixelSize: units.gu(1.4)
                             font.bold: true
-                            color: "#FF8A8A"
+                            color: "#FF6B6B"
+                        }
+                    }
+                }
+            }
+
+            // MET (METABOLIC EQUIVALENT OF TASK) METRICS & INTENSITY CARD
+            Rectangle {
+                width: parent.width
+                height: metColumn.height + units.gu(3)
+                radius: units.dp(16)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    id: metColumn
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.8)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Label {
+                                text: "⚡"
+                                font.pixelSize: units.gu(1.8)
+                            }
+
+                            Label {
+                                text: i18n.tr("Metabolic Rate (MET)")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.5)
+                                color: root.textPrimaryColor
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            height: units.gu(2.6)
+                            width: metBadgeText.width + units.gu(1.6)
+                            radius: height / 2
+                            color: Qt.rgba(0, 0, 0, 0.4)
+                            border.color: activePage.metInfo.color
+                            border.width: units.dp(1.5)
+
+                            Label {
+                                id: metBadgeText
+                                anchors.centerIn: parent
+                                text: activePage.effectiveMet.toFixed(1) + " METs • " + activePage.metInfo.category
+                                font.bold: true
+                                font.pixelSize: units.gu(1.1)
+                                color: activePage.metInfo.color
+                            }
+                        }
+                    }
+
+                    // Burn Rate & Details Row
+                    RowLayout {
+                        width: parent.width
+
+                        Column {
+                            Layout.fillWidth: true
+                            spacing: units.gu(0.2)
+
+                            Label {
+                                text: i18n.tr("Caloric Burn Rate")
+                                font.pixelSize: units.gu(1.1)
+                                color: root.textSecondaryColor
+                            }
+
+                            Label {
+                                text: {
+                                    var weight = 70;
+                                    var s = DB.getSettings();
+                                    if (s && s.weight) weight = parseFloat(s.weight);
+                                    var ratePerMin = (activePage.effectiveMet * weight) / 60.0;
+                                    return "~" + ratePerMin.toFixed(1) + " kcal / min";
+                                }
+                                font.bold: true
+                                font.pixelSize: units.gu(1.8)
+                                color: root.accentOrange
+                            }
+                        }
+
+                        Column {
+                            spacing: units.gu(0.2)
+                            horizontalAlignment: Text.AlignRight
+
+                            Label {
+                                text: i18n.tr("Compendium Standard")
+                                font.pixelSize: units.gu(1.1)
+                                color: root.textSecondaryColor
+                                anchors.right: parent.right
+                            }
+
+                            Label {
+                                text: activePage.baseMet.toFixed(1) + " MET Baseline"
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.accentBlue
+                                anchors.right: parent.right
+                            }
+                        }
+                    }
+
+                    // Workout Effort / Intensity Multiplier Selector
+                    Column {
+                        width: parent.width
+                        spacing: units.gu(0.6)
+
+                        Label {
+                            text: i18n.tr("Session Intensity Multiplier:")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
+                            color: root.textSecondaryColor
+                        }
+
+                        Row {
+                            width: parent.width
+                            spacing: units.gu(0.8)
+
+                            // Light Effort (0.85x)
+                            Rectangle {
+                                width: (parent.width - units.gu(1.6)) / 3
+                                height: units.gu(3.8)
+                                radius: units.dp(8)
+                                color: activePage.intensityLevel === "light" ? root.accentBlue : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: activePage.intensityLevel === "light" ? root.accentBlue : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: i18n.tr("Light (0.85×)")
+                                    font.bold: activePage.intensityLevel === "light"
+                                    font.pixelSize: units.gu(1.1)
+                                    color: activePage.intensityLevel === "light" ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        activePage.intensityMultiplier = 0.85
+                                        activePage.intensityLevel = "light"
+                                    }
+                                }
+                            }
+
+                            // Standard Effort (1.0x)
+                            Rectangle {
+                                width: (parent.width - units.gu(1.6)) / 3
+                                height: units.gu(3.8)
+                                radius: units.dp(8)
+                                color: activePage.intensityLevel === "standard" ? root.primaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: activePage.intensityLevel === "standard" ? root.primaryColor : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: i18n.tr("Standard (1.0×)")
+                                    font.bold: activePage.intensityLevel === "standard"
+                                    font.pixelSize: units.gu(1.1)
+                                    color: activePage.intensityLevel === "standard" ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        activePage.intensityMultiplier = 1.0
+                                        activePage.intensityLevel = "standard"
+                                    }
+                                }
+                            }
+
+                            // Vigorous Effort (1.2x)
+                            Rectangle {
+                                width: (parent.width - units.gu(1.6)) / 3
+                                height: units.gu(3.8)
+                                radius: units.dp(8)
+                                color: activePage.intensityLevel === "vigorous" ? "#EF4444" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: activePage.intensityLevel === "vigorous" ? "#EF4444" : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: i18n.tr("Heavy (1.2×)")
+                                    font.bold: activePage.intensityLevel === "vigorous"
+                                    font.pixelSize: units.gu(1.1)
+                                    color: activePage.intensityLevel === "vigorous" ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        activePage.intensityMultiplier = 1.2
+                                        activePage.intensityLevel = "vigorous"
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Sports Science MET Explainer Accordion
+                    Rectangle {
+                        width: parent.width
+                        height: explainerCol.height + units.gu(1.6)
+                        radius: units.dp(8)
+                        color: root.isDarkMode ? "#1A1D20" : "#F8F9FA"
+                        border.color: root.cardBorderColor
+                        border.width: units.dp(1)
+
+                        Column {
+                            id: explainerCol
+                            anchors.top: parent.top
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.margins: units.gu(1)
+                            spacing: units.gu(0.5)
+
+                            RowLayout {
+                                width: parent.width
+
+                                Label {
+                                    text: "ℹ️ " + i18n.tr("MET Scientific Metabolic Formula")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.1)
+                                    color: root.accentBlue
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    text: activePage.showMetExplainer ? "▲" : "▼"
+                                    font.pixelSize: units.gu(1.1)
+                                    color: root.textSecondaryColor
+                                }
+                            }
+
+                            Column {
+                                width: parent.width
+                                spacing: units.gu(0.4)
+                                visible: activePage.showMetExplainer
+
+                                Label {
+                                    text: i18n.tr("Formula: Calories Burned = MET Value × Weight (kg) × Duration (hours)")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.1)
+                                    color: root.textPrimaryColor
+                                    wrapMode: Text.WordWrap
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: {
+                                        var weight = 70;
+                                        var s = DB.getSettings();
+                                        if (s && s.weight) weight = parseFloat(s.weight);
+                                        var hrs = (root.activeSessionSeconds / 3600.0).toFixed(2);
+                                        var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
+                                        return i18n.tr("Live Calculation: ") + activePage.effectiveMet.toFixed(1) + " METs × " + weight + " kg × " + hrs + " hrs = " + cal.toFixed(1) + " kcal";
+                                    }
+                                    font.pixelSize: units.gu(1.1)
+                                    color: root.accentGreen
+                                    wrapMode: Text.WordWrap
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: i18n.tr("Compendium of Physical Activities standardized sports medicine reference.")
+                                    font.pixelSize: units.gu(1.0)
+                                    color: root.textSecondaryColor
+                                    wrapMode: Text.WordWrap
+                                    width: parent.width
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: activePage.showMetExplainer = !activePage.showMetExplainer
                         }
                     }
                 }
@@ -542,7 +834,7 @@ Page {
                     width: parent.width
                     wrapMode: Text.WordWrap
                     color: root.textPrimaryColor
-                    text: i18n.tr("Workout session saved successfully! Total duration: " + timeString + ". Estimated calories burned: " + caloriesBurned.toFixed(1) + " kcal.")
+                    text: i18n.tr("Workout session saved successfully!\n\n⏱️ Duration: " + timeString + "\n🔥 Calories Burned: " + caloriesBurned.toFixed(1) + " kcal\n⚡ Intensity: " + activePage.effectiveMet.toFixed(1) + " METs (" + activePage.metInfo.category + ")\n📊 Calculated via sports science Compendium MET formula.")
                 }
 
                 Button {

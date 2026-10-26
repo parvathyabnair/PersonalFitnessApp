@@ -31,6 +31,26 @@ Page {
     property string selectedDate: new Date().toISOString()
     property var currentSessionId: -1
     property string currentWorkout: ""
+    property real userWeight: 70.0
+
+    readonly property string chosenWorkoutName: {
+        if (!categorySelector) return "Workout"
+        var cat = categorySelector.selectedIndex
+        if (cat === 0 && strengthSelector) return strengthSelector.model[strengthSelector.selectedIndex]
+        if (cat === 1 && cardioSelector) return cardioSelector.model[cardioSelector.selectedIndex]
+        if (cat === 2) return "HIIT Workout"
+        if (cat === 3) return "Zumba"
+        if (cat === 4 && customSelector) {
+            if (customSelector.selectedIndex === 3 && customTextField) {
+                return customTextField.text.trim() !== "" ? customTextField.text.trim() : "Custom Workout"
+            }
+            return customSelector.model[customSelector.selectedIndex]
+        }
+        return "Workout"
+    }
+
+    readonly property real exerciseMet: DB.getMetValue(chosenWorkoutName)
+    readonly property var exerciseMetInfo: DB.getMetIntensityInfo(exerciseMet)
 
     property var strengthWorkouts: [
         "Dumbbell Bench Press",
@@ -234,6 +254,11 @@ Page {
                 selectedDate = date
             }
         }
+        var s = DB.getSettings()
+        if (s && s.weight) {
+            var pw = parseFloat(s.weight)
+            if (pw > 0) userWeight = pw
+        }
         formReady = true
     }
 
@@ -358,6 +383,126 @@ Page {
                         onTextChanged: {
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
+                        }
+                    }
+                }
+            }
+
+            // SECTION 1.5: MET METABOLIC BURN PREDICTION CARD
+            Rectangle {
+                width: parent.width
+                height: metForecastCol.height + units.gu(2.6)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    id: metForecastCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.4)
+                    spacing: units.gu(1)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.8)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Label {
+                                text: "⚡"
+                                font.pixelSize: units.gu(1.6)
+                            }
+
+                            Label {
+                                text: i18n.tr("Metabolic Forecast (Compendium)")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.textPrimaryColor
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            height: units.gu(2.8)
+                            width: metBadgeRow.width + units.gu(1.6)
+                            radius: height / 2
+                            color: exerciseMetInfo.color
+                            opacity: 0.9
+
+                            Row {
+                                id: metBadgeRow
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+                                Label {
+                                    text: exerciseMet.toFixed(1) + " METs"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.1)
+                                    color: "white"
+                                }
+                            }
+                        }
+                    }
+
+                    // Burn estimate display
+                    Rectangle {
+                        width: parent.width
+                        height: units.gu(6.5)
+                        radius: units.dp(8)
+                        color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: units.gu(1)
+
+                            Column {
+                                Layout.fillWidth: true
+                                spacing: units.gu(0.2)
+
+                                Label {
+                                    text: exerciseMetInfo.label
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.3)
+                                    color: exerciseMetInfo.color
+                                }
+
+                                Label {
+                                    text: isTimeBased ? 
+                                          i18n.tr("Target: ") + durationSelector.model[durationSelector.selectedIndex] + " mins (" + userWeight + " kg)" :
+                                          i18n.tr("Est. 45-min gym workout (" + userWeight + " kg)")
+                                    font.pixelSize: units.gu(1.0)
+                                    color: root.textSecondaryColor
+                                }
+                            }
+
+                            Column {
+                                spacing: units.gu(0.2)
+
+                                Label {
+                                    text: {
+                                        var durationSecs = isTimeBased ? 
+                                            (parseFloat(durationSelector.model[durationSelector.selectedIndex]) || 30) * 60 : 
+                                            45 * 60
+                                        var cal = DB.calculateMetCalories(chosenWorkoutName, userWeight, durationSecs, 1.0)
+                                        return "~" + Math.round(cal) + " kcal"
+                                    }
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
+                                    color: root.accentOrange
+                                    anchors.right: parent.right
+                                }
+
+                                Label {
+                                    text: i18n.tr("Estimated Burn")
+                                    font.pixelSize: units.gu(0.9)
+                                    color: root.textSecondaryColor
+                                    anchors.right: parent.right
+                                }
+                            }
                         }
                     }
                 }
