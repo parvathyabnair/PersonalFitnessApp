@@ -71,8 +71,7 @@ Page {
     function openContentPicker(type, exercise, mediaType) {
         pendingExercise = exercise || (type === ContentType.Videos ? "Form Check" : "Progress Photo")
         pendingMediaType = mediaType || (type === ContentType.Videos ? "video" : "photo")
-        peerPicker.contentType = type
-        peerPickerOverlay.visible = true
+        peerPickerLoader.active = true
     }
 
     Component.onCompleted: {
@@ -477,68 +476,75 @@ Page {
         }
     }
 
-    // CONTENT HUB SYSTEM CAMERA & GALLERY PICKER OVERLAY
-    Rectangle {
-        id: peerPickerOverlay
+    // CONTENT HUB SYSTEM CAMERA & GALLERY PICKER OVERLAY (Lazy Loaded on Demand for Instant Page Opening)
+    Loader {
+        id: peerPickerLoader
         anchors.fill: parent
-        color: root.isDarkMode ? "#121214" : "#F8F9FA"
-        visible: false
+        active: false
         z: 920
 
-        ColumnLayout {
-            anchors.fill: parent
-            spacing: 0
-
+        sourceComponent: Component {
             Rectangle {
-                Layout.fillWidth: true
-                height: units.gu(6.5)
-                color: root.primaryColor
+                id: peerPickerOverlay
+                anchors.fill: parent
+                color: root.isDarkMode ? "#121214" : "#F8F9FA"
 
-                RowLayout {
+                ColumnLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: units.gu(1.5)
-                    anchors.rightMargin: units.gu(1.5)
+                    spacing: 0
 
-                    Label {
-                        text: (peerPicker.contentType === ContentType.Videos) ?
-                              i18n.tr("Select Camera or Video App") :
-                              i18n.tr("Select Camera or Gallery App")
-                        color: "white"
-                        font.bold: true
-                        font.pixelSize: units.gu(1.5)
+                    Rectangle {
                         Layout.fillWidth: true
-                    }
+                        height: units.gu(6.5)
+                        color: root.primaryColor
 
-                    Button {
-                        text: i18n.tr("Close")
-                        height: units.gu(4)
-                        color: LomiriColors.slate
-                        onClicked: {
-                            peerPickerOverlay.visible = false
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: units.gu(1.5)
+                            anchors.rightMargin: units.gu(1.5)
+
+                            Label {
+                                text: (vaultPage.pendingMediaType === "video") ?
+                                      i18n.tr("Select Camera or Video App") :
+                                      i18n.tr("Select Camera or Gallery App")
+                                color: "white"
+                                font.bold: true
+                                font.pixelSize: units.gu(1.5)
+                                Layout.fillWidth: true
+                            }
+
+                            Button {
+                                text: i18n.tr("Close")
+                                height: units.gu(4)
+                                color: LomiriColors.slate
+                                onClicked: {
+                                    peerPickerLoader.active = false
+                                }
+                            }
                         }
                     }
-                }
-            }
 
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
 
-                ContentPeerPicker {
-                    id: peerPicker
-                    anchors.fill: parent
-                    contentType: ContentType.Pictures
-                    handler: ContentHandler.Source
+                        ContentPeerPicker {
+                            id: peerPicker
+                            anchors.fill: parent
+                            contentType: (vaultPage.pendingMediaType === "video") ? ContentType.Videos : ContentType.Pictures
+                            handler: ContentHandler.Source
 
-                    onPeerSelected: {
-                        peer.selectionType = ContentTransfer.Single
-                        vaultPage.activeTransfer = peer.request()
-                        stateChangeConnection.target = vaultPage.activeTransfer
-                        peerPickerOverlay.visible = false
-                    }
+                            onPeerSelected: {
+                                peer.selectionType = ContentTransfer.Single
+                                vaultPage.activeTransfer = peer.request()
+                                stateChangeConnection.target = vaultPage.activeTransfer
+                                peerPickerLoader.active = false
+                            }
 
-                    onCancelPressed: {
-                        peerPickerOverlay.visible = false
+                            onCancelPressed: {
+                                peerPickerLoader.active = false
+                            }
+                        }
                     }
                 }
             }

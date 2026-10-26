@@ -68,6 +68,17 @@ MainView {
         }
     }
 
+    function setSessionSeconds(newSecs) {
+        var s = Math.max(0, parseInt(newSecs) || 0)
+        activeSessionSeconds = s
+        sessionAccumulatedMs = s * 1000
+        if (activeSessionRunning) {
+            lastResumeTimestamp = Date.now()
+        } else {
+            lastResumeTimestamp = 0
+        }
+    }
+
     onActiveSessionSecondsChanged: {
         if (activeSessionSeconds === 0) {
             sessionAccumulatedMs = 0

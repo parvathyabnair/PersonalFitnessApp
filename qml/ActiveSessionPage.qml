@@ -39,6 +39,21 @@ Page {
     property double restInitialMs: 0
     property bool workoutPausedForRest: false
 
+    function setSessionTime(newTotalSeconds) {
+        var s = Math.max(0, parseInt(newTotalSeconds) || 0)
+        if (typeof root.setSessionSeconds === "function") {
+            root.setSessionSeconds(s)
+        } else {
+            root.activeSessionSeconds = s
+            root.sessionAccumulatedMs = s * 1000
+            if (root.activeSessionRunning) {
+                root.lastResumeTimestamp = Date.now()
+            } else {
+                root.lastResumeTimestamp = 0
+            }
+        }
+    }
+
     function startRest(seconds) {
         if (root.activeSessionRunning) {
             workoutPausedForRest = true
@@ -210,8 +225,9 @@ Page {
                         root.activeSessionId = id
                         root.activeSessionWorkout = "General Workout"
                         root.activeSessionSeconds = 0
-                        root.activeSessionRunning = true
+                        root.activeSessionRunning = false
                         activePage.isSaved = false
+                        PopupUtils.open(intensityDialogComponent)
                     }
                 }
             }
@@ -311,7 +327,7 @@ Page {
             // DIGITAL STOPWATCH CARD
             Rectangle {
                 width: parent.width
-                height: units.gu(18)
+                height: units.gu(21)
                 radius: units.dp(16)
                 color: root.isDarkMode ? "#18191B" : "#1E2024"
                 border.color: root.isDarkMode ? "#2E3035" : "#2D3139"
@@ -319,7 +335,7 @@ Page {
 
                 Column {
                     anchors.centerIn: parent
-                    spacing: units.gu(1.5)
+                    spacing: units.gu(1.2)
                     width: parent.width - units.gu(2)
 
                     Label {
@@ -340,6 +356,20 @@ Page {
                         font.family: "Monospace"
                         color: "#FFFFFF"
                         anchors.horizontalCenter: parent.horizontalCenter
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: PopupUtils.open(editTimeDialogComponent)
+                        }
+                    }
+
+                    // Edit Time Action Button
+                    Button {
+                        text: i18n.tr("Edit Time")
+                        height: units.gu(3.5)
+                        color: "#2C2D32"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        onClicked: PopupUtils.open(editTimeDialogComponent)
                     }
 
                     // Target reached notification
@@ -758,138 +788,23 @@ Page {
                 }
             }
 
-            // REST TIMER CARD
-            Rectangle {
+            // REST TIMER CARD COMPONENT
+            RestTimerCard {
                 width: parent.width
-                height: restCol.height + units.gu(3)
-                color: root.cardBgColor
-                border.color: root.cardBorderColor
-                border.width: units.dp(1)
-                radius: units.dp(12)
+                restTimeLeft: activePage.restTimeLeft
+                restDuration: activePage.restDuration
+                restTimerRunning: activePage.restTimerRunning
+                workoutPausedForRest: activePage.workoutPausedForRest
+                primaryColor: root.primaryColor
+                cardBgColor: root.cardBgColor
+                cardBorderColor: root.cardBorderColor
+                textPrimaryColor: root.textPrimaryColor
+                textSecondaryColor: root.textSecondaryColor
 
-                Column {
-                    id: restCol
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: units.gu(1.5)
-                    spacing: units.gu(1.2)
-
-                    RowLayout {
-                        width: parent.width
-
-                        Label {
-                            text: i18n.tr("⏱️ Rest Interval Timer")
-                            font.bold: true
-                            font.pixelSize: units.gu(1.7)
-                            color: root.textPrimaryColor
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Label {
-                            text: restTimerRunning ? 
-                                  (activePage.workoutPausedForRest ? i18n.tr("Resting: ") + restTimeLeft + "s" : i18n.tr("Resting: ") + restTimeLeft + "s") : 
-                                  (restTimeLeft === 0 ? i18n.tr("Ready for next set! 💪") : i18n.tr("Paused: ") + restTimeLeft + "s")
-                            font.pixelSize: units.gu(1.4)
-                            font.bold: true
-                            color: restTimerRunning ? root.primaryColor : (restTimeLeft === 0 ? "#10B981" : "#F59E0B")
-                        }
-                    }
-
-                    // Auto-pause notification banner
-                    Rectangle {
-                        visible: activePage.workoutPausedForRest
-                        width: parent.width
-                        height: units.gu(3.2)
-                        radius: units.dp(6)
-                        color: Qt.rgba(2/255, 132/255, 199/255, 0.15)
-                        border.color: "#0284C7"
-                        border.width: units.dp(1)
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: units.gu(0.6)
-
-                            Label {
-                                text: "⏸️"
-                                font.pixelSize: units.gu(1.1)
-                            }
-
-                            Label {
-                                text: i18n.tr("Workout timer auto-paused • Automatically resumes when rest ends")
-                                font.pixelSize: units.gu(1.1)
-                                font.bold: true
-                                color: "#0284C7"
-                            }
-                        }
-                    }
-
-                    // PRESET DURATION CHIPS
-                    Row {
-                        spacing: units.gu(1)
-                        anchors.horizontalCenter: parent.horizontalCenter
-
-                        Repeater {
-                            model: [30, 60, 90, 120]
-                            Button {
-                                text: modelData + "s"
-                                width: (activeContentColumn.width - units.gu(6)) / 4
-                                height: units.gu(3.8)
-                                color: (restTimerRunning && restDuration === modelData) ? root.primaryColor : root.cardBorderColor
-                                onClicked: {
-                                    startRest(modelData)
-                                }
-                            }
-                        }
-                    }
-
-                    // REST TIMER CONTROLS
-                    Row {
-                        spacing: units.gu(1.2)
-                        anchors.horizontalCenter: parent.horizontalCenter
-
-                        Button {
-                            text: "- 10s"
-                            width: units.gu(6.5)
-                            height: units.gu(4.2)
-                            color: root.cardBorderColor
-                            onClicked: {
-                                adjustRest(-10)
-                            }
-                        }
-
-                        Button {
-                            text: restTimerRunning ? i18n.tr("Pause Rest") : (restTimeLeft === 0 ? i18n.tr("Start Rest") : i18n.tr("Resume Rest"))
-                            color: restTimerRunning ? "#F59E0B" : root.primaryColor
-                            width: units.gu(14)
-                            height: units.gu(4.2)
-                            onClicked: {
-                                toggleRestPause()
-                            }
-                        }
-
-                        Button {
-                            text: i18n.tr("Reset")
-                            color: root.cardBorderColor
-                            width: units.gu(6.5)
-                            height: units.gu(4.2)
-                            onClicked: {
-                                resetRest()
-                            }
-                        }
-
-                        Button {
-                            text: "+ 10s"
-                            width: units.gu(6.5)
-                            height: units.gu(4.2)
-                            color: root.cardBorderColor
-                            onClicked: {
-                                adjustRest(10)
-                            }
-                        }
-                    }
-                }
+                onStartRestRequested: startRest(duration)
+                onToggleRestRequested: toggleRestPause()
+                onResetRestRequested: resetRest()
+                onAdjustRestRequested: adjustRest(delta)
             }
         }
     }
@@ -910,6 +825,247 @@ Page {
 
         // ALLOW NAVIGATION AFTER SAVE
         pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+    }
+
+    // INTENSITY SELECTION DIALOG (Prompted before starting timer on Quick Start)
+    Component {
+        id: intensityDialogComponent
+
+        Dialog {
+            id: intensityDlg
+            title: i18n.tr("Select Workout Intensity")
+
+            Column {
+                spacing: units.gu(1.5)
+                width: parent.width
+
+                Label {
+                    text: i18n.tr("Choose intensity level to start your workout timer and MET calorie tracking:")
+                    font.pixelSize: units.gu(1.2)
+                    color: root.textSecondaryColor
+                    wrapMode: Text.WordWrap
+                    width: parent.width
+                }
+
+                // Light Intensity Button
+                Button {
+                    width: parent.width
+                    height: units.gu(4.8)
+                    color: root.accentBlue
+                    text: i18n.tr("Light Effort (0.85×) • Warmup & Recovery")
+                    onClicked: {
+                        activePage.intensityMultiplier = 0.85
+                        activePage.intensityLevel = "light"
+                        PopupUtils.close(intensityDlg)
+                        root.activeSessionRunning = true
+                    }
+                }
+
+                // Standard Intensity Button (Default)
+                Button {
+                    width: parent.width
+                    height: units.gu(4.8)
+                    color: root.primaryColor
+                    text: i18n.tr("Standard Effort (1.0×) • Typical Gym Workout")
+                    onClicked: {
+                        activePage.intensityMultiplier = 1.0
+                        activePage.intensityLevel = "standard"
+                        PopupUtils.close(intensityDlg)
+                        root.activeSessionRunning = true
+                    }
+                }
+
+                // Heavy Intensity Button
+                Button {
+                    width: parent.width
+                    height: units.gu(4.8)
+                    color: "#EF4444"
+                    text: i18n.tr("Heavy Effort (1.2×) • High Exertion & PRs")
+                    onClicked: {
+                        activePage.intensityMultiplier = 1.2
+                        activePage.intensityLevel = "vigorous"
+                        PopupUtils.close(intensityDlg)
+                        root.activeSessionRunning = true
+                    }
+                }
+
+                Button {
+                    text: i18n.tr("Cancel")
+                    color: root.cardBorderColor
+                    width: parent.width
+                    height: units.gu(4)
+                    onClicked: PopupUtils.close(intensityDlg)
+                }
+            }
+        }
+    }
+
+    // EDIT WORKOUT TIME DIALOG
+    Component {
+        id: editTimeDialogComponent
+
+        Dialog {
+            id: editTimeDlg
+            title: i18n.tr("Edit Workout Time")
+
+            Column {
+                spacing: units.gu(1.5)
+                width: parent.width
+
+                Label {
+                    text: i18n.tr("Adjust or enter current elapsed workout time:")
+                    font.pixelSize: units.gu(1.2)
+                    color: root.textSecondaryColor
+                    wrapMode: Text.WordWrap
+                    width: parent.width
+                }
+
+                // Digital preview
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: {
+                        var m = Math.max(0, parseInt(minField.text) || 0)
+                        var s = Math.max(0, Math.min(59, parseInt(secField.text) || 0))
+                        var hrs = Math.floor(m / 60)
+                        var remMins = m % 60
+                        if (hrs > 0) {
+                            return ("0" + hrs).slice(-2) + ":" + ("0" + remMins).slice(-2) + ":" + ("0" + s).slice(-2)
+                        }
+                        return ("0" + remMins).slice(-2) + ":" + ("0" + s).slice(-2)
+                    }
+                    font.pixelSize: units.gu(3.5)
+                    font.bold: true
+                    font.family: "Monospace"
+                    color: root.primaryColor
+                }
+
+                // Quick Adjustment Buttons
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: units.gu(1)
+
+                    Button {
+                        text: "-5m"
+                        width: units.gu(6)
+                        height: units.gu(3.8)
+                        color: root.cardBorderColor
+                        onClicked: {
+                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
+                            cur = Math.max(0, cur - 300)
+                            minField.text = Math.floor(cur / 60).toString()
+                            secField.text = (cur % 60).toString()
+                        }
+                    }
+                    Button {
+                        text: "-1m"
+                        width: units.gu(6)
+                        height: units.gu(3.8)
+                        color: root.cardBorderColor
+                        onClicked: {
+                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
+                            cur = Math.max(0, cur - 60)
+                            minField.text = Math.floor(cur / 60).toString()
+                            secField.text = (cur % 60).toString()
+                        }
+                    }
+                    Button {
+                        text: "+1m"
+                        width: units.gu(6)
+                        height: units.gu(3.8)
+                        color: root.cardBorderColor
+                        onClicked: {
+                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
+                            cur += 60
+                            minField.text = Math.floor(cur / 60).toString()
+                            secField.text = (cur % 60).toString()
+                        }
+                    }
+                    Button {
+                        text: "+5m"
+                        width: units.gu(6)
+                        height: units.gu(3.8)
+                        color: root.cardBorderColor
+                        onClicked: {
+                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
+                            cur += 300
+                            minField.text = Math.floor(cur / 60).toString()
+                            secField.text = (cur % 60).toString()
+                        }
+                    }
+                }
+
+                // Minutes and Seconds Input Fields
+                Row {
+                    width: parent.width
+                    spacing: units.gu(1.5)
+
+                    Column {
+                        width: (parent.width - units.gu(1.5)) / 2
+                        spacing: units.gu(0.4)
+
+                        Label {
+                            text: i18n.tr("Minutes")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
+                            color: root.textSecondaryColor
+                        }
+
+                        TextField {
+                            id: minField
+                            text: Math.floor(root.activeSessionSeconds / 60).toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            width: parent.width
+                        }
+                    }
+
+                    Column {
+                        width: (parent.width - units.gu(1.5)) / 2
+                        spacing: units.gu(0.4)
+
+                        Label {
+                            text: i18n.tr("Seconds")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
+                            color: root.textSecondaryColor
+                        }
+
+                        TextField {
+                            id: secField
+                            text: (root.activeSessionSeconds % 60).toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            width: parent.width
+                        }
+                    }
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: units.gu(1.2)
+
+                    Button {
+                        text: i18n.tr("Cancel")
+                        color: root.cardBorderColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: PopupUtils.close(editTimeDlg)
+                    }
+
+                    Button {
+                        text: i18n.tr("Apply Time")
+                        color: root.primaryColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: {
+                            var m = Math.max(0, parseInt(minField.text) || 0)
+                            var s = Math.max(0, Math.min(59, parseInt(secField.text) || 0))
+                            var totalSecs = (m * 60) + s
+                            activePage.setSessionTime(totalSecs)
+                            PopupUtils.close(editTimeDlg)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // CONFIRM DIALOG

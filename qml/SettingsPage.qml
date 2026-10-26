@@ -10,9 +10,44 @@ Page {
     anchors.fill: parent
 
     property string selectedDate: ""
+    property string currentWeightVal: "70"
+
+    function loadSettings() {
+        var settings = DB.getSettings()
+        if (settings) {
+            var w = settings.weight ? String(settings.weight).trim() : "70"
+            currentWeightVal = w
+            weightInputField.text = w
+
+            var kcalIdx = workoutSelector.model.indexOf(String(settings.kcal_target))
+            if (kcalIdx !== -1) workoutSelector.selectedIndex = kcalIdx
+
+            var workoutsIdx = setSelector.model.indexOf(String(settings.num_workouts))
+            if (workoutsIdx !== -1) setSelector.selectedIndex = workoutsIdx
+
+            selectedDate = settings.date || ""
+            goalWeightField.text = settings.goal_weight || ""
+            
+            if (settings.gender === "Female") {
+                femalePill.selected = true
+                malePill.selected = false
+            } else {
+                malePill.selected = true
+                femalePill.selected = false
+            }
+
+            if (settings.height) {
+                heightField.text = String(settings.height)
+            }
+            if (settings.age) {
+                ageField.text = String(settings.age)
+            }
+        }
+    }
 
     function saveSettings() {
-        var weight = setWeight.model[setWeight.selectedIndex]
+        var weight = weightInputField.text.trim() !== "" ? weightInputField.text.trim() : (currentWeightVal || "70")
+        currentWeightVal = weight
         var kcal = workoutSelector.model[workoutSelector.selectedIndex]
         var workouts = setSelector.model[setSelector.selectedIndex]
         var goalWeight = goalWeightField.text.trim()
@@ -186,16 +221,67 @@ Page {
                         width: parent.width
                         spacing: units.gu(0.6)
 
-                        Label {
-                            text: i18n.tr("Current Weight (kg)")
-                            font.bold: true
-                            font.pixelSize: units.gu(1.4)
-                            color: root.textSecondaryColor
+                        Row {
+                            width: parent.width
+                            Label {
+                                text: i18n.tr("Current Weight (kg)")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.textSecondaryColor
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: (weightInputField.text.trim() !== "" ? weightInputField.text.trim() : settingsPage.currentWeightVal) + " kg"
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.primaryColor
+                                anchors.right: parent.right
+                            }
                         }
 
-                        OptionSelector {
-                            id: setWeight
-                            model: ["45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100"]
+                        TextField {
+                            id: weightInputField
+                            text: settingsPage.currentWeightVal
+                            placeholderText: i18n.tr("e.g. 70")
+                            width: parent.width
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            onTextChanged: {
+                                if (text.trim() !== "") {
+                                    settingsPage.currentWeightVal = text.trim()
+                                }
+                            }
+                        }
+
+                        // Quick weight preset chips
+                        Row {
+                            spacing: units.gu(0.8)
+                            width: parent.width
+
+                            Repeater {
+                                model: ["50", "60", "70", "80", "90", "100"]
+                                Rectangle {
+                                    height: units.gu(2.8)
+                                    width: (parent.width - units.gu(4)) / 6
+                                    radius: height / 2
+                                    color: (weightInputField.text === modelData) ? root.primaryColor : root.cardBorderColor
+
+                                    Label {
+                                        anchors.centerIn: parent
+                                        text: modelData
+                                        color: (weightInputField.text === modelData) ? "white" : root.textPrimaryColor
+                                        font.pixelSize: units.gu(1.1)
+                                        font.bold: (weightInputField.text === modelData)
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            weightInputField.text = modelData
+                                            settingsPage.currentWeightVal = modelData
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -278,12 +364,12 @@ Page {
                 border.width: units.dp(1)
 
                 readonly property var currentBmi: {
-                    var w = (setWeight && setWeight.selectedIndex >= 0) ? setWeight.model[setWeight.selectedIndex] : 70;
+                    var w = (weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : settingsPage.currentWeightVal;
                     var h = (heightField && heightField.text) ? heightField.text : "175";
                     return DB.calculateBMI(w, h);
                 }
                 readonly property int currentBmr: {
-                    var w = (setWeight && setWeight.selectedIndex >= 0) ? setWeight.model[setWeight.selectedIndex] : 70;
+                    var w = (weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : settingsPage.currentWeightVal;
                     var h = (heightField && heightField.text) ? heightField.text : "175";
                     var a = (ageField && ageField.text) ? ageField.text : "25";
                     var g = (femalePill && femalePill.selected) ? "Female" : "Male";
@@ -601,34 +687,6 @@ Page {
     }
 
     Component.onCompleted: {
-        var settings = DB.getSettings()
-        if (settings) {
-            var weightIdx = setWeight.model.indexOf(settings.weight)
-            if (weightIdx !== -1) setWeight.selectedIndex = weightIdx
-
-            var kcalIdx = workoutSelector.model.indexOf(settings.kcal_target)
-            if (kcalIdx !== -1) workoutSelector.selectedIndex = kcalIdx
-
-            var workoutsIdx = setSelector.model.indexOf(settings.num_workouts)
-            if (workoutsIdx !== -1) setSelector.selectedIndex = workoutsIdx
-
-            selectedDate = settings.date || ""
-            goalWeightField.text = settings.goal_weight || ""
-            
-            if (settings.gender === "Female") {
-                femalePill.selected = true
-                malePill.selected = false
-            } else {
-                malePill.selected = true
-                femalePill.selected = false
-            }
-
-            if (settings.height) {
-                heightField.text = settings.height
-            }
-            if (settings.age) {
-                ageField.text = settings.age
-            }
-        }
+        loadSettings()
     }
 }
