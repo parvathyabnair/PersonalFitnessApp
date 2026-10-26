@@ -2,6 +2,8 @@ import QtQuick 2.7
 import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
+import QtMultimedia 5.8
+import Lomiri.Content 1.3
 import "database.js" as DB
 
 Page {
@@ -12,8 +14,62 @@ Page {
     property string activeFilter: "all" // "all", "photo", "video"
     property var mediaList: []
 
+    // ContentHub active transfer tracking
+    property var activeTransfer: null
+    property string pendingExercise: "Squats"
+    property string pendingMediaType: "photo"
+
+    Rectangle {
+        anchors.fill: parent
+        color: root.isDarkMode ? "#121214" : "#F8F9FA"
+        z: -1
+    }
+
     function refreshMedia() {
         mediaList = DB.getMediaVaultItems(filterSessionId, activeFilter)
+    }
+
+    function savePhotoToVault(filePath, exercise) {
+        var ex = exercise || pendingExercise || "Progress Photo"
+        var nowStr = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+        var fileName = "progress_" + Date.now() + ".jpg"
+        DB.insertMediaVaultItem(
+            vaultPage.filterSessionId,
+            ex,
+            ex + " Photo",
+            "photo",
+            fileName,
+            filePath,
+            nowStr,
+            0,
+            "Captured with phone camera"
+        )
+        refreshMedia()
+    }
+
+    function saveVideoToVault(filePath, exercise, duration) {
+        var ex = exercise || pendingExercise || "Form Check"
+        var nowStr = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+        var fileName = "form_check_" + Date.now() + ".mp4"
+        DB.insertMediaVaultItem(
+            vaultPage.filterSessionId,
+            ex,
+            ex + " Video",
+            "video",
+            fileName,
+            filePath,
+            nowStr,
+            duration || 1,
+            "Form check video recording"
+        )
+        refreshMedia()
+    }
+
+    function openContentPicker(type, exercise, mediaType) {
+        pendingExercise = exercise || "Squats"
+        pendingMediaType = mediaType || (type === ContentType.Videos ? "video" : "photo")
+        peerPicker.contentType = type
+        peerPickerOverlay.visible = true
     }
 
     Component.onCompleted: {
@@ -33,10 +89,17 @@ Page {
         trailingActionBar.numberOfSlots: 2
         trailingActionBar.actions: [
             Action {
-                iconName: "add"
-                text: i18n.tr("Snap Media")
+                iconName: "camera-photo"
+                text: i18n.tr("Snap Photo")
                 onTriggered: {
-                    cameraOverlay.openCapture("photo", "Squats")
+                    openContentPicker(ContentType.Pictures, "Progress Photo", "photo")
+                }
+            },
+            Action {
+                iconName: "media-record"
+                text: i18n.tr("Record Video")
+                onTriggered: {
+                    openContentPicker(ContentType.Videos, "Squats", "video")
                 }
             }
         ]
@@ -109,28 +172,43 @@ Page {
                 }
             }
 
-            // QUICK SNAP ACTION BUTTONS
-            Row {
+            // PRIMARY CAMERA & CAPTURE ACTION BUTTONS
+            Column {
                 width: parent.width
-                spacing: units.gu(1.5)
+                spacing: units.gu(1)
 
-                Button {
-                    text: i18n.tr("📸 Snap Progress Photo")
-                    color: root.primaryColor
-                    width: (parent.width - units.gu(1.5)) / 2
-                    height: units.gu(4.8)
-                    onClicked: {
-                        cameraOverlay.openCapture("photo", "Progress Photo")
+                Row {
+                    width: parent.width
+                    spacing: units.gu(1.5)
+
+                    Button {
+                        text: i18n.tr("📸 Snap Photo")
+                        color: root.primaryColor
+                        width: (parent.width - units.gu(1.5)) / 2
+                        height: units.gu(4.8)
+                        onClicked: {
+                            openContentPicker(ContentType.Pictures, "Progress Photo", "photo")
+                        }
+                    }
+
+                    Button {
+                        text: i18n.tr("🎥 Record Form Check")
+                        color: root.accentOrange
+                        width: (parent.width - units.gu(1.5)) / 2
+                        height: units.gu(4.8)
+                        onClicked: {
+                            openContentPicker(ContentType.Videos, "Squats", "video")
+                        }
                     }
                 }
 
                 Button {
-                    text: i18n.tr("🎥 Record Form Check")
-                    color: root.accentOrange
-                    width: (parent.width - units.gu(1.5)) / 2
-                    height: units.gu(4.8)
+                    text: i18n.tr("⚡ In-App Viewfinder & Alignment Grid")
+                    color: root.cardBorderColor
+                    width: parent.width
+                    height: units.gu(4.2)
                     onClicked: {
-                        cameraOverlay.openCapture("video", "Squats")
+                        viewfinderLoader.active = true
                     }
                 }
             }
@@ -256,7 +334,7 @@ Page {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: units.gu(1.2)
+                        anchors.margins: units.gu(1.5)
                         spacing: units.gu(1.5)
 
                         // Media Thumbnail Box
@@ -264,92 +342,105 @@ Page {
                             width: units.gu(10)
                             height: units.gu(10)
                             radius: units.dp(8)
-                            color: modelData.media_type === "video" ? "#1E2024" : (root.isDarkMode ? "#2D3139" : "#F1F3F5")
+                            color: root.isDarkMode ? "#2D3139" : "#E5E7EB"
                             clip: true
 
                             Image {
                                 anchors.fill: parent
-                                source: (modelData.file_url && modelData.file_url !== "") ?
-                                        modelData.file_url : Qt.resolvedUrl("../assets/download.png")
+                                source: {
+                                    if (!modelData.file_url || modelData.file_url === "") return Qt.resolvedUrl("../assets/download.png")
+                                    var u = String(modelData.file_url)
+                                    return (u.indexOf("://") !== -1) ? u : ("file://" + u)
+                                }
                                 fillMode: Image.PreserveAspectCrop
                                 visible: modelData.media_type === "photo"
                             }
 
-                            // Video Overlay icon
-                            Rectangle {
-                                visible: modelData.media_type === "video"
+                            // Video placeholder / icon
+                            Item {
                                 anchors.fill: parent
-                                color: Qt.rgba(0, 0, 0, 0.45)
+                                visible: modelData.media_type === "video"
 
-                                Column {
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: "#18191B"
+                                }
+
+                                Label {
+                                    text: "🎥"
+                                    font.pixelSize: units.gu(3)
                                     anchors.centerIn: parent
-                                    spacing: units.gu(0.3)
+                                }
+
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
+                                    anchors.bottomMargin: units.gu(0.5)
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    height: units.gu(2)
+                                    width: durLabel.width + units.gu(1)
+                                    radius: units.dp(4)
+                                    color: Qt.rgba(0, 0, 0, 0.75)
 
                                     Label {
-                                        text: "▶"
-                                        color: "white"
-                                        font.pixelSize: units.gu(2.4)
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                    }
-
-                                    Label {
-                                        text: modelData.duration ? (modelData.duration + "s") : "0:15"
+                                        id: durLabel
+                                        anchors.centerIn: parent
+                                        text: modelData.duration + "s"
                                         color: "white"
                                         font.pixelSize: units.gu(1)
-                                        anchors.horizontalCenter: parent.horizontalCenter
                                     }
                                 }
                             }
                         }
 
-                        // Media Details
+                        // Info Column
                         Column {
                             Layout.fillWidth: true
                             spacing: units.gu(0.4)
 
-                            RowLayout {
-                                width: parent.width
-
-                                Label {
-                                    text: modelData.title || (modelData.media_type === "video" ? i18n.tr("Form Check Clip") : i18n.tr("Progress Photo"))
-                                    font.bold: true
-                                    font.pixelSize: units.gu(1.5)
-                                    color: root.textPrimaryColor
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                }
+                            Row {
+                                spacing: units.gu(0.8)
 
                                 Rectangle {
-                                    height: units.gu(2)
-                                    width: typePill.width + units.gu(1)
-                                    radius: units.dp(4)
-                                    color: modelData.media_type === "video" ? "#FEF3C7" : "#E0E7FF"
+                                    height: units.gu(2.4)
+                                    width: typeLabel.width + units.gu(1.4)
+                                    radius: height / 2
+                                    color: modelData.media_type === "video" ? "#EF4444" : root.primaryColor
 
                                     Label {
-                                        id: typePill
-                                        text: modelData.media_type === "video" ? i18n.tr("VIDEO") : i18n.tr("PHOTO")
-                                        font.pixelSize: units.gu(0.9)
-                                        font.bold: true
-                                        color: modelData.media_type === "video" ? "#B45309" : "#4338CA"
+                                        id: typeLabel
                                         anchors.centerIn: parent
+                                        text: modelData.media_type === "video" ? i18n.tr("VIDEO") : i18n.tr("PHOTO")
+                                        color: "white"
+                                        font.bold: true
+                                        font.pixelSize: units.gu(0.9)
                                     }
+                                }
+
+                                Label {
+                                    text: modelData.exercise || "Workout"
+                                    color: root.textSecondaryColor
+                                    font.pixelSize: units.gu(1.2)
+                                    anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
 
                             Label {
-                                text: modelData.exercise ? ("🏋️ " + modelData.exercise) : i18n.tr("General Workout")
-                                font.pixelSize: units.gu(1.3)
-                                color: root.primaryColor
+                                text: modelData.title || i18n.tr("Media Item")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.4)
+                                color: root.textPrimaryColor
+                                elide: Text.ElideRight
+                                width: parent.width
                             }
 
                             Label {
-                                text: "📅 " + (modelData.date ? modelData.date.slice(0, 16) : "")
+                                text: "📅 " + (modelData.date || "")
                                 font.pixelSize: units.gu(1.1)
                                 color: root.textSecondaryColor
                             }
 
                             Label {
-                                text: modelData.notes || i18n.tr("Protected in private sandbox (.nomedia)")
+                                text: modelData.notes || i18n.tr("Sandboxed private media")
                                 font.pixelSize: units.gu(1.1)
                                 color: root.textSecondaryColor
                                 elide: Text.ElideRight
@@ -357,18 +448,18 @@ Page {
                             }
                         }
 
-                        // Actions column
+                        // Actions Column
                         Column {
                             spacing: units.gu(1)
 
                             Button {
                                 iconName: "delete"
-                                color: "#EF4444"
+                                color: "transparent"
                                 width: units.gu(3.8)
                                 height: units.gu(3.8)
                                 onClicked: {
                                     DB.deleteMediaVaultItem(modelData.id)
-                                    refreshMedia()
+                                    vaultPage.refreshMedia()
                                 }
                             }
                         }
@@ -386,345 +477,512 @@ Page {
         }
     }
 
-    // FORM-CHECK & PROGRESS CAPTURE MODAL (Crash-free, sandboxed architecture)
+    // CONTENT HUB SYSTEM CAMERA & GALLERY PICKER OVERLAY
     Rectangle {
-        id: cameraOverlay
+        id: peerPickerOverlay
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.95)
+        color: root.isDarkMode ? "#121214" : "#F8F9FA"
         visible: false
-        z: 900
+        z: 920
 
-        property string captureType: "photo" // "photo" or "video"
-        property string targetExercise: "Squats"
-        property int recordingSeconds: 0
-        property bool isRecording: false
-        property string notesText: ""
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 0
 
-        function openCapture(type, exercise) {
-            captureType = type
-            targetExercise = exercise || "Squats"
-            recordingSeconds = 0
-            isRecording = false
-            notesText = ""
-            visible = true
-        }
-
-        function closeCapture() {
-            isRecording = false
-            recordTimer.stop()
-            visible = false
-        }
-
-        Timer {
-            id: recordTimer
-            interval: 1000
-            repeat: true
-            onTriggered: {
-                cameraOverlay.recordingSeconds++
-            }
-        }
-
-        // Top Control Header
-        Rectangle {
-            width: parent.width
-            height: units.gu(6.5)
-            anchors.top: parent.top
-            color: "#18191B"
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: units.gu(1.5)
-                anchors.rightMargin: units.gu(1.5)
-
-                Button {
-                    iconName: "close"
-                    color: "transparent"
-                    width: units.gu(4)
-                    height: units.gu(4)
-                    onClicked: cameraOverlay.closeCapture()
-                }
-
-                Label {
-                    text: cameraOverlay.captureType === "video" ? i18n.tr("Form-Check Video Capture") : i18n.tr("Progress Photo Snap")
-                    color: "white"
-                    font.bold: true
-                    font.pixelSize: units.gu(1.7)
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Label {
-                    text: "🔒 Sandboxed"
-                    color: "#10B981"
-                    font.pixelSize: units.gu(1.2)
-                }
-            }
-        }
-
-        // FORM CHECK VIEWFINDER & POSTURE GRID
-        Rectangle {
-            id: viewFinderBox
-            width: parent.width - units.gu(3)
-            height: parent.height - units.gu(26)
-            anchors.centerIn: parent
-            radius: units.dp(12)
-            color: "#1E2024"
-            border.color: root.primaryColor
-            border.width: units.dp(1)
-            clip: true
-
-            Image {
-                anchors.fill: parent
-                source: Qt.resolvedUrl("../assets/download.png")
-                fillMode: Image.PreserveAspectCrop
-                opacity: 0.25
-            }
-
-            // Posture Alignment Grid lines
-            Item {
-                anchors.fill: parent
-
-                // Vertical symmetry line (Spine / Barbell center)
-                Rectangle {
-                    width: units.dp(1.5)
-                    height: parent.height
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: "#38BDF8"
-                    opacity: 0.6
-                }
-
-                // Horizontal shoulder / bar guide
-                Rectangle {
-                    width: parent.width
-                    height: units.dp(1)
-                    y: parent.height * 0.35
-                    color: "#34D399"
-                    opacity: 0.5
-                }
-
-                // Horizontal hip / squat depth level
-                Rectangle {
-                    width: parent.width
-                    height: units.dp(1.5)
-                    y: parent.height * 0.65
-                    color: "#FBBF24"
-                    opacity: 0.6
-                }
-
-                // Alignment label indicators
-                Label {
-                    text: i18n.tr("Bar / Shoulder Level")
-                    color: "#34D399"
-                    font.pixelSize: units.gu(1)
-                    x: units.gu(1)
-                    y: parent.height * 0.35 - units.gu(1.8)
-                }
-
-                Label {
-                    text: i18n.tr("Parallel Hip Depth Level")
-                    color: "#FBBF24"
-                    font.pixelSize: units.gu(1)
-                    x: units.gu(1)
-                    y: parent.height * 0.65 - units.gu(1.8)
-                }
-            }
-
-            // Central exercise badge
             Rectangle {
-                anchors.top: parent.top
-                anchors.topMargin: units.gu(1.5)
-                anchors.horizontalCenter: parent.horizontalCenter
-                height: units.gu(3.2)
-                width: exLabel.width + units.gu(3)
-                radius: height / 2
-                color: Qt.rgba(0, 0, 0, 0.7)
+                Layout.fillWidth: true
+                height: units.gu(6.5)
+                color: root.primaryColor
 
-                Label {
-                    id: exLabel
-                    anchors.centerIn: parent
-                    text: "🏋️ " + cameraOverlay.targetExercise
-                    color: "white"
-                    font.bold: true
-                    font.pixelSize: units.gu(1.3)
-                }
-            }
-
-            // Active recording indicator
-            Rectangle {
-                visible: cameraOverlay.isRecording
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: units.gu(1.5)
-                anchors.horizontalCenter: parent.horizontalCenter
-                height: units.gu(3.6)
-                width: recRow.width + units.gu(3)
-                radius: height / 2
-                color: Qt.rgba(0, 0, 0, 0.8)
-
-                Row {
-                    id: recRow
-                    anchors.centerIn: parent
-                    spacing: units.gu(0.8)
-
-                    Rectangle {
-                        width: units.gu(1.2)
-                        height: units.gu(1.2)
-                        radius: width / 2
-                        color: "#EF4444"
-                        anchors.verticalCenter: parent.verticalCenter
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 1.0; to: 0.2; duration: 500 }
-                            NumberAnimation { from: 0.2; to: 1.0; duration: 500 }
-                        }
-                    }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: units.gu(1.5)
+                    anchors.rightMargin: units.gu(1.5)
 
                     Label {
-                        text: {
-                            var mins = Math.floor(cameraOverlay.recordingSeconds / 60)
-                            var secs = cameraOverlay.recordingSeconds % 60
-                            return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
-                        }
+                        text: (peerPicker.contentType === ContentType.Videos) ?
+                              i18n.tr("Select Camera or Video App") :
+                              i18n.tr("Select Camera or Gallery App")
                         color: "white"
                         font.bold: true
-                        font.pixelSize: units.gu(1.4)
-                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: units.gu(1.5)
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        text: i18n.tr("Close")
+                        height: units.gu(4)
+                        color: LomiriColors.slate
+                        onClicked: {
+                            peerPickerOverlay.visible = false
+                        }
                     }
                 }
             }
-        }
 
-        // Exercise Selector Pill Bar
-        Row {
-            anchors.bottom: bottomControlBar.top
-            anchors.bottomMargin: units.gu(1)
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: units.gu(1)
+            ContentPeerPicker {
+                id: peerPicker
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                contentType: ContentType.Pictures
+                handler: ContentHandler.Source
 
-            Repeater {
-                model: ["Squats", "Bench Press", "Deadlift", "Progress Photo"]
-                delegate: Rectangle {
-                    height: units.gu(3.2)
-                    width: pillTxt.width + units.gu(2)
-                    radius: height / 2
-                    color: cameraOverlay.targetExercise === modelData ? root.primaryColor : "#2D3139"
+                onPeerSelected: {
+                    peer.selectionType = ContentTransfer.Single
+                    vaultPage.activeTransfer = peer.request()
+                    stateChangeConnection.target = vaultPage.activeTransfer
+                    peerPickerOverlay.visible = false
+                }
 
-                    Label {
-                        id: pillTxt
-                        anchors.centerIn: parent
-                        text: modelData
-                        color: "white"
-                        font.bold: cameraOverlay.targetExercise === modelData
-                        font.pixelSize: units.gu(1.1)
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: cameraOverlay.targetExercise = modelData
-                    }
+                onCancelPressed: {
+                    peerPickerOverlay.visible = false
                 }
             }
         }
+    }
 
-        // Bottom Capture Controls
+    Connections {
+        id: stateChangeConnection
+        target: null
+        onStateChanged: {
+            if (vaultPage.activeTransfer && vaultPage.activeTransfer.state === ContentTransfer.Charged) {
+                var items = vaultPage.activeTransfer.items
+                for (var i = 0; i < items.length; i++) {
+                    var u = String(items[i].url)
+                    var path = u.replace("file://", "")
+                    if (vaultPage.pendingMediaType === "video") {
+                        saveVideoToVault(path, vaultPage.pendingExercise, 5)
+                    } else {
+                        savePhotoToVault(path, vaultPage.pendingExercise)
+                    }
+                }
+                vaultPage.activeTransfer = null
+            }
+        }
+    }
+
+    // SAFE LAZY-LOADED IN-APP VIEWFINDER & POSTURE GRID
+    Loader {
+        id: viewfinderLoader
+        anchors.fill: parent
+        active: false
+        z: 900
+        sourceComponent: viewfinderComponent
+    }
+
+    Component {
+        id: viewfinderComponent
+
         Rectangle {
-            id: bottomControlBar
-            width: parent.width
-            height: units.gu(11)
-            anchors.bottom: parent.bottom
-            color: "#18191B"
+            id: viewfinderRoot
+            anchors.fill: parent
+            color: Qt.rgba(0, 0, 0, 0.95)
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: units.gu(3)
-                anchors.rightMargin: units.gu(3)
+            property string captureType: "photo" // "photo" or "video"
+            property string targetExercise: "Squats"
+            property int recordingSeconds: 0
+            property bool isRecording: false
+            property bool cameraFailed: false
 
-                // Mode switch
-                Button {
-                    text: cameraOverlay.captureType === "photo" ? "🎥 Video" : "📸 Photo"
-                    color: root.cardBorderColor
-                    height: units.gu(4.5)
-                    onClicked: {
-                        cameraOverlay.captureType = (cameraOverlay.captureType === "photo") ? "video" : "photo"
+            Timer {
+                id: recordTimer
+                interval: 1000
+                repeat: true
+                running: viewfinderRoot.isRecording
+                onTriggered: {
+                    viewfinderRoot.recordingSeconds++
+                }
+            }
+
+            Camera {
+                id: realCamera
+                cameraState: Camera.ActiveState
+                captureMode: viewfinderRoot.captureType === "video" ? Camera.CaptureVideo : Camera.CaptureStillImage
+                position: Camera.BackFace
+
+                imageCapture {
+                    onImageSaved: {
+                        console.log("Real camera photo captured:", path)
+                        vaultPage.savePhotoToVault(path, viewfinderRoot.targetExercise)
+                        viewfinderLoader.active = false
+                    }
+                    onCaptureFailed: {
+                        console.log("Image capture error:", message)
                     }
                 }
 
-                Item { Layout.fillWidth: true }
+                videoRecorder {
+                    onRecorderStateChanged: {
+                        if (realCamera.videoRecorder.recorderState === CameraRecorder.StoppedState) {
+                            vaultPage.saveVideoToVault(realCamera.videoRecorder.actualLocation || "", viewfinderRoot.targetExercise, Math.max(1, viewfinderRoot.recordingSeconds))
+                            viewfinderLoader.active = false
+                        }
+                    }
+                }
 
-                // Main Trigger Button
-                Rectangle {
-                    width: units.gu(7.5)
-                    height: units.gu(7.5)
-                    radius: width / 2
-                    color: "transparent"
-                    border.color: "white"
-                    border.width: units.dp(3)
+                onError: {
+                    console.log("Camera hardware error:", errorString)
+                    viewfinderRoot.cameraFailed = true
+                }
+            }
+
+            // Top Control Bar
+            Rectangle {
+                id: topBar
+                width: parent.width
+                height: units.gu(6.5)
+                anchors.top: parent.top
+                color: "#18191B"
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: units.gu(1.5)
+                    anchors.rightMargin: units.gu(1.5)
 
                     Rectangle {
-                        width: units.gu(6)
-                        height: units.gu(6)
-                        radius: cameraOverlay.isRecording ? units.dp(8) : (width / 2)
-                        color: cameraOverlay.captureType === "video" ? "#EF4444" : "white"
-                        anchors.centerIn: parent
+                        width: units.gu(4)
+                        height: units.gu(4)
+                        radius: units.dp(6)
+                        color: "#2D3139"
+
+                        Label {
+                            text: "✕"
+                            color: "white"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            anchors.centerIn: parent
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                viewfinderLoader.active = false
+                            }
+                        }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (cameraOverlay.captureType === "photo") {
-                                // Save snapshot to private vault
-                                var nowStr = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
-                                var fileName = "form_check_" + Date.now() + ".jpg"
-                                DB.insertMediaVaultItem(
-                                    vaultPage.filterSessionId,
-                                    cameraOverlay.targetExercise,
-                                    cameraOverlay.targetExercise + " Form Check",
-                                    "photo",
-                                    fileName,
-                                    Qt.resolvedUrl("../assets/download.png"),
-                                    nowStr,
-                                    0,
-                                    "Sandboxed form check snapshot (.nomedia protected)"
-                                )
-                                vaultPage.refreshMedia()
-                                cameraOverlay.closeCapture()
-                            } else {
-                                if (!cameraOverlay.isRecording) {
-                                    cameraOverlay.isRecording = true
-                                    cameraOverlay.recordingSeconds = 0
-                                    recordTimer.start()
-                                } else {
-                                    // Stop video and save
-                                    cameraOverlay.isRecording = false
-                                    recordTimer.stop()
-                                    var nowStr = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
-                                    var fileName = "form_check_" + Date.now() + ".mp4"
-                                    DB.insertMediaVaultItem(
-                                        vaultPage.filterSessionId,
-                                        cameraOverlay.targetExercise,
-                                        cameraOverlay.targetExercise + " Rep Set",
-                                        "video",
-                                        fileName,
-                                        "",
-                                        nowStr,
-                                        Math.max(1, cameraOverlay.recordingSeconds),
-                                        "Private video form check (" + cameraOverlay.recordingSeconds + "s)"
-                                    )
-                                    vaultPage.refreshMedia()
-                                    cameraOverlay.closeCapture()
-                                }
+                    Label {
+                        text: viewfinderRoot.captureType === "video" ? i18n.tr("Form-Check Video Capture") : i18n.tr("Progress Photo Snap")
+                        color: "white"
+                        font.bold: true
+                        font.pixelSize: units.gu(1.6)
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+
+                    Rectangle {
+                        width: units.gu(7.5)
+                        height: units.gu(3.8)
+                        radius: units.dp(6)
+                        color: "#2D3139"
+
+                        Label {
+                            text: realCamera.position === Camera.BackFace ? "🔄 Front" : "🔄 Back"
+                            color: "white"
+                            font.pixelSize: units.gu(1.2)
+                            anchors.centerIn: parent
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                realCamera.position = (realCamera.position === Camera.BackFace) ? Camera.FrontFace : Camera.BackFace
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Central Viewfinder Box
+            Rectangle {
+                id: viewFinderBox
+                width: parent.width - units.gu(3)
+                height: parent.height - units.gu(26)
+                anchors.centerIn: parent
+                radius: units.dp(12)
+                color: "#1E2024"
+                border.color: root.primaryColor
+                border.width: units.dp(1)
+                clip: true
+
+                // VideoOutput for Camera Stream
+                VideoOutput {
+                    id: cameraView
+                    anchors.fill: parent
+                    source: realCamera
+                    autoOrientation: true
+                    fillMode: VideoOutput.PreserveAspectCrop
+                }
+
+                // Fallback Card if Camera Hardware is Unavailable or in Error
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#18191B"
+                    visible: realCamera.cameraStatus !== Camera.ActiveStatus || viewfinderRoot.cameraFailed
+                    z: 5
+
+                    Column {
+                        anchors.centerIn: parent
+                        width: parent.width * 0.85
+                        spacing: units.gu(1.5)
+
+                        Label {
+                            text: "📷"
+                            font.pixelSize: units.gu(4)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: i18n.tr("Camera Feed Inactive")
+                            color: "white"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Label {
+                            text: i18n.tr("Direct preview is not available on this device configuration. Tap below to use the System Camera.")
+                            color: "#AAAAAA"
+                            font.pixelSize: units.gu(1.2)
+                            horizontalAlignment: Text.AlignHCenter
+                            wrapMode: Text.WordWrap
+                            width: parent.width
+                        }
+
+                        Button {
+                            text: i18n.tr("Open System Camera")
+                            color: root.primaryColor
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            height: units.gu(4.5)
+                            onClicked: {
+                                viewfinderLoader.active = false
+                                vaultPage.openContentPicker(viewfinderRoot.captureType === "video" ? ContentType.Videos : ContentType.Pictures, viewfinderRoot.targetExercise, viewfinderRoot.captureType)
                             }
                         }
                     }
                 }
 
-                Item { Layout.fillWidth: true }
+                // Posture Alignment Guidelines
+                Item {
+                    anchors.fill: parent
+                    visible: realCamera.cameraStatus === Camera.ActiveStatus && !viewfinderRoot.cameraFailed
 
-                Label {
-                    text: cameraOverlay.captureType === "video" ?
-                          (cameraOverlay.isRecording ? i18n.tr("Tap to STOP") : i18n.tr("Tap to RECORD")) :
-                          i18n.tr("Tap to SNAP")
-                    color: "white"
-                    font.pixelSize: units.gu(1.1)
+                    // Vertical center line
+                    Rectangle {
+                        width: units.dp(1.5)
+                        height: parent.height
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: "#38BDF8"
+                        opacity: 0.6
+                    }
+
+                    // Horizontal shoulder guide
+                    Rectangle {
+                        width: parent.width
+                        height: units.dp(1)
+                        y: parent.height * 0.35
+                        color: "#34D399"
+                        opacity: 0.5
+                    }
+
+                    // Horizontal hip / squat depth level
+                    Rectangle {
+                        width: parent.width
+                        height: units.dp(1.5)
+                        y: parent.height * 0.65
+                        color: "#FBBF24"
+                        opacity: 0.6
+                    }
+
+                    Label {
+                        text: i18n.tr("Bar / Shoulder Level")
+                        color: "#34D399"
+                        font.pixelSize: units.gu(1)
+                        x: units.gu(1)
+                        y: parent.height * 0.35 - units.gu(1.8)
+                    }
+
+                    Label {
+                        text: i18n.tr("Parallel Hip Depth Level")
+                        color: "#FBBF24"
+                        font.pixelSize: units.gu(1)
+                        x: units.gu(1)
+                        y: parent.height * 0.65 - units.gu(1.8)
+                    }
+                }
+
+                // Exercise Badge
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.topMargin: units.gu(1.5)
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: units.gu(3.2)
+                    width: exLabel.width + units.gu(3)
+                    radius: height / 2
+                    color: Qt.rgba(0, 0, 0, 0.7)
+
+                    Label {
+                        id: exLabel
+                        anchors.centerIn: parent
+                        text: "🏋️ " + viewfinderRoot.targetExercise
+                        color: "white"
+                        font.bold: true
+                        font.pixelSize: units.gu(1.3)
+                    }
+                }
+
+                // Recording Indicator
+                Rectangle {
+                    visible: viewfinderRoot.isRecording
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: units.gu(1.5)
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: units.gu(3.6)
+                    width: units.gu(14)
+                    radius: height / 2
+                    color: Qt.rgba(0, 0, 0, 0.85)
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: units.gu(0.8)
+
+                        Rectangle {
+                            width: units.gu(1.2)
+                            height: units.gu(1.2)
+                            radius: width / 2
+                            color: "#EF4444"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Label {
+                            text: {
+                                var mins = Math.floor(viewfinderRoot.recordingSeconds / 60)
+                                var secs = viewfinderRoot.recordingSeconds % 60
+                                return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+                            }
+                            color: "white"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.4)
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                }
+            }
+
+            // Exercise Selection Pills
+            Row {
+                anchors.bottom: bottomBar.top
+                anchors.bottomMargin: units.gu(1)
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: units.gu(1)
+
+                Repeater {
+                    model: ["Squats", "Bench Press", "Deadlift", "Progress Photo"]
+                    delegate: Rectangle {
+                        height: units.gu(3.2)
+                        width: pillTxt.width + units.gu(2)
+                        radius: height / 2
+                        color: viewfinderRoot.targetExercise === modelData ? root.primaryColor : "#2D3139"
+
+                        Label {
+                            id: pillTxt
+                            anchors.centerIn: parent
+                            text: modelData
+                            color: "white"
+                            font.bold: viewfinderRoot.targetExercise === modelData
+                            font.pixelSize: units.gu(1.1)
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: viewfinderRoot.targetExercise = modelData
+                        }
+                    }
+                }
+            }
+
+            // Bottom Shutter & Controls
+            Rectangle {
+                id: bottomBar
+                width: parent.width
+                height: units.gu(11)
+                anchors.bottom: parent.bottom
+                color: "#18191B"
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: units.gu(2.5)
+                    anchors.rightMargin: units.gu(2.5)
+
+                    // Mode switch
+                    Button {
+                        text: viewfinderRoot.captureType === "photo" ? "🎥 Video Mode" : "📸 Photo Mode"
+                        color: root.cardBorderColor
+                        height: units.gu(4.5)
+                        onClicked: {
+                            viewfinderRoot.captureType = (viewfinderRoot.captureType === "photo") ? "video" : "photo"
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    // Shutter Trigger Button
+                    Rectangle {
+                        width: units.gu(7.5)
+                        height: units.gu(7.5)
+                        radius: width / 2
+                        color: "transparent"
+                        border.color: "white"
+                        border.width: units.dp(3)
+
+                        Rectangle {
+                            width: units.gu(6)
+                            height: units.gu(6)
+                            radius: viewfinderRoot.isRecording ? units.dp(8) : (width / 2)
+                            color: viewfinderRoot.captureType === "video" ? "#EF4444" : "white"
+                            anchors.centerIn: parent
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                if (viewfinderRoot.captureType === "photo") {
+                                    if (realCamera.cameraStatus === Camera.ActiveStatus && !viewfinderRoot.cameraFailed) {
+                                        realCamera.imageCapture.capture()
+                                    } else {
+                                        viewfinderLoader.active = false
+                                        vaultPage.openContentPicker(ContentType.Pictures, viewfinderRoot.targetExercise, "photo")
+                                    }
+                                } else {
+                                    if (!viewfinderRoot.isRecording) {
+                                        viewfinderRoot.isRecording = true
+                                        viewfinderRoot.recordingSeconds = 0
+                                        if (realCamera.cameraStatus === Camera.ActiveStatus && !viewfinderRoot.cameraFailed) {
+                                            realCamera.videoRecorder.record()
+                                        }
+                                    } else {
+                                        viewfinderRoot.isRecording = false
+                                        if (realCamera.cameraStatus === Camera.ActiveStatus && realCamera.videoRecorder.recorderState === CameraRecorder.RecordingState) {
+                                            realCamera.videoRecorder.stop()
+                                        } else {
+                                            vaultPage.saveVideoToVault("", viewfinderRoot.targetExercise, Math.max(1, viewfinderRoot.recordingSeconds))
+                                            viewfinderLoader.active = false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Label {
+                        text: viewfinderRoot.captureType === "video" ?
+                              (viewfinderRoot.isRecording ? i18n.tr("Tap to STOP") : i18n.tr("Tap to RECORD")) :
+                              i18n.tr("Tap to SNAP")
+                        color: "white"
+                        font.pixelSize: units.gu(1.1)
+                    }
                 }
             }
         }
@@ -770,12 +1028,24 @@ Page {
                 }
             }
 
-            Button {
-                iconName: "close"
-                color: Qt.rgba(255, 255, 255, 0.2)
+            Rectangle {
                 width: units.gu(4)
                 height: units.gu(4)
-                onClicked: previewModal.closePreview()
+                radius: units.dp(6)
+                color: "#373A40"
+
+                Label {
+                    text: "✕"
+                    color: "white"
+                    font.bold: true
+                    font.pixelSize: units.gu(1.6)
+                    anchors.centerIn: parent
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: previewModal.closePreview()
+                }
             }
         }
 
@@ -787,8 +1057,11 @@ Page {
 
             Image {
                 anchors.fill: parent
-                source: (previewModal.currentItem && previewModal.currentItem.file_url && previewModal.currentItem.file_url !== "") ?
-                        previewModal.currentItem.file_url : Qt.resolvedUrl("../assets/download.png")
+                source: {
+                    if (!previewModal.currentItem || !previewModal.currentItem.file_url || previewModal.currentItem.file_url === "") return Qt.resolvedUrl("../assets/download.png")
+                    var u = String(previewModal.currentItem.file_url)
+                    return (u.indexOf("://") !== -1) ? u : ("file://" + u)
+                }
                 fillMode: Image.PreserveAspectFit
                 visible: previewModal.currentItem && previewModal.currentItem.media_type === "photo"
             }

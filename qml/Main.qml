@@ -30,6 +30,7 @@ MainView {
 
     width: units.gu(45)
     height: units.gu(75)
+    backgroundColor: isDarkMode ? "#121214" : "#F8F9FA"
     property bool showSplash: true
     
     // THEME PALETTE HELPERS (Used consistently across all pages)
@@ -52,15 +53,7 @@ MainView {
     property bool activeSessionRunning: false
     property int activeSessionTargetSeconds: -1
 
-    // WEARABLE BLUETOOTH BACKEND BRIDGE (Xiaomi Band 9 / Gadgetbridge)
-    readonly property alias backendBridge: backendBridgeInstance
-    BackendBridge {
-        id: backendBridgeInstance
-    }
 
-    onActiveSessionRunningChanged: {
-        backendBridgeInstance.setWorkoutMode(activeSessionRunning)
-    }
 
     Timer {
         id: globalSessionTimer

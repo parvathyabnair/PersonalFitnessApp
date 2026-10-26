@@ -110,17 +110,9 @@ Page {
                 }
             },
 
-            Action {
-                iconName: "find"
-                text: i18n.tr("Wearables & Band 9")
-
-                onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("WearablesPage.qml"), {pageLayout: pageLayout})
-                }
-            },
 
             Action {
-                iconSource: Qt.resolvedUrl("../assets/show.png")
+                iconName: "camera-photo"
                 text: i18n.tr("Private Media Vault 🔒")
 
                 onTriggered: {
@@ -218,73 +210,6 @@ Page {
                 }
             }
 
-            // WEARABLE SENSOR QUICK BANNER (Xiaomi Band 9)
-            Rectangle {
-                width: parent.width
-                height: units.gu(5.5)
-                radius: units.dp(10)
-                color: root.cardBgColor
-                border.color: root.cardBorderColor
-                border.width: units.dp(1)
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: units.gu(1.5)
-                    anchors.rightMargin: units.gu(1.5)
-                    spacing: units.gu(1.2)
-
-                    Label {
-                        text: "⌚"
-                        font.pixelSize: units.gu(2.2)
-                    }
-
-                    Column {
-                        Layout.fillWidth: true
-                        spacing: units.gu(0.1)
-
-                        Row {
-                            spacing: units.gu(0.8)
-
-                            Label {
-                                text: root.backendBridge.deviceName
-                                font.bold: true
-                                font.pixelSize: units.gu(1.3)
-                                color: root.textPrimaryColor
-                            }
-
-                            Rectangle {
-                                width: units.gu(0.8)
-                                height: units.gu(0.8)
-                                radius: width / 2
-                                color: root.backendBridge.connected ? "#10B981" : "#EF4444"
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Label {
-                            text: root.backendBridge.connected ?
-                                  ("❤️ " + root.backendBridge.heartRate + " BPM (" + root.backendBridge.heartRateZone + ") • 👣 " + root.backendBridge.steps.toLocaleString() + " steps") :
-                                  i18n.tr("Device Disconnected • Tap to pair")
-                            font.pixelSize: units.gu(1.1)
-                            color: root.textSecondaryColor
-                        }
-                    }
-
-                    Icon {
-                        name: "next"
-                        width: units.gu(1.8)
-                        height: units.gu(1.8)
-                        color: root.textSecondaryColor
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("WearablesPage.qml"), {pageLayout: pageLayout})
-                    }
-                }
-            }
 
             // HERO METRIC CARDS ROW
             Row {
@@ -683,6 +608,16 @@ Page {
                             onClicked: {
                                 pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
                             }
+                        }
+                    }
+
+                    Button {
+                        text: i18n.tr("🔒 Private Media Vault & Form Checks")
+                        color: root.cardBorderColor
+                        width: parent.width
+                        height: units.gu(4.5)
+                        onClicked: {
+                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
                         }
                     }
                 }

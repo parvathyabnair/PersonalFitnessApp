@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 11:39+0000\n"
+"POT-Creation-Date: 2026-10-23 11:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,89 +55,85 @@ msgstr ""
 msgid "🎉 Workout Target Reached!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:334
+#: ../qml/ActiveSessionPage.qml:307
 msgid "Pause"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:334
+#: ../qml/ActiveSessionPage.qml:307
 msgid "Resume"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:342
+#: ../qml/ActiveSessionPage.qml:315
 msgid "Finish & Save"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:350
+#: ../qml/ActiveSessionPage.qml:323
 msgid "Next Exercise"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:365
+#: ../qml/ActiveSessionPage.qml:337
 msgid "📷 Form Check / Photo"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:378
-msgid "⌚ Wearable Band 9"
-msgstr ""
-
-#: ../qml/ActiveSessionPage.qml:408
+#: ../qml/ActiveSessionPage.qml:372
 msgid "⏱️ Rest Interval Timer"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:418
+#: ../qml/ActiveSessionPage.qml:382
 msgid "Resting: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:419
+#: ../qml/ActiveSessionPage.qml:383
 msgid "Paused: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:419
+#: ../qml/ActiveSessionPage.qml:383
 msgid "Ready for next set! 💪"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:466
+#: ../qml/ActiveSessionPage.qml:430
 msgid "Pause Rest"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:466
+#: ../qml/ActiveSessionPage.qml:430
 msgid "Resume Rest"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:466
+#: ../qml/ActiveSessionPage.qml:430
 msgid "Start Rest"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:479
+#: ../qml/ActiveSessionPage.qml:443
 msgid "Reset"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:527
+#: ../qml/ActiveSessionPage.qml:491
 msgid "Save Workout First"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:536
+#: ../qml/ActiveSessionPage.qml:500
 msgid ""
 "Would you like to finish and save this session before starting the next "
 "exercise?"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:544
+#: ../qml/ActiveSessionPage.qml:508
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:550
+#: ../qml/ActiveSessionPage.qml:514
 msgid "Save & Proceed"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:572
+#: ../qml/ActiveSessionPage.qml:536
 msgid "Session Saved! 🎉"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:581
+#: ../qml/ActiveSessionPage.qml:545
 msgid "Workout session saved successfully! Total duration: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:585
+#: ../qml/ActiveSessionPage.qml:549
 msgid "Great!"
 msgstr ""
 
@@ -201,163 +197,185 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: ../qml/HomePage.qml:115
-msgid "Wearables & Band 9"
-msgstr ""
-
-#: ../qml/HomePage.qml:124
+#: ../qml/HomePage.qml:116
 msgid "Private Media Vault 🔒"
 msgstr ""
 
-#: ../qml/HomePage.qml:163
+#: ../qml/HomePage.qml:155
 msgid "Welcome Back! 💪"
 msgstr ""
 
-#: ../qml/HomePage.qml:204
+#: ../qml/HomePage.qml:196
 msgid "Live Session"
 msgstr ""
 
-#: ../qml/HomePage.qml:267
-msgid "Device Disconnected • Tap to pair"
-msgstr ""
-
-#: ../qml/HomePage.qml:332 ../qml/HomePage.qml:516
+#: ../qml/HomePage.qml:257 ../qml/HomePage.qml:441
 msgid "Calories (kcal)"
 msgstr ""
 
-#: ../qml/HomePage.qml:378
+#: ../qml/HomePage.qml:303
 msgid "Current Weight"
 msgstr ""
 
-#: ../qml/HomePage.qml:424
+#: ../qml/HomePage.qml:349
 msgid "Goal Target"
 msgstr ""
 
-#: ../qml/HomePage.qml:452
+#: ../qml/HomePage.qml:377
 msgid "Daily Calorie Target"
 msgstr ""
 
-#: ../qml/HomePage.qml:507
+#: ../qml/HomePage.qml:432
 msgid "Weekly Progress"
 msgstr ""
 
-#: ../qml/HomePage.qml:648
+#: ../qml/HomePage.qml:573
 msgid "Ready to Workout?"
 msgstr ""
 
-#: ../qml/HomePage.qml:655
+#: ../qml/HomePage.qml:580
 msgid "Log sets, track rest timers, and hit daily goals."
 msgstr ""
 
-#: ../qml/HomePage.qml:669
+#: ../qml/HomePage.qml:594
 msgid "+ New Workout"
 msgstr ""
 
-#: ../qml/HomePage.qml:679
+#: ../qml/HomePage.qml:604
 msgid "Past Sessions"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:25
+#: ../qml/HomePage.qml:615
+msgid "🔒 Private Media Vault & Form Checks"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:81
 msgid "Privacy Media Vault"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:37
-msgid "Snap Media"
+#: ../qml/MediaVaultPage.qml:93
+msgid "Snap Photo"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:95
+#: ../qml/MediaVaultPage.qml:100
+msgid "Record Video"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:158
 msgid "Sandboxed Local Storage Active"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:102
+#: ../qml/MediaVaultPage.qml:165
 msgid ""
 "Form-check clips & progress photos are stored isolated in the app sandbox (."
 "nomedia). They will never mix into your phone's public gallery."
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:118
-msgid "📸 Snap Progress Photo"
+#: ../qml/MediaVaultPage.qml:185
+msgid "📸 Snap Photo"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:128
+#: ../qml/MediaVaultPage.qml:195
 msgid "🎥 Record Form Check"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:152
+#: ../qml/MediaVaultPage.qml:206
+msgid "⚡ In-App Viewfinder & Alignment Grid"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:230
 msgid "All Media"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:174
+#: ../qml/MediaVaultPage.qml:252
 msgid "🎥 Videos"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:196
+#: ../qml/MediaVaultPage.qml:274
 msgid "📸 Photos"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:228
+#: ../qml/MediaVaultPage.qml:306
 msgid "No Private Media Yet"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:236
+#: ../qml/MediaVaultPage.qml:314
 msgid ""
 "Snap form-check videos during squats or bench presses, or capture progress "
 "photos. Everything stays inside this encrypted vault."
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:314
-msgid "Form Check Clip"
-msgstr ""
-
-#: ../qml/MediaVaultPage.qml:314
-msgid "Progress Photo"
-msgstr ""
-
-#: ../qml/MediaVaultPage.qml:330
+#: ../qml/MediaVaultPage.qml:412
 msgid "PHOTO"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:330
+#: ../qml/MediaVaultPage.qml:412
 msgid "VIDEO"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:340
-msgid "General Workout"
+#: ../qml/MediaVaultPage.qml:428
+msgid "Media Item"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:352
-msgid "Protected in private sandbox (.nomedia)"
+#: ../qml/MediaVaultPage.qml:443
+msgid "Sandboxed private media"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:448
+#: ../qml/MediaVaultPage.qml:504
+msgid "Select Camera or Video App"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:505
+msgid "Select Camera or Gallery App"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:513
+msgid "Close"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:665
 msgid "Form-Check Video Capture"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:448
+#: ../qml/MediaVaultPage.qml:665
 msgid "Progress Photo Snap"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:516
+#: ../qml/MediaVaultPage.qml:736
+msgid "Camera Feed Inactive"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:744
+msgid ""
+"Direct preview is not available on this device configuration. Tap below to "
+"use the System Camera."
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:753
+msgid "Open System Camera"
+msgstr ""
+
+#: ../qml/MediaVaultPage.qml:798
 msgid "Bar / Shoulder Level"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:524
+#: ../qml/MediaVaultPage.qml:806
 msgid "Parallel Hip Depth Level"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:724
+#: ../qml/MediaVaultPage.qml:981
 msgid "Tap to RECORD"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:724
+#: ../qml/MediaVaultPage.qml:981
 msgid "Tap to STOP"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:725
+#: ../qml/MediaVaultPage.qml:982
 msgid "Tap to SNAP"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:821
+#: ../qml/MediaVaultPage.qml:1094
 msgid "Playing Private Form-Check Clip"
 msgstr ""
 
@@ -515,70 +533,6 @@ msgstr ""
 
 #: ../qml/SettingsPage.qml:372
 msgid "Your fitness profile and targets have been saved successfully."
-msgstr ""
-
-#: ../qml/WearablesPage.qml:12
-msgid "Wearables & Sensors"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:94
-msgid "Connected"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:94
-msgid "Disconnected"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:104
-msgid "MAC: "
-msgstr ""
-
-#: ../qml/WearablesPage.qml:110
-msgid "Protocol: Gadgetbridge Xiaomi Band 9 BLE"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:127
-msgid "Battery Level: "
-msgstr ""
-
-#: ../qml/WearablesPage.qml:135
-msgid "Connect"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:135
-msgid "Disconnect"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:168
-msgid "Live Heart Rate"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:285
-msgid "Today's Steps (Xiaomi Band 9)"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:316
-msgid " steps"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:316
-msgid "Goal: "
-msgstr ""
-
-#: ../qml/WearablesPage.qml:377
-msgid "Python Backend Bridge Architecture"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:384
-msgid "• Interfaces with BlueZ GATT using Gadgetbridge open protocol specs"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:390
-msgid "• Realtime Heart Rate Service (0x180D) & Step Activity (0xFEE0)"
-msgstr ""
-
-#: ../qml/WearablesPage.qml:396
-msgid "• High-frequency workout mode with dynamic caloric calculations"
 msgstr ""
 
 #: ../qml/components/EmptyState.qml:7

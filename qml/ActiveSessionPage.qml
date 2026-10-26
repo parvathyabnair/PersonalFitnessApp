@@ -138,7 +138,7 @@ Page {
                 height: units.gu(5)
 
                 onClicked: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                    pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
                 }
             }
         }
@@ -271,43 +271,17 @@ Page {
                         }
                     }
 
-                    // Live Wearable Telemetry Row (Heart Rate & Calories)
-                    RowLayout {
+                    // Active Workout Calories
+                    Rectangle {
+                        height: units.gu(3.2)
+                        width: calLabel.width + units.gu(3)
+                        radius: height / 2
+                        color: root.isDarkMode ? "#25262B" : "#2E3035"
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: units.gu(1.5)
 
-                        // Heart Rate pill from Xiaomi Band 9
-                        Rectangle {
-                            height: units.gu(3)
-                            width: hrRow.width + units.gu(2)
-                            radius: height / 2
-                            color: root.isDarkMode ? "#25262B" : "#2E3035"
-                            border.color: root.backendBridge.heartRateZoneColor
-                            border.width: units.dp(1)
-
-                            Row {
-                                id: hrRow
-                                anchors.centerIn: parent
-                                spacing: units.gu(0.5)
-
-                                Label {
-                                    text: "❤️"
-                                    font.pixelSize: units.gu(1.2)
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                Label {
-                                    text: root.backendBridge.connected ? (root.backendBridge.heartRate + " BPM") : "-- BPM"
-                                    font.bold: true
-                                    font.pixelSize: units.gu(1.3)
-                                    color: root.backendBridge.heartRateZoneColor
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-                        }
-
-                        // Calories Burned
                         Label {
+                            id: calLabel
+                            anchors.centerIn: parent
                             text: {
                                 var weight = 70;
                                 var s = DB.getSettings();
@@ -315,10 +289,9 @@ Page {
                                 var cal = 4 * weight * (root.activeSessionSeconds / 3600);
                                 return "🔥 " + cal.toFixed(1) + " kcal";
                             }
-                            font.pixelSize: units.gu(1.4)
+                            font.pixelSize: units.gu(1.3)
                             font.bold: true
                             color: "#FF8A8A"
-                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
                 }
@@ -358,31 +331,22 @@ Page {
             // FORM CHECK & PRIVATE MEDIA ATTACHMENT ROW
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: units.gu(1.5)
                 width: parent.width
 
                 Button {
                     text: i18n.tr("📷 Form Check / Photo")
                     color: root.accentBlue
-                    width: (parent.width - units.gu(1.5)) / 2
+                    width: parent.width
                     height: units.gu(4.5)
                     onClicked: {
-                        pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {
-                            pageLayout: pageLayout,
-                            filterSessionId: root.activeSessionId
-                        })
-                    }
-                }
-
-                Button {
-                    text: i18n.tr("⌚ Wearable Band 9")
-                    color: root.cardBorderColor
-                    width: (parent.width - units.gu(1.5)) / 2
-                    height: units.gu(4.5)
-                    onClicked: {
-                        pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("WearablesPage.qml"), {
-                            pageLayout: pageLayout
-                        })
+                        var layout = (typeof pageLayout !== "undefined" && pageLayout) ? pageLayout : (typeof root !== "undefined" ? root.pageLayout : null)
+                        var src = (layout && layout.primaryPage) ? layout.primaryPage : activePage
+                        if (layout) {
+                            layout.addPageToNextColumn(src, Qt.resolvedUrl("MediaVaultPage.qml"), {
+                                pageLayout: layout,
+                                filterSessionId: (activePage.sessionId > 0) ? activePage.sessionId : root.activeSessionId
+                            })
+                        }
                     }
                 }
             }
@@ -515,7 +479,7 @@ Page {
         root.activeSessionSeconds = 0
 
         // ALLOW NAVIGATION AFTER SAVE
-        pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+        pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
     }
 
     // CONFIRM DIALOG
@@ -555,7 +519,7 @@ Page {
                             root.activeSessionId = -1
                             root.activeSessionRunning = false
                             root.activeSessionSeconds = 0
-                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                            pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
                         }
                     }
                 }

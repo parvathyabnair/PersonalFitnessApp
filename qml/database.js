@@ -356,6 +356,7 @@ function deleteRoutine(id) {
 
 // PRIVACY MEDIA VAULT FUNCTIONS (Form-checks & Progress Photos)
 function insertMediaVaultItem(sessionId, exercise, title, mediaType, fileName, fileUrl, date, duration, notes) {
+    createTable();
     var db = getDatabase();
     var insertedId = -1;
     db.transaction(function(tx) {
@@ -370,6 +371,7 @@ function insertMediaVaultItem(sessionId, exercise, title, mediaType, fileName, f
 }
 
 function getMediaVaultItems(sessionId, mediaType) {
+    createTable();
     var db = getDatabase();
     var results = [];
     db.transaction(function(tx) {
