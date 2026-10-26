@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 06:16+0000\n"
+"POT-Creation-Date: 2026-10-26 06:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -589,7 +589,7 @@ msgstr ""
 msgid "Save to Log"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:763 ../qml/SettingsPage.qml:559
+#: ../qml/SessionCreatePage.qml:763 ../qml/SettingsPage.qml:562
 msgid "Confirm"
 msgstr ""
 
@@ -605,7 +605,7 @@ msgstr ""
 msgid "Back to Overview"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:811 ../qml/SettingsPage.qml:590
+#: ../qml/SessionCreatePage.qml:811 ../qml/SettingsPage.qml:593
 msgid "OK"
 msgstr ""
 
@@ -645,57 +645,57 @@ msgstr ""
 msgid "Age (years)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:311
+#: ../qml/SettingsPage.qml:314
 msgid "Metabolic & Body Telemetry"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:321
+#: ../qml/SettingsPage.qml:324
 msgid "Mifflin-St Jeor"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:414
+#: ../qml/SettingsPage.qml:417
 msgid "Resting BMR (1.0 MET)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:427
+#: ../qml/SettingsPage.qml:430
 msgid ""
 " kcal/day. Adding physical workouts at higher METs accelerates fat loss and "
 "conditioning."
 msgstr ""
 
-#: ../qml/SettingsPage.qml:427
+#: ../qml/SettingsPage.qml:430
 msgid "At 1.0 MET baseline rest, your body requires ~"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:452
+#: ../qml/SettingsPage.qml:455
 msgid "Daily & Weekly Targets"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:464
+#: ../qml/SettingsPage.qml:467
 msgid "Daily Calorie Burn Target (kcal)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:492
+#: ../qml/SettingsPage.qml:495
 msgid "Target Workouts per Week"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:510
+#: ../qml/SettingsPage.qml:513
 msgid "Goal Target Date"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:518
+#: ../qml/SettingsPage.qml:521
 msgid "Select Goal Date"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:533
+#: ../qml/SettingsPage.qml:536
 msgid "Save Settings"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:579
+#: ../qml/SettingsPage.qml:582
 msgid "Saved! 🎉"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:584
+#: ../qml/SettingsPage.qml:587
 msgid "Your fitness profile and targets have been saved successfully."
 msgstr ""
 

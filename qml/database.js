@@ -334,17 +334,20 @@ function getMetValue(exerciseName) {
 }
 
 function getMetIntensityInfo(met) {
-    if (met < 3.0) {
+    var m = parseFloat(met) || 1.0;
+    if (m < 3.0) {
         return {
             category: "Light Activity",
+            label: "Light Activity",
             color: "#38BDF8", // Vibrant Sky Blue
             badge: "< 3.0 METs",
             level: "light",
             description: "Low exertion baseline (e.g. stretching, casual walking)"
         };
-    } else if (met <= 6.0) {
+    } else if (m <= 6.0) {
         return {
             category: "Moderate Activity",
+            label: "Moderate Activity",
             color: "#34D399", // Emerald Green
             badge: "3.0 - 6.0 METs",
             level: "moderate",
@@ -353,6 +356,7 @@ function getMetIntensityInfo(met) {
     } else {
         return {
             category: "Vigorous Activity",
+            label: "Vigorous Activity",
             color: "#EF4444", // Crimson / Red
             badge: "> 6.0 METs",
             level: "vigorous",
@@ -373,8 +377,9 @@ function calculateMetCalories(exerciseName, weightKg, durationSeconds, intensity
 function calculateBMI(weightKg, heightCm) {
     var w = parseFloat(weightKg) || 70;
     var h = (parseFloat(heightCm) || 175) / 100.0;
-    if (h <= 0) return { bmi: "0.0", status: "Unknown", color: "#9CA3AF" };
+    if (h <= 0) return { bmi: "22.9", status: "Normal", color: "#34D399" };
     var bmiVal = w / (h * h);
+    if (isNaN(bmiVal) || bmiVal <= 0) return { bmi: "22.9", status: "Normal", color: "#34D399" };
     var status = "Normal";
     var color = "#34D399";
     if (bmiVal < 18.5) {
@@ -401,6 +406,7 @@ function calculateBMR(weightKg, heightCm, age, gender) {
     var isMale = (gender !== "Female");
     // BMR = (10 × weight in kg) + (6.25 × height in cm) - (5 × age in years) + (5 for male, -161 for female)
     var bmr = (10 * w) + (6.25 * h) - (5 * a) + (isMale ? 5 : -161);
+    if (isNaN(bmr) || bmr <= 0) return 1650;
     return Math.round(bmr);
 }
 

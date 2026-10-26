@@ -21,7 +21,7 @@ Page {
     // MET (Metabolic Equivalent of Task) Calculation Properties
     property real intensityMultiplier: 1.0
     property string intensityLevel: "standard" // "light", "standard", "vigorous"
-    property real baseMet: DB.getMetValue(root.activeSessionWorkout)
+    property real baseMet: DB.getMetValue(root.activeSessionWorkout || workout || "Workout")
     property real effectiveMet: baseMet * intensityMultiplier
     property var metInfo: DB.getMetIntensityInfo(effectiveMet)
     property bool showMetExplainer: false
@@ -392,7 +392,7 @@ Page {
 
                         Column {
                             spacing: units.gu(0.2)
-                            horizontalAlignment: Text.AlignRight
+                            Layout.alignment: Qt.AlignRight
 
                             Label {
                                 text: i18n.tr("Compendium Standard")

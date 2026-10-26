@@ -269,6 +269,7 @@ Page {
 
             // METABOLIC & BODY COMPOSITION PROFILE CARD
             Rectangle {
+                id: metabolicCard
                 width: parent.width
                 height: metabolicCol.height + units.gu(3)
                 radius: units.dp(12)
@@ -276,16 +277,18 @@ Page {
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
 
-                readonly property var currentBmi: DB.calculateBMI(
-                    setWeight.model[setWeight.selectedIndex],
-                    heightField.text
-                )
-                readonly property int currentBmr: DB.calculateBMR(
-                    setWeight.model[setWeight.selectedIndex],
-                    heightField.text,
-                    ageField.text,
-                    femalePill.selected ? "Female" : "Male"
-                )
+                readonly property var currentBmi: {
+                    var w = (setWeight && setWeight.selectedIndex >= 0) ? setWeight.model[setWeight.selectedIndex] : 70;
+                    var h = (heightField && heightField.text) ? heightField.text : "175";
+                    return DB.calculateBMI(w, h);
+                }
+                readonly property int currentBmr: {
+                    var w = (setWeight && setWeight.selectedIndex >= 0) ? setWeight.model[setWeight.selectedIndex] : 70;
+                    var h = (heightField && heightField.text) ? heightField.text : "175";
+                    var a = (ageField && ageField.text) ? ageField.text : "25";
+                    var g = (femalePill && femalePill.selected) ? "Female" : "Male";
+                    return DB.calculateBMR(w, h, a, g);
+                }
 
                 Column {
                     id: metabolicCol
@@ -345,7 +348,7 @@ Page {
                                     anchors.horizontalCenter: parent.horizontalCenter
 
                                     Label {
-                                        text: parent.parent.parent.currentBmi.bmi
+                                        text: metabolicCard.currentBmi.bmi
                                         font.bold: true
                                         font.pixelSize: units.gu(2.4)
                                         color: root.textPrimaryColor
@@ -364,13 +367,13 @@ Page {
                                     height: units.gu(2.4)
                                     width: bmiStatusLabel.width + units.gu(1.6)
                                     radius: height / 2
-                                    color: parent.parent.parent.currentBmi.color
+                                    color: metabolicCard.currentBmi.color
                                     anchors.horizontalCenter: parent.horizontalCenter
 
                                     Label {
                                         id: bmiStatusLabel
                                         anchors.centerIn: parent
-                                        text: parent.parent.parent.parent.currentBmi.status
+                                        text: metabolicCard.currentBmi.status
                                         font.bold: true
                                         font.pixelSize: units.gu(1.0)
                                         color: "white"
@@ -395,7 +398,7 @@ Page {
                                     anchors.horizontalCenter: parent.horizontalCenter
 
                                     Label {
-                                        text: parent.parent.parent.currentBmr
+                                        text: metabolicCard.currentBmr.toString()
                                         font.bold: true
                                         font.pixelSize: units.gu(2.4)
                                         color: "#38BDF8"
@@ -424,7 +427,7 @@ Page {
                     Label {
                         width: parent.width
                         wrapMode: Text.WordWrap
-                        text: i18n.tr("At 1.0 MET baseline rest, your body requires ~") + parent.parent.currentBmr + i18n.tr(" kcal/day. Adding physical workouts at higher METs accelerates fat loss and conditioning.")
+                        text: i18n.tr("At 1.0 MET baseline rest, your body requires ~") + metabolicCard.currentBmr + i18n.tr(" kcal/day. Adding physical workouts at higher METs accelerates fat loss and conditioning.")
                         font.pixelSize: units.gu(1.1)
                         color: root.textSecondaryColor
                     }
