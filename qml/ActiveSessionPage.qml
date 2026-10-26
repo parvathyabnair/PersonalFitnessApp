@@ -31,32 +31,92 @@ Page {
     property bool isSaved: false
     property real caloriesBurned: 0.0
 
-    // Rest Timer Properties
+    // Rest Timer Properties (High-Precision Wall-Clock Countdown using Date.now())
     property int restDuration: 60
     property int restTimeLeft: 0
     property bool restTimerRunning: false
+    property double restStartTimestamp: 0
+    property double restInitialMs: 0
+
+    function startRest(seconds) {
+        restDuration = seconds
+        restInitialMs = seconds * 1000
+        restStartTimestamp = Date.now()
+        restTimeLeft = seconds
+        restTimerRunning = true
+    }
+
+    function toggleRestPause() {
+        if (restTimerRunning) {
+            var elapsedMs = Date.now() - restStartTimestamp
+            restInitialMs = Math.max(0, restInitialMs - elapsedMs)
+            restTimeLeft = Math.ceil(restInitialMs / 1000)
+            restTimerRunning = false
+            restStartTimestamp = 0
+        } else {
+            if (restTimeLeft <= 0) {
+                restInitialMs = restDuration * 1000
+                restTimeLeft = restDuration
+            } else {
+                restInitialMs = restTimeLeft * 1000
+            }
+            restStartTimestamp = Date.now()
+            restTimerRunning = true
+        }
+    }
+
+    function resetRest() {
+        restTimerRunning = false
+        restStartTimestamp = 0
+        restInitialMs = 0
+        restTimeLeft = restDuration
+    }
+
+    function adjustRest(deltaSecs) {
+        var newDuration = Math.max(10, restDuration + deltaSecs)
+        restDuration = newDuration
+        if (restTimerRunning) {
+            var elapsedMs = Date.now() - restStartTimestamp
+            var currentRemainingMs = Math.max(0, restInitialMs - elapsedMs)
+            restInitialMs = Math.max(1000, currentRemainingMs + (deltaSecs * 1000))
+            restStartTimestamp = Date.now()
+            restTimeLeft = Math.ceil(restInitialMs / 1000)
+        } else {
+            restTimeLeft = restDuration
+        }
+    }
 
     Timer {
         id: restTimer
-        interval: 1000
+        interval: 200 // Poll 5x/sec against real Date.now() - completely immune to high refresh rate/vsync issues
         running: restTimerRunning
         repeat: true
         onTriggered: {
-            if (restTimeLeft > 1) {
-                restTimeLeft--
-            } else {
-                restTimeLeft = 0
-                restTimerRunning = false
+            if (restTimerRunning && restStartTimestamp > 0) {
+                var elapsedMs = Date.now() - restStartTimestamp
+                var remainingMs = Math.max(0, restInitialMs - elapsedMs)
+                var secs = Math.ceil(remainingMs / 1000)
+                restTimeLeft = secs
+                if (remainingMs <= 0) {
+                    restTimeLeft = 0
+                    restTimerRunning = false
+                    restStartTimestamp = 0
+                    restInitialMs = 0
+                }
             }
         }
     }
 
-    // FORMAT TIME
+    // FORMAT TIME (Clean, standard MM:SS or HH:MM:SS)
     property string timeString: {
         var hours = Math.floor(secondsElapsed / 3600)
         var mins = Math.floor((secondsElapsed % 3600) / 60)
         var secs = secondsElapsed % 60
-        return ("0" + hours).slice(-2) + ":" + ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+        if (hours > 0 || (root.activeSessionTargetSeconds >= 3600)) {
+            return ("0" + hours).slice(-2) + ":" + ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+        } else {
+            return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
+        }
     }
 
     function handleSaveSession() {
@@ -247,7 +307,9 @@ Page {
                                 var targetHrs = Math.floor(root.activeSessionTargetSeconds / 3600)
                                 var targetMins = Math.floor((root.activeSessionTargetSeconds % 3600) / 60)
                                 var targetSecs = root.activeSessionTargetSeconds % 60
-                                var targetStr = ("0" + targetHrs).slice(-2) + ":" + ("0" + targetMins).slice(-2) + ":" + ("0" + targetSecs).slice(-2)
+                                var targetStr = targetHrs > 0 ?
+                                    (("0" + targetHrs).slice(-2) + ":" + ("0" + targetMins).slice(-2) + ":" + ("0" + targetSecs).slice(-2)) :
+                                    (("0" + targetMins).slice(-2) + ":" + ("0" + targetSecs).slice(-2))
                                 return timeString + " / " + targetStr
                             }
                             return timeString
@@ -692,9 +754,7 @@ Page {
                                 height: units.gu(3.8)
                                 color: restDuration === modelData ? root.primaryColor : root.cardBorderColor
                                 onClicked: {
-                                    restDuration = modelData
-                                    restTimeLeft = modelData
-                                    restTimerRunning = true
+                                    startRest(modelData)
                                 }
                             }
                         }
@@ -711,10 +771,7 @@ Page {
                             height: units.gu(4.2)
                             color: root.cardBorderColor
                             onClicked: {
-                                if (restDuration > 10) {
-                                    restDuration -= 10
-                                    if (!restTimerRunning) restTimeLeft = restDuration
-                                }
+                                adjustRest(-10)
                             }
                         }
 
@@ -724,10 +781,7 @@ Page {
                             width: units.gu(14)
                             height: units.gu(4.2)
                             onClicked: {
-                                if (restTimeLeft === 0) {
-                                    restTimeLeft = restDuration
-                                }
-                                restTimerRunning = !restTimerRunning
+                                toggleRestPause()
                             }
                         }
 
@@ -737,8 +791,7 @@ Page {
                             width: units.gu(6.5)
                             height: units.gu(4.2)
                             onClicked: {
-                                restTimerRunning = false
-                                restTimeLeft = restDuration
+                                resetRest()
                             }
                         }
 
@@ -748,8 +801,7 @@ Page {
                             height: units.gu(4.2)
                             color: root.cardBorderColor
                             onClicked: {
-                                restDuration += 10
-                                if (!restTimerRunning) restTimeLeft = restDuration
+                                adjustRest(10)
                             }
                         }
                     }

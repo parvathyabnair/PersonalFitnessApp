@@ -584,13 +584,25 @@ Page {
             property bool isRecording: false
             property bool cameraFailed: false
 
+            property double recordingStartTimestamp: 0
+
+            onIsRecordingChanged: {
+                if (isRecording) {
+                    recordingStartTimestamp = Date.now()
+                    recordingSeconds = 0
+                }
+            }
+
             Timer {
                 id: recordTimer
-                interval: 1000
+                interval: 200
                 repeat: true
                 running: viewfinderRoot.isRecording
                 onTriggered: {
-                    viewfinderRoot.recordingSeconds++
+                    if (viewfinderRoot.isRecording && viewfinderRoot.recordingStartTimestamp > 0) {
+                        var secs = Math.floor((Date.now() - viewfinderRoot.recordingStartTimestamp) / 1000)
+                        viewfinderRoot.recordingSeconds = secs
+                    }
                 }
             }
 

@@ -46,24 +46,56 @@ MainView {
     readonly property color accentGreen: isDarkMode ? "#34D399" : "#10B981"
     readonly property color accentOrange: isDarkMode ? "#FB923C" : "#F97316"
     
-    // GLOBAL SESSION STATE
+    // GLOBAL SESSION STATE (Accurate Wall-Clock Timekeeper using Date.now())
     property int activeSessionId: -1
     property string activeSessionWorkout: ""
     property int activeSessionSeconds: 0
     property bool activeSessionRunning: false
     property int activeSessionTargetSeconds: -1
 
+    property double sessionAccumulatedMs: 0
+    property double lastResumeTimestamp: 0
 
+    onActiveSessionRunningChanged: {
+        if (activeSessionRunning) {
+            lastResumeTimestamp = Date.now()
+        } else {
+            if (lastResumeTimestamp > 0) {
+                sessionAccumulatedMs += (Date.now() - lastResumeTimestamp)
+                lastResumeTimestamp = 0
+                activeSessionSeconds = Math.floor(sessionAccumulatedMs / 1000)
+            }
+        }
+    }
+
+    onActiveSessionSecondsChanged: {
+        if (activeSessionSeconds === 0) {
+            sessionAccumulatedMs = 0
+            if (activeSessionRunning) {
+                lastResumeTimestamp = Date.now()
+            } else {
+                lastResumeTimestamp = 0
+            }
+        }
+    }
 
     Timer {
         id: globalSessionTimer
-        interval: 1000
+        interval: 200 // Refresh 5x/sec, recalculating against real Date.now() - completely immune to high refresh rate/vsync bugs
         running: activeSessionRunning
         repeat: true
         onTriggered: {
-            activeSessionSeconds++
-            if (activeSessionTargetSeconds > 0 && activeSessionSeconds === activeSessionTargetSeconds) {
-                activeSessionRunning = false
+            if (activeSessionRunning && lastResumeTimestamp > 0) {
+                var now = Date.now()
+                var elapsedMs = sessionAccumulatedMs + (now - lastResumeTimestamp)
+                var currentSecs = Math.floor(elapsedMs / 1000)
+                if (currentSecs !== activeSessionSeconds) {
+                    activeSessionSeconds = currentSecs
+                }
+                if (activeSessionTargetSeconds > 0 && currentSecs >= activeSessionTargetSeconds) {
+                    activeSessionSeconds = activeSessionTargetSeconds
+                    activeSessionRunning = false
+                }
             }
         }
     }

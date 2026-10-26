@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 06:45+0000\n"
+"POT-Creation-Date: 2026-10-26 07:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,171 +17,171 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/ActiveSessionPage.qml:84 ../qml/HomePage.qml:95
+#: ../qml/ActiveSessionPage.qml:144 ../qml/HomePage.qml:95
 msgid "Active Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:96
+#: ../qml/ActiveSessionPage.qml:156
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:116
+#: ../qml/ActiveSessionPage.qml:176
 msgid "No Active Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:117
+#: ../qml/ActiveSessionPage.qml:177
 msgid ""
 "You don't have a session running right now. Choose a workout or quick start "
 "to track your time and burned calories."
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:121
+#: ../qml/ActiveSessionPage.qml:181
 msgid "Quick Start Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:141
+#: ../qml/ActiveSessionPage.qml:201
 msgid "Configure Custom Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:209
+#: ../qml/ActiveSessionPage.qml:269
 msgid "SESSION IN PROGRESS"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:209
+#: ../qml/ActiveSessionPage.qml:269
 msgid "SESSION PAUSED"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:274
+#: ../qml/ActiveSessionPage.qml:336
 msgid "🎉 Workout Target Reached!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:337
+#: ../qml/ActiveSessionPage.qml:399
 msgid "Metabolic Rate (MET)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:374
+#: ../qml/ActiveSessionPage.qml:436
 msgid "Caloric Burn Rate"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:398
+#: ../qml/ActiveSessionPage.qml:460
 msgid "Compendium Standard"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:420
+#: ../qml/ActiveSessionPage.qml:482
 msgid "Session Intensity Multiplier:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:441
+#: ../qml/ActiveSessionPage.qml:503
 msgid "Light (0.85×)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:467
+#: ../qml/ActiveSessionPage.qml:529
 msgid "Standard (1.0×)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:493
+#: ../qml/ActiveSessionPage.qml:555
 msgid "Heavy (1.2×)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:531
+#: ../qml/ActiveSessionPage.qml:593
 msgid "MET Scientific Metabolic Formula"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:551
+#: ../qml/ActiveSessionPage.qml:613
 msgid "Formula: Calories Burned = MET Value × Weight (kg) × Duration (hours)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:566
+#: ../qml/ActiveSessionPage.qml:628
 msgid "Live Calculation: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:575
+#: ../qml/ActiveSessionPage.qml:637
 msgid ""
 "Compendium of Physical Activities standardized sports medicine reference."
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:599
+#: ../qml/ActiveSessionPage.qml:661
 msgid "Pause"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:599
+#: ../qml/ActiveSessionPage.qml:661
 msgid "Resume"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:607
+#: ../qml/ActiveSessionPage.qml:669
 msgid "Finish & Save"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:615
+#: ../qml/ActiveSessionPage.qml:677
 msgid "Next Exercise"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:629
+#: ../qml/ActiveSessionPage.qml:691
 msgid "📷 Form Check / Photo"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:664
+#: ../qml/ActiveSessionPage.qml:726
 msgid "⏱️ Rest Interval Timer"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:674
+#: ../qml/ActiveSessionPage.qml:736
 msgid "Resting: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:675
+#: ../qml/ActiveSessionPage.qml:737
 msgid "Paused: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:675
+#: ../qml/ActiveSessionPage.qml:737
 msgid "Ready for next set! 💪"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:722
+#: ../qml/ActiveSessionPage.qml:779
 msgid "Pause Rest"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:722
+#: ../qml/ActiveSessionPage.qml:779
 msgid "Resume Rest"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:722
+#: ../qml/ActiveSessionPage.qml:779
 msgid "Start Rest"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:735 ../qml/HomePage.qml:670
+#: ../qml/ActiveSessionPage.qml:789 ../qml/HomePage.qml:670
 msgid "Reset"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:783
+#: ../qml/ActiveSessionPage.qml:835
 msgid "Save Workout First"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:792
+#: ../qml/ActiveSessionPage.qml:844
 msgid ""
 "Would you like to finish and save this session before starting the next "
 "exercise?"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:800
+#: ../qml/ActiveSessionPage.qml:852
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:806
+#: ../qml/ActiveSessionPage.qml:858
 msgid "Save & Proceed"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:828
+#: ../qml/ActiveSessionPage.qml:880
 msgid "Session Saved! 🎉"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:837
+#: ../qml/ActiveSessionPage.qml:889
 msgid ""
 "Workout session saved successfully!\n"
 "\n"
 "⏱️ Duration: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:841
+#: ../qml/ActiveSessionPage.qml:893
 msgid "Great!"
 msgstr ""
 
@@ -451,49 +451,49 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:665
+#: ../qml/MediaVaultPage.qml:677
 msgid "Form-Check Video Capture"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:665
+#: ../qml/MediaVaultPage.qml:677
 msgid "Progress Photo Snap"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:736
+#: ../qml/MediaVaultPage.qml:748
 msgid "Camera Feed Inactive"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:744
+#: ../qml/MediaVaultPage.qml:756
 msgid ""
 "Direct preview is not available on this device configuration. Tap below to "
 "use the System Camera."
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:753
+#: ../qml/MediaVaultPage.qml:765
 msgid "Open System Camera"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:798
+#: ../qml/MediaVaultPage.qml:810
 msgid "Bar / Shoulder Level"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:806
+#: ../qml/MediaVaultPage.qml:818
 msgid "Parallel Hip Depth Level"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:981
+#: ../qml/MediaVaultPage.qml:993
 msgid "Tap to RECORD"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:981
+#: ../qml/MediaVaultPage.qml:993
 msgid "Tap to STOP"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:982
+#: ../qml/MediaVaultPage.qml:994
 msgid "Tap to SNAP"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:1094
+#: ../qml/MediaVaultPage.qml:1106
 msgid "Playing Private Form-Check Clip"
 msgstr ""
 
