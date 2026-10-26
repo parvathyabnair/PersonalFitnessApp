@@ -37,8 +37,13 @@ Page {
     property bool restTimerRunning: false
     property double restStartTimestamp: 0
     property double restInitialMs: 0
+    property bool workoutPausedForRest: false
 
     function startRest(seconds) {
+        if (root.activeSessionRunning) {
+            workoutPausedForRest = true
+            root.activeSessionRunning = false
+        }
         restDuration = seconds
         restInitialMs = seconds * 1000
         restStartTimestamp = Date.now()
@@ -54,6 +59,10 @@ Page {
             restTimerRunning = false
             restStartTimestamp = 0
         } else {
+            if (root.activeSessionRunning) {
+                workoutPausedForRest = true
+                root.activeSessionRunning = false
+            }
             if (restTimeLeft <= 0) {
                 restInitialMs = restDuration * 1000
                 restTimeLeft = restDuration
@@ -70,6 +79,10 @@ Page {
         restStartTimestamp = 0
         restInitialMs = 0
         restTimeLeft = restDuration
+        if (workoutPausedForRest) {
+            workoutPausedForRest = false
+            root.activeSessionRunning = true
+        }
     }
 
     function adjustRest(deltaSecs) {
@@ -102,6 +115,10 @@ Page {
                     restTimerRunning = false
                     restStartTimestamp = 0
                     restInitialMs = 0
+                    if (workoutPausedForRest) {
+                        workoutPausedForRest = false
+                        root.activeSessionRunning = true
+                    }
                 }
             }
         }
@@ -136,6 +153,8 @@ Page {
 
         isSaved = true   
         root.activeSessionRunning = false
+        workoutPausedForRest = false
+        restTimerRunning = false
 
         PopupUtils.open(savedDialog)
     }
@@ -254,11 +273,11 @@ Page {
                             width: units.gu(1)
                             height: units.gu(1)
                             radius: width / 2
-                            color: root.activeSessionRunning ? "#10B981" : "#F59E0B"
+                            color: root.activeSessionRunning ? "#10B981" : (activePage.workoutPausedForRest ? "#38BDF8" : "#F59E0B")
                             anchors.verticalCenter: parent.verticalCenter
 
                             SequentialAnimation on opacity {
-                                running: root.activeSessionRunning
+                                running: root.activeSessionRunning || activePage.workoutPausedForRest
                                 loops: Animation.Infinite
                                 NumberAnimation { from: 1.0; to: 0.2; duration: 600 }
                                 NumberAnimation { from: 0.2; to: 1.0; duration: 600 }
@@ -266,10 +285,12 @@ Page {
                         }
 
                         Label {
-                            text: root.activeSessionRunning ? i18n.tr("SESSION IN PROGRESS") : i18n.tr("SESSION PAUSED")
+                            text: root.activeSessionRunning ? 
+                                  i18n.tr("SESSION IN PROGRESS") : 
+                                  (activePage.workoutPausedForRest ? (i18n.tr("REST INTERVAL • ") + activePage.restTimeLeft + "s") : i18n.tr("SESSION PAUSED"))
                             font.bold: true
                             font.pixelSize: units.gu(1.2)
-                            color: root.activeSessionRunning ? "#10B981" : "#F59E0B"
+                            color: root.activeSessionRunning ? "#10B981" : (activePage.workoutPausedForRest ? "#38BDF8" : "#F59E0B")
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }
@@ -336,6 +357,25 @@ Page {
                             text: i18n.tr("🎉 Workout Target Reached!")
                             font.bold: true
                             font.pixelSize: units.gu(1.3)
+                            color: "white"
+                        }
+                    }
+
+                    // Auto-paused for rest badge
+                    Rectangle {
+                        visible: activePage.workoutPausedForRest && !root.activeSessionRunning
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        height: units.gu(3)
+                        width: restAutoPauseLabel.width + units.gu(3)
+                        radius: height / 2
+                        color: "#0284C7"
+
+                        Label {
+                            id: restAutoPauseLabel
+                            anchors.centerIn: parent
+                            text: i18n.tr("⏸️ Auto-Paused for Rest (Resumes in ") + activePage.restTimeLeft + "s)"
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
                             color: "white"
                         }
                     }
@@ -662,7 +702,20 @@ Page {
                     color: root.activeSessionRunning ? "#F59E0B" : root.primaryColor
                     width: (parent.width - units.gu(3)) / 3
                     height: units.gu(4.8)
-                    onClicked: root.activeSessionRunning = !root.activeSessionRunning
+                    onClicked: {
+                        if (!root.activeSessionRunning) {
+                            activePage.workoutPausedForRest = false
+                            if (activePage.restTimerRunning) {
+                                activePage.restTimerRunning = false
+                                activePage.restStartTimestamp = 0
+                                activePage.restInitialMs = 0
+                            }
+                            root.activeSessionRunning = true
+                        } else {
+                            activePage.workoutPausedForRest = false
+                            root.activeSessionRunning = false
+                        }
+                    }
                 }
 
                 Button {
@@ -708,14 +761,17 @@ Page {
             // REST TIMER CARD
             Rectangle {
                 width: parent.width
-                height: units.gu(20)
+                height: restCol.height + units.gu(3)
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
                 radius: units.dp(12)
 
                 Column {
-                    anchors.fill: parent
+                    id: restCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                     anchors.margins: units.gu(1.5)
                     spacing: units.gu(1.2)
 
@@ -733,11 +789,39 @@ Page {
 
                         Label {
                             text: restTimerRunning ? 
-                                  i18n.tr("Resting: ") + restTimeLeft + "s" : 
+                                  (activePage.workoutPausedForRest ? i18n.tr("Resting: ") + restTimeLeft + "s" : i18n.tr("Resting: ") + restTimeLeft + "s") : 
                                   (restTimeLeft === 0 ? i18n.tr("Ready for next set! 💪") : i18n.tr("Paused: ") + restTimeLeft + "s")
                             font.pixelSize: units.gu(1.4)
                             font.bold: true
                             color: restTimerRunning ? root.primaryColor : (restTimeLeft === 0 ? "#10B981" : "#F59E0B")
+                        }
+                    }
+
+                    // Auto-pause notification banner
+                    Rectangle {
+                        visible: activePage.workoutPausedForRest
+                        width: parent.width
+                        height: units.gu(3.2)
+                        radius: units.dp(6)
+                        color: Qt.rgba(2/255, 132/255, 199/255, 0.15)
+                        border.color: "#0284C7"
+                        border.width: units.dp(1)
+
+                        Row {
+                            anchors.centerIn: parent
+                            spacing: units.gu(0.6)
+
+                            Label {
+                                text: "⏸️"
+                                font.pixelSize: units.gu(1.1)
+                            }
+
+                            Label {
+                                text: i18n.tr("Workout timer auto-paused • Automatically resumes when rest ends")
+                                font.pixelSize: units.gu(1.1)
+                                font.bold: true
+                                color: "#0284C7"
+                            }
                         }
                     }
 
@@ -752,7 +836,7 @@ Page {
                                 text: modelData + "s"
                                 width: (activeContentColumn.width - units.gu(6)) / 4
                                 height: units.gu(3.8)
-                                color: restDuration === modelData ? root.primaryColor : root.cardBorderColor
+                                color: (restTimerRunning && restDuration === modelData) ? root.primaryColor : root.cardBorderColor
                                 onClicked: {
                                     startRest(modelData)
                                 }
@@ -821,6 +905,8 @@ Page {
         root.activeSessionId = -1
         root.activeSessionRunning = false
         root.activeSessionSeconds = 0
+        workoutPausedForRest = false
+        restTimerRunning = false
 
         // ALLOW NAVIGATION AFTER SAVE
         pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})

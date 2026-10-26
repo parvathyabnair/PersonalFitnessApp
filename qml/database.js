@@ -680,3 +680,14 @@ function deleteMediaVaultItem(id) {
     });
 }
 
+function updateMediaVaultItem(id, title, exercise, notes) {
+    createTable();
+    var db = getDatabase();
+    db.transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE media_vault SET title = ?, exercise = ?, notes = ? WHERE id = ?",
+            [title, exercise, notes, id]
+        );
+    });
+}
+
