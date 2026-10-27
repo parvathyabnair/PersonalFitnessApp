@@ -9,20 +9,22 @@ Item {
     Image {
         id: logo
         anchors.fill: parent
-        source: Qt.resolvedUrl("../assets/download.png")
+        source: Qt.resolvedUrl("../assets/logo.png")
+        sourceSize.width: units.gu(12)
+        sourceSize.height: units.gu(12)
         fillMode: Image.PreserveAspectFit
         
         // Fallback if logo doesn't exist
         Rectangle {
             anchors.fill: parent
             color: '#FF5252'
-            radius: width / 2
+            radius: units.dp(24)
             visible: logo.status === Image.Error || logo.status === Image.Null
             
             Label {
                 anchors.centerIn: parent
-                text: "TA"
-                font.pixelSize: units.gu(6)
+                text: "PFA"
+                font.pixelSize: units.gu(3.5)
                 color: "white"
                 font.bold: true
             }

@@ -107,21 +107,28 @@ Page {
         return "Workout"
     }
 
+    function getTotalDurationSeconds() {
+        if (typeof durationMinField === "undefined" || typeof durationSecField === "undefined") {
+            return (duration || 0);
+        }
+        var m = Math.max(0, parseInt(durationMinField.text) || 0)
+        var s = Math.max(0, Math.min(59, parseInt(durationSecField.text) || 0))
+        return (m * 60) + s
+    }
+
     function saveSessionData() {
         var workoutVal = getSelectedWorkoutName()
         var dateVal = selectedDate !== "" ? selectedDate : new Date().toISOString()
+        var totalSecs = getTotalDurationSeconds()
 
         if (isTimeBased) {
-            var mins = parseFloat(durationSelector.model[durationSelector.selectedIndex])
-            var targetSecs = (mins > 0) ? Math.round(mins * 60) : 0
-
             if (isEditMode) {
                 DB.updateSession(sessionId, workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
-                DB.updateSessionTime(sessionId, targetSecs)
+                DB.updateSessionTime(sessionId, totalSecs)
                 currentSessionId = sessionId
             } else {
                 currentSessionId = DB.insertSession(workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
-                DB.updateSessionTime(currentSessionId, targetSecs)
+                DB.updateSessionTime(currentSessionId, totalSecs)
             }
             currentWorkout = workoutVal
         } else {
@@ -142,12 +149,20 @@ Page {
 
             if (isEditMode) {
                 DB.updateSession(sessionId, workoutVal, setsVal, repsVal, weightVal, dateVal)
+                DB.updateSessionTime(sessionId, totalSecs)
                 currentSessionId = sessionId
             } else {
                 currentSessionId = DB.insertSession(workoutVal, setsVal, repsVal, weightVal, dateVal)
+                if (totalSecs > 0) {
+                    DB.updateSessionTime(currentSessionId, totalSecs)
+                }
             }
             currentWorkout = workoutVal   
         }
+
+        // Recalculate and update calories for the updated duration
+        var cal = DB.calculateMetCalories(workoutVal, userWeight, totalSecs > 0 ? totalSecs : 2700, 1.0)
+        DB.updateSessionCalories(currentSessionId, cal)
 
         isSaved = true
         selectedDate = dateVal
@@ -167,9 +182,9 @@ Page {
             root.activeSessionSeconds = 0
             root.activeSessionRunning = true
             
-            if (isTimeBased) {
-                var mins = parseFloat(durationSelector.model[durationSelector.selectedIndex])
-                root.activeSessionTargetSeconds = (mins > 0) ? Math.round(mins * 60) : -1
+            var targetSecs = getTotalDurationSeconds()
+            if (isTimeBased && targetSecs > 0) {
+                root.activeSessionTargetSeconds = targetSecs
             } else {
                 root.activeSessionTargetSeconds = -1
             }
@@ -244,10 +259,12 @@ Page {
                 try { repsArray = JSON.parse(reps); } catch(e) { repsArray = []; }
             }
 
-            if (duration) {
-                var minsVal = Math.round(duration / 60).toString()
-                var durIndex = durationSelector.model.indexOf(minsVal)
-                if (durIndex !== -1) durationSelector.selectedIndex = durIndex
+            if (duration !== undefined && duration !== null && duration !== "") {
+                var durSec = parseInt(duration) || 0
+                if (typeof durationMinField !== "undefined") {
+                    durationMinField.text = Math.floor(durSec / 60).toString()
+                    durationSecField.text = (durSec % 60).toString()
+                }
             }
 
             if (date) {
@@ -471,9 +488,14 @@ Page {
                                 }
 
                                 Label {
-                                    text: isTimeBased ? 
-                                          i18n.tr("Target: ") + durationSelector.model[durationSelector.selectedIndex] + " mins (" + userWeight + " kg)" :
-                                          i18n.tr("Est. 45-min gym workout (" + userWeight + " kg)")
+                                    text: {
+                                        var sec = getTotalDurationSeconds()
+                                        if (sec > 0) {
+                                            var m = Math.floor(sec / 60)
+                                            return (isEditMode ? i18n.tr("Duration: ") : i18n.tr("Target: ")) + m + " mins (" + userWeight + " kg)"
+                                        }
+                                        return isTimeBased ? i18n.tr("Target: 30 mins (" + userWeight + " kg)") : i18n.tr("Est. 45-min gym workout (" + userWeight + " kg)")
+                                    }
                                     font.pixelSize: units.gu(1.0)
                                     color: root.textSecondaryColor
                                 }
@@ -484,9 +506,7 @@ Page {
 
                                 Label {
                                     text: {
-                                        var durationSecs = isTimeBased ? 
-                                            (parseFloat(durationSelector.model[durationSelector.selectedIndex]) || 30) * 60 : 
-                                            45 * 60
+                                        var durationSecs = getTotalDurationSeconds() > 0 ? getTotalDurationSeconds() : (isTimeBased ? 30 * 60 : 45 * 60)
                                         var cal = DB.calculateMetCalories(chosenWorkoutName, userWeight, durationSecs, 1.0)
                                         return "~" + Math.round(cal) + " kcal"
                                     }
@@ -508,7 +528,7 @@ Page {
                 }
             }
 
-            // SECTION 2: WORKOUT PARAMETERS (SETS OR DURATION)
+            // SECTION 2: WORKOUT PARAMETERS (SETS)
             Rectangle {
                 width: parent.width
                 height: paramColumn.height + units.gu(3)
@@ -516,6 +536,7 @@ Page {
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
+                visible: !isTimeBased
 
                 Column {
                     id: paramColumn
@@ -526,7 +547,7 @@ Page {
                     spacing: units.gu(1.2)
 
                     Label {
-                        text: isTimeBased ? i18n.tr("Target Duration") : i18n.tr("Number of Sets")
+                        text: i18n.tr("Number of Sets")
                         font.bold: true
                         font.pixelSize: units.gu(1.6)
                         color: root.textPrimaryColor
@@ -535,20 +556,9 @@ Page {
                     OptionSelector {
                         id: setSelector
                         model: ["1", "2", "3", "4", "5"]
-                        visible: !isTimeBased
                         onSelectedIndexChanged: {
                             weightFields = []
                             repsFields = []
-                            if (createSessionPage.formReady)
-                                createSessionPage.isSaved = false
-                        }
-                    }
-
-                    OptionSelector {
-                        id: durationSelector
-                        model: ["5", "10", "15", "20", "25", "30", "45", "60", "90", "120"]
-                        visible: isTimeBased
-                        onSelectedIndexChanged: {
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
                         }
@@ -657,6 +667,149 @@ Page {
                                             color: root.textSecondaryColor
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // SECTION: WORKOUT DURATION & TIME
+            Rectangle {
+                width: parent.width
+                height: durationSectionCol.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+                visible: isEditMode || isTimeBased
+
+                Column {
+                    id: durationSectionCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.6)
+                            Layout.fillWidth: true
+
+                            Label {
+                                text: isEditMode ? i18n.tr("Workout Duration") : i18n.tr("Target Duration")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.6)
+                                color: root.textPrimaryColor
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        // Digital formatted time pill preview
+                        Rectangle {
+                            height: units.gu(2.8)
+                            width: durPreviewLabel.width + units.gu(2)
+                            radius: height / 2
+                            color: root.isDarkMode ? "#2C2D32" : "#F1F3F5"
+                            border.color: root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            Label {
+                                id: durPreviewLabel
+                                anchors.centerIn: parent
+                                text: {
+                                    var m = Math.max(0, parseInt(durationMinField.text) || 0)
+                                    var s = Math.max(0, Math.min(59, parseInt(durationSecField.text) || 0))
+                                    var hrs = Math.floor(m / 60)
+                                    var remM = m % 60
+                                    return ("0" + hrs).slice(-2) + ":" + ("0" + remM).slice(-2) + ":" + ("0" + s).slice(-2)
+                                }
+                                font.bold: true
+                                font.family: "Monospace"
+                                font.pixelSize: units.gu(1.3)
+                                color: root.primaryColor
+                            }
+                        }
+                    }
+
+                    // Quick duration preset buttons
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(0.8)
+
+                        Repeater {
+                            model: ["10m", "15m", "20m", "30m", "45m", "60m"]
+
+                            Button {
+                                text: modelData
+                                width: (parent.width - units.gu(0.8) * 5) / 6
+                                height: units.gu(3.4)
+                                color: {
+                                    var targetM = parseInt(modelData)
+                                    return (parseInt(durationMinField.text) === targetM && (parseInt(durationSecField.text) || 0) === 0) ?
+                                           root.primaryColor : root.cardBorderColor
+                                }
+                                onClicked: {
+                                    durationMinField.text = parseInt(modelData).toString()
+                                    durationSecField.text = "0"
+                                    if (createSessionPage.formReady) createSessionPage.isSaved = false
+                                }
+                            }
+                        }
+                    }
+
+                    // Precise Minutes and Seconds Input Fields
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1.5)
+
+                        Column {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            spacing: units.gu(0.4)
+
+                            Label {
+                                text: i18n.tr("Minutes")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.2)
+                                color: root.textSecondaryColor
+                            }
+
+                            TextField {
+                                id: durationMinField
+                                width: parent.width
+                                placeholderText: "0"
+                                inputMethodHints: Qt.ImhDigitsOnly
+                                text: duration > 0 ? Math.floor(duration / 60).toString() : (isTimeBased ? "30" : "0")
+                                onTextChanged: {
+                                    if (activeFocus && createSessionPage.formReady)
+                                        createSessionPage.isSaved = false
+                                }
+                            }
+                        }
+
+                        Column {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            spacing: units.gu(0.4)
+
+                            Label {
+                                text: i18n.tr("Seconds")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.2)
+                                color: root.textSecondaryColor
+                            }
+
+                            TextField {
+                                id: durationSecField
+                                width: parent.width
+                                placeholderText: "0"
+                                inputMethodHints: Qt.ImhDigitsOnly
+                                text: duration > 0 ? (duration % 60).toString() : "0"
+                                onTextChanged: {
+                                    if (activeFocus && createSessionPage.formReady)
+                                        createSessionPage.isSaved = false
                                 }
                             }
                         }

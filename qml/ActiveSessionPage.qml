@@ -54,6 +54,13 @@ Page {
         }
     }
 
+    function openEditTimeDialog() {
+        // Automatically pause the timer in the background
+        root.activeSessionRunning = false
+        workoutPausedForRest = false
+        PopupUtils.open(editTimeDialogComponent)
+    }
+
     function startRest(seconds) {
         if (root.activeSessionRunning) {
             workoutPausedForRest = true
@@ -139,16 +146,12 @@ Page {
         }
     }
 
-    // FORMAT TIME (Clean, standard MM:SS or HH:MM:SS)
+    // FORMAT TIME (Always HH:MM:SS format)
     property string timeString: {
         var hours = Math.floor(secondsElapsed / 3600)
         var mins = Math.floor((secondsElapsed % 3600) / 60)
         var secs = secondsElapsed % 60
-        if (hours > 0 || (root.activeSessionTargetSeconds >= 3600)) {
-            return ("0" + hours).slice(-2) + ":" + ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
-        } else {
-            return ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
-        }
+        return ("0" + hours).slice(-2) + ":" + ("0" + mins).slice(-2) + ":" + ("0" + secs).slice(-2)
     }
 
     function handleSaveSession() {
@@ -311,15 +314,42 @@ Page {
                         }
                     }
 
-                    Label {
-                        text: root.activeSessionWorkout
-                        font.bold: true
-                        font.pixelSize: units.gu(2.4)
-                        color: root.textPrimaryColor
+                    Row {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        elide: Text.ElideRight
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
+                        spacing: units.gu(0.8)
+
+                        Label {
+                            text: root.activeSessionWorkout || i18n.tr("Workout")
+                            font.bold: true
+                            font.pixelSize: units.gu(2.4)
+                            color: root.textPrimaryColor
+                            anchors.verticalCenter: parent.verticalCenter
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+
+                        Rectangle {
+                            width: units.gu(2.8)
+                            height: units.gu(2.8)
+                            radius: width / 2
+                            color: editNameMouseArea.pressed ? root.primaryColor : (root.isDarkMode ? "#2C2D32" : "#E5E7EB")
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Icon {
+                                name: "edit"
+                                width: units.gu(1.3)
+                                height: units.gu(1.3)
+                                anchors.centerIn: parent
+                                color: editNameMouseArea.pressed ? "#FFFFFF" : root.textSecondaryColor
+                            }
+
+                            MouseArea {
+                                id: editNameMouseArea
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: PopupUtils.open(editWorkoutNameDialogComponent)
+                            }
+                        }
                     }
                 }
             }
@@ -327,49 +357,118 @@ Page {
             // DIGITAL STOPWATCH CARD
             Rectangle {
                 width: parent.width
-                height: units.gu(21)
+                height: units.gu(20)
                 radius: units.dp(16)
                 color: root.isDarkMode ? "#18191B" : "#1E2024"
                 border.color: root.isDarkMode ? "#2E3035" : "#2D3139"
                 border.width: units.dp(1)
 
-                Column {
-                    anchors.centerIn: parent
-                    spacing: units.gu(1.2)
-                    width: parent.width - units.gu(2)
+                // Top Header Row inside the card: Recording status on left, Edit Time pill on right
+                RowLayout {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.topMargin: units.gu(1.2)
+                    anchors.leftMargin: units.gu(1.5)
+                    anchors.rightMargin: units.gu(1.5)
 
-                    Label {
-                        text: {
-                            if (root.activeSessionTargetSeconds > 0) {
-                                var targetHrs = Math.floor(root.activeSessionTargetSeconds / 3600)
-                                var targetMins = Math.floor((root.activeSessionTargetSeconds % 3600) / 60)
-                                var targetSecs = root.activeSessionTargetSeconds % 60
-                                var targetStr = targetHrs > 0 ?
-                                    (("0" + targetHrs).slice(-2) + ":" + ("0" + targetMins).slice(-2) + ":" + ("0" + targetSecs).slice(-2)) :
-                                    (("0" + targetMins).slice(-2) + ":" + ("0" + targetSecs).slice(-2))
-                                return timeString + " / " + targetStr
-                            }
-                            return timeString
+                    Row {
+                        spacing: units.gu(0.6)
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Rectangle {
+                            width: units.gu(0.8)
+                            height: units.gu(0.8)
+                            radius: width / 2
+                            color: root.activeSessionRunning ? "#10B981" : "#F59E0B"
+                            anchors.verticalCenter: parent.verticalCenter
                         }
-                        font.pixelSize: units.gu(4.8)
-                        font.bold: true
-                        font.family: "Monospace"
-                        color: "#FFFFFF"
-                        anchors.horizontalCenter: parent.horizontalCenter
 
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: PopupUtils.open(editTimeDialogComponent)
+                        Label {
+                            text: root.activeSessionRunning ? i18n.tr("RECORDING WORKOUT") : i18n.tr("SESSION PAUSED")
+                            font.pixelSize: units.gu(1.0)
+                            font.bold: true
+                            color: root.textSecondaryColor
+                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
 
-                    // Edit Time Action Button
-                    Button {
-                        text: i18n.tr("Edit Time")
-                        height: units.gu(3.5)
-                        color: "#2C2D32"
+                    Item { Layout.fillWidth: true }
+
+                    // Elegant Top-Right "Edit Time" Action Pill
+                    Rectangle {
+                        height: units.gu(2.8)
+                        width: editBtnRow.width + units.gu(1.8)
+                        radius: height / 2
+                        color: editMouseArea.pressed ? root.primaryColor : (root.isDarkMode ? "#26282E" : "#2E3037")
+                        border.color: root.isDarkMode ? "#373A42" : "#444752"
+                        border.width: units.dp(1)
+
+                        Row {
+                            id: editBtnRow
+                            anchors.centerIn: parent
+                            spacing: units.gu(0.4)
+
+                            Icon {
+                                name: "edit"
+                                width: units.gu(1.2)
+                                height: units.gu(1.2)
+                                color: editMouseArea.pressed ? "#FFFFFF" : root.textSecondaryColor
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            Label {
+                                text: i18n.tr("Edit Time")
+                                font.pixelSize: units.gu(1.0)
+                                font.bold: true
+                                color: editMouseArea.pressed ? "#FFFFFF" : root.textSecondaryColor
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        MouseArea {
+                            id: editMouseArea
+                            anchors.fill: parent
+                            onClicked: openEditTimeDialog()
+                        }
+                    }
+                }
+
+                Column {
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: units.gu(0.8)
+                    spacing: units.gu(1.2)
+                    width: parent.width - units.gu(2)
+
+                    Item {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        onClicked: PopupUtils.open(editTimeDialogComponent)
+                        width: timerDisplayLabel.width
+                        height: timerDisplayLabel.height
+
+                        Label {
+                            id: timerDisplayLabel
+                            anchors.centerIn: parent
+                            text: {
+                                if (root.activeSessionTargetSeconds > 0) {
+                                    var targetHrs = Math.floor(root.activeSessionTargetSeconds / 3600)
+                                    var targetMins = Math.floor((root.activeSessionTargetSeconds % 3600) / 60)
+                                    var targetSecs = root.activeSessionTargetSeconds % 60
+                                    var targetStr = ("0" + targetHrs).slice(-2) + ":" + ("0" + targetMins).slice(-2) + ":" + ("0" + targetSecs).slice(-2)
+                                    return timeString + " / " + targetStr
+                                }
+                                return timeString
+                            }
+                            font.pixelSize: units.gu(4.8)
+                            font.bold: true
+                            font.family: "Monospace"
+                            color: "#FFFFFF"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: openEditTimeDialog()
+                        }
                     }
 
                     // Target reached notification
@@ -413,24 +512,40 @@ Page {
                     // Realtime MET Calorie Burn Rate Pill
                     Rectangle {
                         height: units.gu(3.2)
-                        width: calLabel.width + units.gu(3)
+                        width: calPillRow.width + units.gu(2.4)
                         radius: height / 2
                         color: root.isDarkMode ? "#25262B" : "#2E3035"
                         anchors.horizontalCenter: parent.horizontalCenter
 
-                        Label {
-                            id: calLabel
+                        Row {
+                            id: calPillRow
                             anchors.centerIn: parent
-                            text: {
-                                var weight = 70;
-                                var s = DB.getSettings();
-                                if (s && s.weight) weight = parseFloat(s.weight);
-                                var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
-                                return "🔥 " + cal.toFixed(1) + " kcal";
+                            spacing: units.gu(0.5)
+
+                            Image {
+                                source: Qt.resolvedUrl("../assets/fire-svgrepo-com.svg")
+                                width: units.gu(1.8)
+                                height: units.gu(1.8)
+                                sourceSize.width: units.gu(1.8)
+                                sourceSize.height: units.gu(1.8)
+                                fillMode: Image.PreserveAspectFit
+                                anchors.verticalCenter: parent.verticalCenter
                             }
-                            font.pixelSize: units.gu(1.4)
-                            font.bold: true
-                            color: "#FF6B6B"
+
+                            Label {
+                                id: calLabel
+                                text: {
+                                    var weight = 70;
+                                    var s = DB.getSettings();
+                                    if (s && s.weight) weight = parseFloat(s.weight);
+                                    var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
+                                    return cal.toFixed(1) + " kcal";
+                                }
+                                font.pixelSize: units.gu(1.4)
+                                font.bold: true
+                                color: "#FF6B6B"
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
                         }
                     }
                 }
@@ -809,22 +924,27 @@ Page {
         }
     }
 
-    // NEXT EXERCISE FUNCTION
+    // NEXT EXERCISE FUNCTION (Direct workout logging without navigating away)
     function handleNextExercise() {
-        if (!isSaved) {
-            PopupUtils.open(confirmDialog)   
-            return
+        // Automatically save current session progress to database if active
+        if (root.activeSessionId !== -1 && root.activeSessionSeconds > 0) {
+            var weight = 70
+            var s = DB.getSettings()
+            if (s && s.weight) weight = parseFloat(s.weight)
+            var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier)
+            DB.updateSessionTime(root.activeSessionId, root.activeSessionSeconds)
+            DB.updateSessionCalories(root.activeSessionId, cal)
+            activePage.isSaved = true
         }
 
-        // CLEAR GLOBAL SESSION STATE AS WE ARE STARTING A NEW ONE
-        root.activeSessionId = -1
+        // Pause timer while selecting next exercise
         root.activeSessionRunning = false
-        root.activeSessionSeconds = 0
         workoutPausedForRest = false
-        restTimerRunning = false
+        if (restTimerRunning) {
+            resetRest()
+        }
 
-        // ALLOW NAVIGATION AFTER SAVE
-        pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+        PopupUtils.open(nextExerciseDialogComponent)
     }
 
     // INTENSITY SELECTION DIALOG (Prompted before starting timer on Quick Start)
@@ -852,7 +972,7 @@ Page {
                     width: parent.width
                     height: units.gu(4.8)
                     color: root.accentBlue
-                    text: i18n.tr("Light Effort (0.85×) • Warmup & Recovery")
+                    text: i18n.tr("Light Activity (0.85×) • Warmup & Recovery")
                     onClicked: {
                         activePage.intensityMultiplier = 0.85
                         activePage.intensityLevel = "light"
@@ -866,7 +986,7 @@ Page {
                     width: parent.width
                     height: units.gu(4.8)
                     color: root.primaryColor
-                    text: i18n.tr("Standard Effort (1.0×) • Typical Gym Workout")
+                    text: i18n.tr("Moderate Activity (1.0×) • Typical Gym Workout")
                     onClicked: {
                         activePage.intensityMultiplier = 1.0
                         activePage.intensityLevel = "standard"
@@ -880,7 +1000,7 @@ Page {
                     width: parent.width
                     height: units.gu(4.8)
                     color: "#EF4444"
-                    text: i18n.tr("Heavy Effort (1.2×) • High Exertion & PRs")
+                    text: i18n.tr("Vigorous Activity (1.2×) • High Exertion & PRs")
                     onClicked: {
                         activePage.intensityMultiplier = 1.2
                         activePage.intensityLevel = "vigorous"
@@ -900,7 +1020,7 @@ Page {
         }
     }
 
-    // EDIT WORKOUT TIME DIALOG
+    // EDIT WORKOUT TIME DIALOG (Hour, Minute, Second with auto-pause & resume on play)
     Component {
         id: editTimeDialogComponent
 
@@ -920,18 +1040,14 @@ Page {
                     width: parent.width
                 }
 
-                // Digital preview
+                // Digital preview in HH:MM:SS
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: {
-                        var m = Math.max(0, parseInt(minField.text) || 0)
+                        var h = Math.max(0, parseInt(hourField.text) || 0)
+                        var m = Math.max(0, Math.min(59, parseInt(minField.text) || 0))
                         var s = Math.max(0, Math.min(59, parseInt(secField.text) || 0))
-                        var hrs = Math.floor(m / 60)
-                        var remMins = m % 60
-                        if (hrs > 0) {
-                            return ("0" + hrs).slice(-2) + ":" + ("0" + remMins).slice(-2) + ":" + ("0" + s).slice(-2)
-                        }
-                        return ("0" + remMins).slice(-2) + ":" + ("0" + s).slice(-2)
+                        return ("0" + h).slice(-2) + ":" + ("0" + m).slice(-2) + ":" + ("0" + s).slice(-2)
                     }
                     font.pixelSize: units.gu(3.5)
                     font.bold: true
@@ -941,66 +1057,76 @@ Page {
 
                 // Quick Adjustment Buttons
                 Row {
+                    id: quickAdjRow
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: units.gu(1)
+
+                    function adjustQuick(deltaSecs) {
+                        var cur = (Math.max(0, parseInt(hourField.text) || 0) * 3600) +
+                                  (Math.max(0, parseInt(minField.text) || 0) * 60) +
+                                  (Math.max(0, parseInt(secField.text) || 0))
+                        cur = Math.max(0, cur + deltaSecs)
+                        hourField.text = Math.floor(cur / 3600).toString()
+                        minField.text = Math.floor((cur % 3600) / 60).toString()
+                        secField.text = (cur % 60).toString()
+                    }
 
                     Button {
                         text: "-5m"
                         width: units.gu(6)
                         height: units.gu(3.8)
                         color: root.cardBorderColor
-                        onClicked: {
-                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
-                            cur = Math.max(0, cur - 300)
-                            minField.text = Math.floor(cur / 60).toString()
-                            secField.text = (cur % 60).toString()
-                        }
+                        onClicked: quickAdjRow.adjustQuick(-300)
                     }
                     Button {
                         text: "-1m"
                         width: units.gu(6)
                         height: units.gu(3.8)
                         color: root.cardBorderColor
-                        onClicked: {
-                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
-                            cur = Math.max(0, cur - 60)
-                            minField.text = Math.floor(cur / 60).toString()
-                            secField.text = (cur % 60).toString()
-                        }
+                        onClicked: quickAdjRow.adjustQuick(-60)
                     }
                     Button {
                         text: "+1m"
                         width: units.gu(6)
                         height: units.gu(3.8)
                         color: root.cardBorderColor
-                        onClicked: {
-                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
-                            cur += 60
-                            minField.text = Math.floor(cur / 60).toString()
-                            secField.text = (cur % 60).toString()
-                        }
+                        onClicked: quickAdjRow.adjustQuick(60)
                     }
                     Button {
                         text: "+5m"
                         width: units.gu(6)
                         height: units.gu(3.8)
                         color: root.cardBorderColor
-                        onClicked: {
-                            var cur = (parseInt(minField.text) || 0) * 60 + (parseInt(secField.text) || 0)
-                            cur += 300
-                            minField.text = Math.floor(cur / 60).toString()
-                            secField.text = (cur % 60).toString()
-                        }
+                        onClicked: quickAdjRow.adjustQuick(300)
                     }
                 }
 
-                // Minutes and Seconds Input Fields
+                // Hours, Minutes, and Seconds Input Fields
                 Row {
                     width: parent.width
-                    spacing: units.gu(1.5)
+                    spacing: units.gu(1.0)
 
                     Column {
-                        width: (parent.width - units.gu(1.5)) / 2
+                        width: (parent.width - units.gu(2.0)) / 3
+                        spacing: units.gu(0.4)
+
+                        Label {
+                            text: i18n.tr("Hours")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
+                            color: root.textSecondaryColor
+                        }
+
+                        TextField {
+                            id: hourField
+                            text: Math.floor(root.activeSessionSeconds / 3600).toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            width: parent.width
+                        }
+                    }
+
+                    Column {
+                        width: (parent.width - units.gu(2.0)) / 3
                         spacing: units.gu(0.4)
 
                         Label {
@@ -1012,14 +1138,14 @@ Page {
 
                         TextField {
                             id: minField
-                            text: Math.floor(root.activeSessionSeconds / 60).toString()
+                            text: Math.floor((root.activeSessionSeconds % 3600) / 60).toString()
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                             width: parent.width
                         }
                     }
 
                     Column {
-                        width: (parent.width - units.gu(1.5)) / 2
+                        width: (parent.width - units.gu(2.0)) / 3
                         spacing: units.gu(0.4)
 
                         Label {
@@ -1056,10 +1182,13 @@ Page {
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
                         onClicked: {
+                            var h = Math.max(0, parseInt(hourField.text) || 0)
                             var m = Math.max(0, parseInt(minField.text) || 0)
                             var s = Math.max(0, Math.min(59, parseInt(secField.text) || 0))
-                            var totalSecs = (m * 60) + s
+                            var totalSecs = (h * 3600) + (m * 60) + s
                             activePage.setSessionTime(totalSecs)
+                            // Keep paused so user sees edited time and starts only upon clicking resume
+                            root.activeSessionRunning = false
                             PopupUtils.close(editTimeDlg)
                         }
                     }
@@ -1068,44 +1197,228 @@ Page {
         }
     }
 
-    // CONFIRM DIALOG
+    // NEXT EXERCISE DIALOG (Select Intensity & Log Workout directly without navigating away)
     Component {
-        id: confirmDialog
+        id: nextExerciseDialogComponent
 
         Dialog {
-            id: dialog
-            title: i18n.tr("Save Workout First")
+            id: nextExDlg
+            title: i18n.tr("Next Exercise")
 
             Column {
-                spacing: units.gu(2)
+                spacing: units.gu(1.5)
+                width: parent.width
 
                 Label {
-                    width: parent.width
+                    text: i18n.tr("Previous exercise saved! Select next exercise and intensity to log directly:")
+                    font.pixelSize: units.gu(1.2)
+                    color: root.textSecondaryColor
                     wrapMode: Text.WordWrap
+                    width: parent.width
+                }
+
+                // Workout Name
+                Column {
+                    width: parent.width
+                    spacing: units.gu(0.4)
+
+                    Label {
+                        text: i18n.tr("Exercise / Workout Name")
+                        font.bold: true
+                        font.pixelSize: units.gu(1.2)
+                        color: root.textPrimaryColor
+                    }
+
+                    TextField {
+                        id: nextWorkoutField
+                        text: "General Workout"
+                        width: parent.width
+                    }
+                }
+
+                // Quick exercise suggestions
+                Flow {
+                    width: parent.width
+                    spacing: units.gu(0.6)
+
+                    Repeater {
+                        model: ["General Workout", "Push Ups", "Squats", "Planks", "Bicep Curls", "Bench Press"]
+
+                        Rectangle {
+                            height: units.gu(3)
+                            width: chipLabel.width + units.gu(1.6)
+                            radius: height / 2
+                            color: nextWorkoutField.text === modelData ? root.primaryColor : root.cardBorderColor
+
+                            Label {
+                                id: chipLabel
+                                anchors.centerIn: parent
+                                text: modelData
+                                font.pixelSize: units.gu(1.1)
+                                font.bold: nextWorkoutField.text === modelData
+                                color: nextWorkoutField.text === modelData ? "#FFFFFF" : root.textPrimaryColor
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: nextWorkoutField.text = modelData
+                            }
+                        }
+                    }
+                }
+
+                Label {
+                    text: i18n.tr("Select Intensity to Start:")
+                    font.bold: true
+                    font.pixelSize: units.gu(1.2)
                     color: root.textPrimaryColor
-                    text: i18n.tr("Would you like to finish and save this session before starting the next exercise?")
+                }
+
+                // Light Intensity Button
+                Button {
+                    width: parent.width
+                    height: units.gu(4.5)
+                    color: root.accentBlue
+                    text: i18n.tr("Light Effort (0.85×) • Warmup & Mobility")
+                    onClicked: startNext(nextWorkoutField.text, 0.85, "light")
+                }
+
+                // Standard Intensity Button
+                Button {
+                    width: parent.width
+                    height: units.gu(4.5)
+                    color: root.primaryColor
+                    text: i18n.tr("Standard Effort (1.0×) • Regular Workout")
+                    onClicked: startNext(nextWorkoutField.text, 1.0, "standard")
+                }
+
+                // Heavy Intensity Button
+                Button {
+                    width: parent.width
+                    height: units.gu(4.5)
+                    color: "#EF4444"
+                    text: i18n.tr("Heavy Effort (1.2×) • Vigorous & Intense")
+                    onClicked: startNext(nextWorkoutField.text, 1.2, "vigorous")
+                }
+
+                Button {
+                    text: i18n.tr("Cancel")
+                    color: root.cardBorderColor
+                    width: parent.width
+                    height: units.gu(4)
+                    onClicked: {
+                        PopupUtils.close(nextExDlg)
+                        root.activeSessionRunning = true
+                    }
+                }
+            }
+
+            function startNext(wName, multiplier, level) {
+                var finalName = wName.trim() !== "" ? wName.trim() : "General Workout"
+                var today = new Date().toISOString()
+                var newId = DB.insertSession(finalName, "1", JSON.stringify([""]), JSON.stringify([""]), today)
+                if (newId !== -1) {
+                    root.activeSessionId = newId
+                    root.activeSessionWorkout = finalName
+                    activePage.workout = finalName
+                    activePage.intensityMultiplier = multiplier
+                    activePage.intensityLevel = level
+                    activePage.setSessionTime(0)
+                    activePage.resetRest()
+                    activePage.isSaved = false
+                    root.activeSessionRunning = true
+                }
+                PopupUtils.close(nextExDlg)
+            }
+        }
+    }
+
+    // EDIT WORKOUT NAME DIALOG
+    Component {
+        id: editWorkoutNameDialogComponent
+
+        Dialog {
+            id: editWorkoutNameDlg
+            title: i18n.tr("Edit Workout Name")
+
+            Column {
+                spacing: units.gu(1.5)
+                width: parent.width
+
+                Label {
+                    text: i18n.tr("Update the name of your current active workout:")
+                    font.pixelSize: units.gu(1.2)
+                    color: root.textSecondaryColor
+                    wrapMode: Text.WordWrap
+                    width: parent.width
+                }
+
+                TextField {
+                    id: editNameField
+                    text: root.activeSessionWorkout
+                    placeholderText: i18n.tr("Workout name")
+                    width: parent.width
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: units.gu(0.6)
+
+                    Repeater {
+                        model: ["Bench Press", "Squats", "Deadlift", "Push Ups", "Pull-ups", "General Workout"]
+
+                        Rectangle {
+                            height: units.gu(3)
+                            width: sugLabel.width + units.gu(1.6)
+                            radius: height / 2
+                            color: editNameField.text === modelData ? root.primaryColor : root.cardBorderColor
+
+                            Label {
+                                id: sugLabel
+                                anchors.centerIn: parent
+                                text: modelData
+                                font.pixelSize: units.gu(1.1)
+                                font.bold: editNameField.text === modelData
+                                color: editNameField.text === modelData ? "#FFFFFF" : root.textPrimaryColor
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: editNameField.text = modelData
+                            }
+                        }
+                    }
                 }
 
                 Row {
-                    spacing: units.gu(1.5)
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.width
+                    spacing: units.gu(1.2)
 
                     Button {
                         text: i18n.tr("Cancel")
                         color: root.cardBorderColor
-                        onClicked: PopupUtils.close(dialog)
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: PopupUtils.close(editWorkoutNameDlg)
                     }
 
                     Button {
-                        text: i18n.tr("Save & Proceed")
+                        text: i18n.tr("Save")
                         color: root.primaryColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
                         onClicked: {
-                            PopupUtils.close(dialog)
-                            handleSaveSession()
-                            root.activeSessionId = -1
-                            root.activeSessionRunning = false
-                            root.activeSessionSeconds = 0
-                            pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                            var trimmed = editNameField.text.trim()
+                            if (trimmed !== "") {
+                                root.activeSessionWorkout = trimmed
+                                activePage.workout = trimmed
+                                if (root.activeSessionId !== -1) {
+                                    DB.updateSessionWorkoutName(root.activeSessionId, trimmed)
+                                }
+                            }
+                            PopupUtils.close(editWorkoutNameDlg)
                         }
                     }
                 }
@@ -1122,13 +1435,37 @@ Page {
             title: i18n.tr("Session Saved! 🎉")
 
             Column {
-                spacing: units.gu(2)
+                spacing: units.gu(1.5)
+                width: parent.width
+
+                Row {
+                    spacing: units.gu(0.8)
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    Image {
+                        source: Qt.resolvedUrl("../assets/fire-svgrepo-com.svg")
+                        width: units.gu(2.4)
+                        height: units.gu(2.4)
+                        sourceSize.width: units.gu(2.4)
+                        sourceSize.height: units.gu(2.4)
+                        fillMode: Image.PreserveAspectFit
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Label {
+                        text: caloriesBurned.toFixed(1) + " kcal"
+                        font.bold: true
+                        font.pixelSize: units.gu(2.0)
+                        color: root.accentOrange
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
 
                 Label {
                     width: parent.width
                     wrapMode: Text.WordWrap
                     color: root.textPrimaryColor
-                    text: i18n.tr("Workout session saved successfully!\n\n⏱️ Duration: " + timeString + "\n🔥 Calories Burned: " + caloriesBurned.toFixed(1) + " kcal\n⚡ Intensity: " + activePage.effectiveMet.toFixed(1) + " METs (" + activePage.metInfo.category + ")\n📊 Calculated via sports science Compendium MET formula.")
+                    text: i18n.tr("Workout session saved successfully!\n\n⏱️ Duration: " + timeString + "\n⚡ Intensity: " + activePage.effectiveMet.toFixed(1) + " METs (" + activePage.metInfo.category + ")\n📊 Calculated via sports science Compendium MET formula.")
                 }
 
                 Button {
@@ -1139,6 +1476,18 @@ Page {
 
                     onClicked: {
                         PopupUtils.close(dialogBox)
+                        // Reset session state to original page with no workout
+                        root.activeSessionId = -1
+                        root.activeSessionWorkout = ""
+                        root.activeSessionSeconds = 0
+                        root.activeSessionTargetSeconds = -1
+                        root.activeSessionRunning = false
+                        activePage.workout = "Workout"
+                        activePage.sessionId = -1
+                        activePage.isSaved = false
+                        activePage.workoutPausedForRest = false
+                        activePage.restTimerRunning = false
+                        activePage.resetRest()
                     }
                 }
             }

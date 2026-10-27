@@ -91,6 +91,12 @@ Page {
         refreshModel("")
     }
 
+    onVisibleChanged: {
+        if (visible) {
+            refreshModel(typeof searchField !== "undefined" && searchField && searchField.visible ? searchField.text : "")
+        }
+    }
+
     ListModel {
         id: sessionModel
     }
@@ -286,15 +292,32 @@ Page {
                                     text: "⏱ " + formatTime(model.duration)
                                     color: root.textSecondaryColor
                                     font.pixelSize: units.gu(1.3)
+                                    Layout.alignment: Qt.AlignVCenter
                                 }
 
                                 Item { Layout.fillWidth: true }
 
-                                Label {
-                                    text: "🔥 " + (model.calories ? model.calories.toFixed(1) + " kcal" : "0.0 kcal")
-                                    color: root.primaryColor
-                                    font.bold: true
-                                    font.pixelSize: units.gu(1.5)
+                                Row {
+                                    spacing: units.gu(0.5)
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    Image {
+                                        source: Qt.resolvedUrl("../assets/fire-svgrepo-com.svg")
+                                        width: units.gu(1.8)
+                                        height: units.gu(1.8)
+                                        sourceSize.width: units.gu(1.8)
+                                        sourceSize.height: units.gu(1.8)
+                                        fillMode: Image.PreserveAspectFit
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+
+                                    Label {
+                                        text: (model.calories ? model.calories.toFixed(1) + " kcal" : "0.0 kcal")
+                                        color: root.primaryColor
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.5)
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                 }
                             }
                         }
@@ -325,7 +348,7 @@ Page {
                 reps: m.reps,
                 weight: m.weight,
                 date: m.date,
-                duration: m.duration
+                duration: (m.duration !== undefined && m.duration !== null && !isNaN(parseInt(m.duration))) ? parseInt(m.duration) : 0
             }
         )
     }

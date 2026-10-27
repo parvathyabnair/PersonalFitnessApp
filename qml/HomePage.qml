@@ -100,7 +100,10 @@ Page {
             },
 
             Action {
-                iconSource: Qt.resolvedUrl("../assets/show.png")
+                iconName: "view-list-symbolic"
+                iconSource: (theme.name === "Ubuntu.Components.Themes.SuruDark" || root.isDarkMode) ?
+                            Qt.resolvedUrl("../assets/eye_white.svg") :
+                            Qt.resolvedUrl("../assets/eye_dark.svg")
                 text: i18n.tr("Session Overview")
 
                 onTriggered: {
@@ -117,10 +120,12 @@ Page {
                 }
             },
 
-
             Action {
-                iconName: "camera-photo"
-                text: i18n.tr("Private Media Vault 🔒")
+                iconName: "camera-app"
+                iconSource: (theme.name === "Ubuntu.Components.Themes.SuruDark" || root.isDarkMode) ?
+                            Qt.resolvedUrl("../assets/camera_white.svg") :
+                            Qt.resolvedUrl("../assets/camera_dark.svg")
+                text: i18n.tr("Private Media Vault")
 
                 onTriggered: {
                     pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
@@ -129,7 +134,7 @@ Page {
 
             Action {
                 iconName: "help"
-                text: i18n.tr("MET Sports Guide ⚡")
+                text: i18n.tr("MET Sports Guide")
 
                 onTriggered: {
                     metGuideModal.visible = true
@@ -167,11 +172,26 @@ Page {
                     Layout.fillWidth: true
                     spacing: units.gu(0.3)
 
-                    Label {
-                        text: i18n.tr("Welcome Back! 💪")
-                        font.pixelSize: units.gu(2.4)
-                        font.bold: true
-                        color: root.textPrimaryColor
+                    Row {
+                        spacing: units.gu(1)
+
+                        Label {
+                            text: i18n.tr("Welcome Back!")
+                            font.pixelSize: units.gu(2.4)
+                            font.bold: true
+                            color: root.textPrimaryColor
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Image {
+                            source: Qt.resolvedUrl("../assets/muscle-svgrepo-com.svg")
+                            width: units.gu(2.8)
+                            height: units.gu(2.8)
+                            sourceSize.width: units.gu(2.8)
+                            sourceSize.height: units.gu(2.8)
+                            anchors.verticalCenter: parent.verticalCenter
+                            fillMode: Image.PreserveAspectFit
+                        }
                     }
 
                     Label {
@@ -255,11 +275,16 @@ Page {
                         spacing: units.gu(0.4)
                         width: parent.width - units.gu(1)
 
-                        Label {
-                            text: "🔥"
-                            font.pixelSize: units.gu(2)
+                        Image {
+                            source: Qt.resolvedUrl("../assets/fire-svgrepo-com.svg")
+                            width: units.gu(2.5)
+                            height: units.gu(2.5)
+                            sourceSize.width: units.gu(2.5)
+                            sourceSize.height: units.gu(2.5)
+                            fillMode: Image.PreserveAspectFit
                             anchors.horizontalCenter: parent.horizontalCenter
-                        }
+                        }   
+                        
 
                         Label {
                             text: todaysCalories
@@ -301,11 +326,15 @@ Page {
                         spacing: units.gu(0.4)
                         width: parent.width - units.gu(1)
 
-                        Label {
-                            text: "⚖️"
-                            font.pixelSize: units.gu(2)
+                        Image {
+                            source: Qt.resolvedUrl("../assets/balance-scale-svgrepo-com.svg")
+                            width: units.gu(2.5)
+                            height: units.gu(2.5)
+                            sourceSize.width: units.gu(2.5)
+                            sourceSize.height: units.gu(2.5)
+                            fillMode: Image.PreserveAspectFit
                             anchors.horizontalCenter: parent.horizontalCenter
-                        }
+                        }   
 
                         Label {
                             text: currentWeight + " kg"
@@ -347,11 +376,15 @@ Page {
                         spacing: units.gu(0.4)
                         width: parent.width - units.gu(1)
 
-                        Label {
-                            text: "🎯"
-                            font.pixelSize: units.gu(2)
+                        Image {
+                            source: Qt.resolvedUrl("../assets/target-svgrepo-com.svg")
+                            width: units.gu(2.5)
+                            height: units.gu(2.5)
+                            sourceSize.width: units.gu(2.5)
+                            sourceSize.height: units.gu(2.5)
+                            fillMode: Image.PreserveAspectFit
                             anchors.horizontalCenter: parent.horizontalCenter
-                        }
+                        }   
 
                         Label {
                             text: goalWeight + " kg"
@@ -448,12 +481,7 @@ Page {
 
                         Row {
                             spacing: units.gu(0.8)
-                            Layout.alignment: Qt.AlignVCenter
 
-                            Label {
-                                text: "🔥"
-                                font.pixelSize: units.gu(2)
-                            }
 
                             Label {
                                 text: workoutStats.streakDays > 0 ?
@@ -577,6 +605,8 @@ Page {
 
             // DAILY HYDRATION TRACKER CARD
             Rectangle {
+                id: hydrationCard
+                property string selectedHydrationAction: ""
                 width: parent.width
                 height: waterCol.height + units.gu(2.8)
                 radius: units.dp(12)
@@ -599,11 +629,7 @@ Page {
                             spacing: units.gu(0.8)
                             Layout.alignment: Qt.AlignVCenter
 
-                            Label {
-                                text: "💧"
-                                font.pixelSize: units.gu(1.8)
-                            }
-
+                           
                             Label {
                                 text: i18n.tr("Hydration Tracker")
                                 font.bold: true
@@ -646,33 +672,87 @@ Page {
                         width: parent.width
                         spacing: units.gu(1)
 
-                        Button {
-                            text: i18n.tr("+250 ml (Cup)")
-                            color: root.cardBorderColor
+                        // +250 ml (Cup)
+                        Rectangle {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(3.8)
-                            onClicked: {
-                                todaysWater = DB.addWater(250)
+                            radius: units.dp(8)
+                            color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "#38BDF8" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                            border.color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "#38BDF8" : root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: i18n.tr("+250 ml (Cup)")
+                                font.bold: hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed
+                                font.pixelSize: units.gu(1.1)
+                                color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "white" : root.textPrimaryColor
+                            }
+
+                            MouseArea {
+                                id: cupMouse
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    hydrationCard.selectedHydrationAction = "cup"
+                                    todaysWater = DB.addWater(250)
+                                }
                             }
                         }
 
-                        Button {
-                            text: i18n.tr("+500 ml (Bottle)")
-                            color: "#0284C7"
+                        // +500 ml (Bottle)
+                        Rectangle {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(3.8)
-                            onClicked: {
-                                todaysWater = DB.addWater(500)
+                            radius: units.dp(8)
+                            color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "#38BDF8" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                            border.color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "#38BDF8" : root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: i18n.tr("+500 ml (Bottle)")
+                                font.bold: hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed
+                                font.pixelSize: units.gu(1.1)
+                                color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "white" : root.textPrimaryColor
+                            }
+
+                            MouseArea {
+                                id: bottleMouse
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    hydrationCard.selectedHydrationAction = "bottle"
+                                    todaysWater = DB.addWater(500)
+                                }
                             }
                         }
 
-                        Button {
-                            text: i18n.tr("Reset")
-                            color: root.cardBorderColor
+                        // Reset
+                        Rectangle {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(3.8)
-                            onClicked: {
-                                todaysWater = DB.resetTodaysWater()
+                            radius: units.dp(8)
+                            color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "#38BDF8" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                            border.color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "#38BDF8" : root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: i18n.tr("Reset")
+                                font.bold: hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed
+                                font.pixelSize: units.gu(1.1)
+                                color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "white" : root.textPrimaryColor
+                            }
+
+                            MouseArea {
+                                id: resetMouse
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    hydrationCard.selectedHydrationAction = "reset"
+                                    todaysWater = DB.resetTodaysWater()
+                                }
                             }
                         }
                     }
@@ -880,15 +960,6 @@ Page {
                         }
                     }
 
-                    Button {
-                        text: i18n.tr("🔒 Private Media Vault & Form Checks")
-                        color: root.cardBorderColor
-                        width: parent.width
-                        height: units.gu(4.5)
-                        onClicked: {
-                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
-                        }
-                    }
                 }
             }
 

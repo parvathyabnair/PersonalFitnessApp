@@ -37,6 +37,10 @@ function updateSession(id, workout, sets, reps, weight, date) {
     return WorkoutModel.updateSession(id, workout, sets, reps, weight, date);
 }
 
+function updateSessionWorkoutName(id, workout) {
+    return WorkoutModel.updateSessionWorkoutName(id, workout);
+}
+
 function updateSessionTime(id, time) {
     return WorkoutModel.updateSessionTime(id, time);
 }

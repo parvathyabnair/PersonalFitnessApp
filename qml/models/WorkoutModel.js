@@ -66,6 +66,18 @@ function updateSession(id, workout, sets, reps, weight, date) {
     });
 }
 
+function updateSessionWorkoutName(id, workout) {
+    DBModule.createTable();
+    var db = DBModule.getDatabase();
+
+    db.transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE sessions SET workout = ? WHERE id = ?",
+            [workout, id]
+        );
+    });
+}
+
 function updateSessionTime(id, time) {
     DBModule.createTable();
     var db = DBModule.getDatabase();
