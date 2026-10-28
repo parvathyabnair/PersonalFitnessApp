@@ -16,11 +16,9 @@
 
 import QtQuick 2.7
 import Lomiri.Components 1.3
-//import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import "database.js" as DB
-
 
 MainView {
     id: root
@@ -32,7 +30,10 @@ MainView {
     height: units.gu(75)
     backgroundColor: isDarkMode ? "#121214" : "#F8F9FA"
     property bool showSplash: true
-    
+
+    // Real-time synchronization signal across convergent split columns
+    signal sessionDataChanged()
+
     // THEME PALETTE HELPERS (Used consistently across all pages)
     readonly property bool isDarkMode: Theme.name === "Ubuntu.Components.Themes.SuruDark"
     readonly property color primaryColor: "#FF5252"
@@ -45,7 +46,7 @@ MainView {
     readonly property color accentBlue: isDarkMode ? "#38BDF8" : "#0284C7"
     readonly property color accentGreen: isDarkMode ? "#34D399" : "#10B981"
     readonly property color accentOrange: isDarkMode ? "#FB923C" : "#F97316"
-    
+
     // GLOBAL SESSION STATE (Accurate Wall-Clock Timekeeper using Date.now())
     property int activeSessionId: -1
     property string activeSessionWorkout: ""
@@ -92,7 +93,7 @@ MainView {
 
     Timer {
         id: globalSessionTimer
-        interval: 200 // Refresh 5x/sec, recalculating against real Date.now() - completely immune to high refresh rate/vsync bugs
+        interval: 200 // Refresh 5x/sec, recalculating against real Date.now()
         running: activeSessionRunning
         repeat: true
         onTriggered: {
@@ -110,6 +111,7 @@ MainView {
             }
         }
     }
+
     Component.onCompleted: {
         DB.createTable()
     }
@@ -118,7 +120,44 @@ MainView {
         id: pageLayout
         anchors.fill: parent
 
+        layouts: [
+            PageColumnsLayout {
+                when: width >= units.gu(80) && width < units.gu(130)
+
+                PageColumn {
+                    minimumWidth: units.gu(35)
+                    maximumWidth: units.gu(55)
+                    preferredWidth: units.gu(40)
+                }
+
+                PageColumn {
+                    fillWidth: true
+                }
+            },
+
+            PageColumnsLayout {
+                when: width >= units.gu(130)
+
+                PageColumn {
+                    minimumWidth: units.gu(35)
+                    maximumWidth: units.gu(48)
+                    preferredWidth: units.gu(40)
+                }
+
+                PageColumn {
+                    minimumWidth: units.gu(40)
+                    maximumWidth: units.gu(55)
+                    preferredWidth: units.gu(45)
+                }
+
+                PageColumn {
+                    fillWidth: true
+                }
+            }
+        ]
+
         primaryPage: HomePage {
+            id: homePage
             pageLayout: pageLayout
         }
     }

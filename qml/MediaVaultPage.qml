@@ -88,6 +88,18 @@ Page {
             dividerColor: LomiriColors.slate
         }
 
+        leadingActionBar.actions: [
+            Action {
+                iconName: "back"
+                text: i18n.tr("Back")
+                onTriggered: {
+                    if (pageLayout && typeof pageLayout.removePages === "function") {
+                        pageLayout.removePages(vaultPage)
+                    }
+                }
+            }
+        ]
+
         trailingActionBar.numberOfSlots: 2
         trailingActionBar.actions: [
             Action {
@@ -183,7 +195,7 @@ Page {
 
                 Button {
                     text: i18n.tr("📸 Snap Photo")
-                    color: root.primaryColor
+                    color: root.cardBorderColor
                     width: (parent.width - units.gu(1.5)) / 2
                     height: units.gu(4.8)
                     onClicked: {
@@ -193,7 +205,7 @@ Page {
 
                 Button {
                     text: i18n.tr("🎥 Record Video")
-                    color: root.accentOrange
+                    color: root.cardBorderColor
                     width: (parent.width - units.gu(1.5)) / 2
                     height: units.gu(4.8)
                     onClicked: {

@@ -111,9 +111,10 @@ Page {
         if (typeof durationMinField === "undefined" || typeof durationSecField === "undefined") {
             return (duration || 0);
         }
+        var h = (typeof durationHourField !== "undefined") ? Math.max(0, parseInt(durationHourField.text) || 0) : 0
         var m = Math.max(0, parseInt(durationMinField.text) || 0)
         var s = Math.max(0, Math.min(59, parseInt(durationSecField.text) || 0))
-        return (m * 60) + s
+        return (h * 3600) + (m * 60) + s
     }
 
     function saveSessionData() {
@@ -168,6 +169,11 @@ Page {
         selectedDate = dateVal
         DB.ACTIVE_SESSION_ID = currentSessionId
         DB.ACTIVE_WORKOUT = currentWorkout
+        if (typeof mainView !== "undefined" && typeof mainView.sessionDataChanged === "function") {
+            mainView.sessionDataChanged()
+        } else if (typeof root !== "undefined" && typeof root.sessionDataChanged === "function") {
+            root.sessionDataChanged()
+        }
         return currentSessionId
     }
 
@@ -209,6 +215,18 @@ Page {
             backgroundColor: root.primaryColor
             dividerColor: LomiriColors.slate
         }
+
+        leadingActionBar.actions: [
+            Action {
+                iconName: "back"
+                text: i18n.tr("Back")
+                onTriggered: {
+                    if (pageLayout && typeof pageLayout.removePages === "function") {
+                        pageLayout.removePages(createSessionPage)
+                    }
+                }
+            }
+        ]
 
         trailingActionBar.numberOfSlots: 1
         trailingActionBar.actions: [
@@ -262,7 +280,10 @@ Page {
             if (duration !== undefined && duration !== null && duration !== "") {
                 var durSec = parseInt(duration) || 0
                 if (typeof durationMinField !== "undefined") {
-                    durationMinField.text = Math.floor(durSec / 60).toString()
+                    if (typeof durationHourField !== "undefined") {
+                        durationHourField.text = Math.floor(durSec / 3600).toString()
+                    }
+                    durationMinField.text = Math.floor((durSec % 3600) / 60).toString()
                     durationSecField.text = (durSec % 60).toString()
                 }
             }
@@ -721,11 +742,14 @@ Page {
                                 id: durPreviewLabel
                                 anchors.centerIn: parent
                                 text: {
-                                    var m = Math.max(0, parseInt(durationMinField.text) || 0)
-                                    var s = Math.max(0, Math.min(59, parseInt(durationSecField.text) || 0))
-                                    var hrs = Math.floor(m / 60)
-                                    var remM = m % 60
-                                    return ("0" + hrs).slice(-2) + ":" + ("0" + remM).slice(-2) + ":" + ("0" + s).slice(-2)
+                                    var h = (typeof durationHourField !== "undefined") ? Math.max(0, parseInt(durationHourField.text) || 0) : 0
+                                    var m = (typeof durationMinField !== "undefined") ? Math.max(0, parseInt(durationMinField.text) || 0) : 0
+                                    var s = (typeof durationSecField !== "undefined") ? Math.max(0, Math.min(59, parseInt(durationSecField.text) || 0)) : 0
+                                    var totalSec = (h * 3600) + (m * 60) + s
+                                    var hrs = Math.floor(totalSec / 3600)
+                                    var remM = Math.floor((totalSec % 3600) / 60)
+                                    var remS = totalSec % 60
+                                    return ("0" + hrs).slice(-2) + ":" + ("0" + remM).slice(-2) + ":" + ("0" + remS).slice(-2)
                                 }
                                 font.bold: true
                                 font.family: "Monospace"
@@ -749,11 +773,19 @@ Page {
                                 height: units.gu(3.4)
                                 color: {
                                     var targetM = parseInt(modelData)
-                                    return (parseInt(durationMinField.text) === targetM && (parseInt(durationSecField.text) || 0) === 0) ?
+                                    var curH = (typeof durationHourField !== "undefined") ? (parseInt(durationHourField.text) || 0) : 0
+                                    var curM = (typeof durationMinField !== "undefined") ? (parseInt(durationMinField.text) || 0) : 0
+                                    var curS = (typeof durationSecField !== "undefined") ? (parseInt(durationSecField.text) || 0) : 0
+                                    var totalM = (curH * 60) + curM
+                                    return (totalM === targetM && curS === 0) ?
                                            root.primaryColor : root.cardBorderColor
                                 }
                                 onClicked: {
-                                    durationMinField.text = parseInt(modelData).toString()
+                                    var targetM = parseInt(modelData)
+                                    if (typeof durationHourField !== "undefined") {
+                                        durationHourField.text = Math.floor(targetM / 60).toString()
+                                    }
+                                    durationMinField.text = (targetM % 60).toString()
                                     durationSecField.text = "0"
                                     if (createSessionPage.formReady) createSessionPage.isSaved = false
                                 }
@@ -761,13 +793,39 @@ Page {
                         }
                     }
 
-                    // Precise Minutes and Seconds Input Fields
+                    // Precise Hours, Minutes and Seconds Input Fields
                     Row {
                         width: parent.width
-                        spacing: units.gu(1.5)
+                        spacing: units.gu(1.2)
 
+                        // Hours Field
                         Column {
-                            width: (parent.width - units.gu(1.5)) / 2
+                            width: (parent.width - units.gu(2.4)) / 3
+                            spacing: units.gu(0.4)
+
+                            Label {
+                                text: i18n.tr("Hours")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.2)
+                                color: root.textSecondaryColor
+                            }
+
+                            TextField {
+                                id: durationHourField
+                                width: parent.width
+                                placeholderText: "0"
+                                inputMethodHints: Qt.ImhDigitsOnly
+                                text: duration > 0 ? Math.floor(parseInt(duration) / 3600).toString() : "0"
+                                onTextChanged: {
+                                    if (activeFocus && createSessionPage.formReady)
+                                        createSessionPage.isSaved = false
+                                }
+                            }
+                        }
+
+                        // Minutes Field
+                        Column {
+                            width: (parent.width - units.gu(2.4)) / 3
                             spacing: units.gu(0.4)
 
                             Label {
@@ -782,7 +840,7 @@ Page {
                                 width: parent.width
                                 placeholderText: "0"
                                 inputMethodHints: Qt.ImhDigitsOnly
-                                text: duration > 0 ? Math.floor(duration / 60).toString() : (isTimeBased ? "30" : "0")
+                                text: duration > 0 ? Math.floor((parseInt(duration) % 3600) / 60).toString() : (isTimeBased ? "30" : "0")
                                 onTextChanged: {
                                     if (activeFocus && createSessionPage.formReady)
                                         createSessionPage.isSaved = false
@@ -790,8 +848,9 @@ Page {
                             }
                         }
 
+                        // Seconds Field
                         Column {
-                            width: (parent.width - units.gu(1.5)) / 2
+                            width: (parent.width - units.gu(2.4)) / 3
                             spacing: units.gu(0.4)
 
                             Label {
@@ -806,7 +865,7 @@ Page {
                                 width: parent.width
                                 placeholderText: "0"
                                 inputMethodHints: Qt.ImhDigitsOnly
-                                text: duration > 0 ? (duration % 60).toString() : "0"
+                                text: duration > 0 ? (parseInt(duration) % 60).toString() : "0"
                                 onTextChanged: {
                                     if (activeFocus && createSessionPage.formReady)
                                         createSessionPage.isSaved = false
@@ -872,7 +931,7 @@ Page {
 
                 Button {
                     text: i18n.tr("Start Workout Now")
-                    color: root.primaryColor
+                    color: root.cardBorderColor
                     width: (parent.width - units.gu(1.5)) * 0.6
                     height: units.gu(5)
 
@@ -956,7 +1015,9 @@ Page {
                         color: root.cardBorderColor
                         onClicked: {
                             PopupUtils.close(succDialog)
-                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
+                            if (pageLayout && typeof pageLayout.removePages === "function") {
+                                pageLayout.removePages(createSessionPage)
+                            }
                         }
                     }
 

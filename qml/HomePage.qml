@@ -50,6 +50,13 @@ Page {
         loadOverviewData()
     }
 
+    Connections {
+        target: (typeof mainView !== "undefined") ? mainView : ((typeof root !== "undefined") ? root : null)
+        onSessionDataChanged: {
+            loadOverviewData()
+        }
+    }
+
     onVisibleChanged: {
         if (visible) {
             loadOverviewData()
@@ -95,7 +102,7 @@ Page {
                 text: i18n.tr("Active Session")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("ActiveSessionPage.qml"), {pageLayout: pageLayout})
+                    pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("ActiveSessionPage.qml"), {pageLayout: pageLayout})
                 }
             },
 
@@ -107,7 +114,7 @@ Page {
                 text: i18n.tr("Session Overview")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
+                    pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
                 }
             },
 
@@ -116,7 +123,7 @@ Page {
                 text: i18n.tr("Settings")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SettingsPage.qml"))
+                    pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SettingsPage.qml"), {pageLayout: pageLayout})
                 }
             },
 
@@ -128,7 +135,7 @@ Page {
                 text: i18n.tr("Private Media Vault")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
+                    pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("MediaVaultPage.qml"), {pageLayout: pageLayout})
                 }
             },
 
@@ -941,11 +948,11 @@ Page {
 
                         Button {
                             text: i18n.tr("+ New Workout")
-                            color: root.primaryColor
+                            color: root.cardBorderColor
                             width: (parent.width - units.gu(1.5)) / 2
                             height: units.gu(4.5)
                             onClicked: {
-                                pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                                pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
                             }
                         }
 
@@ -955,7 +962,7 @@ Page {
                             width: (parent.width - units.gu(1.5)) / 2
                             height: units.gu(4.5)
                             onClicked: {
-                                pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
+                                pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
                             }
                         }
                     }
@@ -983,7 +990,7 @@ Page {
         height: units.gu(5.5)
 
         onTriggered: {
-            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+            pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
         }
     }
 

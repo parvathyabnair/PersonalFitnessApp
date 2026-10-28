@@ -186,6 +186,18 @@ Page {
             dividerColor: LomiriColors.slate
         }
 
+        leadingActionBar.actions: [
+            Action {
+                iconName: "back"
+                text: i18n.tr("Back")
+                onTriggered: {
+                    if (pageLayout && typeof pageLayout.removePages === "function") {
+                        pageLayout.removePages(activePage)
+                    }
+                }
+            }
+        ]
+
         trailingActionBar.numberOfSlots: 2
         trailingActionBar.actions: [
             Action {
@@ -216,7 +228,7 @@ Page {
 
             Button {
                 text: i18n.tr("Quick Start Workout")
-                color: root.primaryColor
+                color: root.cardBorderColor
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: Math.min(units.gu(26), parent.width * 0.8)
                 height: units.gu(5)
@@ -575,12 +587,7 @@ Page {
                             spacing: units.gu(0.8)
                             Layout.alignment: Qt.AlignVCenter
 
-                            Label {
-                                text: "⚡"
-                                font.pixelSize: units.gu(1.8)
-                            }
-
-                            Label {
+                         Label {
                                 text: i18n.tr("Metabolic Rate (MET)")
                                 font.bold: true
                                 font.pixelSize: units.gu(1.5)
@@ -844,7 +851,7 @@ Page {
 
                 Button {
                     text: root.activeSessionRunning ? i18n.tr("Pause") : i18n.tr("Resume")
-                    color: root.activeSessionRunning ? "#F59E0B" : root.primaryColor
+                    color: (!root.activeSessionRunning && root.activeSessionSeconds > 0) ? root.primaryColor : root.cardBorderColor
                     width: (parent.width - units.gu(3)) / 3
                     height: units.gu(4.8)
                     onClicked: {
@@ -865,7 +872,7 @@ Page {
 
                 Button {
                     text: i18n.tr("Finish & Save")
-                    color: root.primaryColor
+                    color: root.cardBorderColor
                     width: (parent.width - units.gu(3)) / 3
                     height: units.gu(4.8)
                     onClicked: handleSaveSession()
@@ -887,14 +894,13 @@ Page {
 
                 Button {
                     text: i18n.tr("📷 Form Check / Photo")
-                    color: root.accentBlue
+                    color: root.cardBorderColor
                     width: parent.width
                     height: units.gu(4.5)
                     onClicked: {
                         var layout = (typeof pageLayout !== "undefined" && pageLayout) ? pageLayout : (typeof root !== "undefined" ? root.pageLayout : null)
-                        var src = (layout && layout.primaryPage) ? layout.primaryPage : activePage
                         if (layout) {
-                            layout.addPageToNextColumn(src, Qt.resolvedUrl("MediaVaultPage.qml"), {
+                            layout.addPageToNextColumn(activePage, Qt.resolvedUrl("MediaVaultPage.qml"), {
                                 pageLayout: layout,
                                 filterSessionId: (activePage.sessionId > 0) ? activePage.sessionId : root.activeSessionId
                             })
@@ -954,6 +960,8 @@ Page {
         Dialog {
             id: intensityDlg
             title: i18n.tr("Select Workout Intensity")
+            property string selectedLevel: (activePage && activePage.intensityLevel) ? activePage.intensityLevel : "standard"
+            property double selectedMultiplier: (activePage && activePage.intensityMultiplier) ? activePage.intensityMultiplier : 1.0
 
             Column {
                 spacing: units.gu(1.5)
@@ -967,54 +975,66 @@ Page {
                     width: parent.width
                 }
 
-                // Light Intensity Button
+                // Light Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
-                    color: root.accentBlue
-                    text: i18n.tr("Light Activity (0.85×) • Warmup & Recovery")
+                    color: intensityDlg.selectedLevel === "light" ? root.accentBlue : root.cardBorderColor
+                    text: (intensityDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light Activity (0.85×) • Warmup & Recovery")
                     onClicked: {
-                        activePage.intensityMultiplier = 0.85
-                        activePage.intensityLevel = "light"
-                        PopupUtils.close(intensityDlg)
-                        root.activeSessionRunning = true
+                        intensityDlg.selectedLevel = "light"
+                        intensityDlg.selectedMultiplier = 0.85
                     }
                 }
 
-                // Standard Intensity Button (Default)
+                // Standard Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
-                    color: root.primaryColor
-                    text: i18n.tr("Moderate Activity (1.0×) • Typical Gym Workout")
+                    color: intensityDlg.selectedLevel === "standard" ? root.primaryColor : root.cardBorderColor
+                    text: (intensityDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Moderate Activity (1.0×) • Typical Gym Workout")
                     onClicked: {
-                        activePage.intensityMultiplier = 1.0
-                        activePage.intensityLevel = "standard"
-                        PopupUtils.close(intensityDlg)
-                        root.activeSessionRunning = true
+                        intensityDlg.selectedLevel = "standard"
+                        intensityDlg.selectedMultiplier = 1.0
                     }
                 }
 
-                // Heavy Intensity Button
+                // Heavy Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
-                    color: "#EF4444"
-                    text: i18n.tr("Vigorous Activity (1.2×) • High Exertion & PRs")
+                    color: intensityDlg.selectedLevel === "vigorous" ? "#EF4444" : root.cardBorderColor
+                    text: (intensityDlg.selectedLevel === "vigorous" ? "✓ " : "") + i18n.tr("Vigorous Activity (1.2×) • High Exertion & PRs")
                     onClicked: {
-                        activePage.intensityMultiplier = 1.2
-                        activePage.intensityLevel = "vigorous"
-                        PopupUtils.close(intensityDlg)
-                        root.activeSessionRunning = true
+                        intensityDlg.selectedLevel = "vigorous"
+                        intensityDlg.selectedMultiplier = 1.2
                     }
                 }
 
-                Button {
-                    text: i18n.tr("Cancel")
-                    color: root.cardBorderColor
+                Row {
                     width: parent.width
-                    height: units.gu(4)
-                    onClicked: PopupUtils.close(intensityDlg)
+                    spacing: units.gu(1.2)
+
+                    Button {
+                        text: i18n.tr("Cancel")
+                        color: root.cardBorderColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: PopupUtils.close(intensityDlg)
+                    }
+
+                    Button {
+                        text: i18n.tr("Start Workout")
+                        color: root.primaryColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: {
+                            activePage.intensityMultiplier = intensityDlg.selectedMultiplier
+                            activePage.intensityLevel = intensityDlg.selectedLevel
+                            PopupUtils.close(intensityDlg)
+                            root.activeSessionRunning = true
+                        }
+                    }
                 }
             }
         }
@@ -1204,6 +1224,8 @@ Page {
         Dialog {
             id: nextExDlg
             title: i18n.tr("Next Exercise")
+            property string selectedLevel: "standard"
+            property double selectedMultiplier: 1.0
 
             Column {
                 spacing: units.gu(1.5)
@@ -1275,41 +1297,65 @@ Page {
                     color: root.textPrimaryColor
                 }
 
-                // Light Intensity Button
+                // Light Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.5)
-                    color: root.accentBlue
-                    text: i18n.tr("Light Effort (0.85×) • Warmup & Mobility")
-                    onClicked: startNext(nextWorkoutField.text, 0.85, "light")
-                }
-
-                // Standard Intensity Button
-                Button {
-                    width: parent.width
-                    height: units.gu(4.5)
-                    color: root.primaryColor
-                    text: i18n.tr("Standard Effort (1.0×) • Regular Workout")
-                    onClicked: startNext(nextWorkoutField.text, 1.0, "standard")
-                }
-
-                // Heavy Intensity Button
-                Button {
-                    width: parent.width
-                    height: units.gu(4.5)
-                    color: "#EF4444"
-                    text: i18n.tr("Heavy Effort (1.2×) • Vigorous & Intense")
-                    onClicked: startNext(nextWorkoutField.text, 1.2, "vigorous")
-                }
-
-                Button {
-                    text: i18n.tr("Cancel")
-                    color: root.cardBorderColor
-                    width: parent.width
-                    height: units.gu(4)
+                    color: nextExDlg.selectedLevel === "light" ? root.accentBlue : root.cardBorderColor
+                    text: (nextExDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light Effort (0.85×) • Warmup & Mobility")
                     onClicked: {
-                        PopupUtils.close(nextExDlg)
-                        root.activeSessionRunning = true
+                        nextExDlg.selectedLevel = "light"
+                        nextExDlg.selectedMultiplier = 0.85
+                    }
+                }
+
+                // Standard Intensity Button (Only colored if selected)
+                Button {
+                    width: parent.width
+                    height: units.gu(4.5)
+                    color: nextExDlg.selectedLevel === "standard" ? root.primaryColor : root.cardBorderColor
+                    text: (nextExDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard Effort (1.0×) • Regular Workout")
+                    onClicked: {
+                        nextExDlg.selectedLevel = "standard"
+                        nextExDlg.selectedMultiplier = 1.0
+                    }
+                }
+
+                // Heavy Intensity Button (Only colored if selected)
+                Button {
+                    width: parent.width
+                    height: units.gu(4.5)
+                    color: nextExDlg.selectedLevel === "vigorous" ? "#EF4444" : root.cardBorderColor
+                    text: (nextExDlg.selectedLevel === "vigorous" ? "✓ " : "") + i18n.tr("Heavy Effort (1.2×) • Vigorous & Intense")
+                    onClicked: {
+                        nextExDlg.selectedLevel = "vigorous"
+                        nextExDlg.selectedMultiplier = 1.2
+                    }
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: units.gu(1.2)
+
+                    Button {
+                        text: i18n.tr("Cancel")
+                        color: root.cardBorderColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: {
+                            PopupUtils.close(nextExDlg)
+                            root.activeSessionRunning = true
+                        }
+                    }
+
+                    Button {
+                        text: i18n.tr("Start Exercise")
+                        color: root.primaryColor
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(4.5)
+                        onClicked: {
+                            startNext(nextWorkoutField.text, nextExDlg.selectedMultiplier, nextExDlg.selectedLevel)
+                        }
                     }
                 }
             }

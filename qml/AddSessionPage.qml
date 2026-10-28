@@ -22,6 +22,18 @@ Page {
             dividerColor: LomiriColors.slate
         }
 
+        leadingActionBar.actions: [
+            Action {
+                iconName: "back"
+                text: i18n.tr("Back")
+                onTriggered: {
+                    if (pageLayout && typeof pageLayout.removePages === "function") {
+                        pageLayout.removePages(addSessionPage)
+                    }
+                }
+            }
+        ]
+
         trailingActionBar.actions: [
             Action {
                 iconName: "find"
@@ -38,13 +50,20 @@ Page {
                 text: i18n.tr("New Workout")
                 onTriggered: {
                     pageLayout.addPageToNextColumn(
-                        pageLayout.primaryPage,
+                        addSessionPage,
                         Qt.resolvedUrl("SessionCreatePage.qml"),
                         { pageLayout: pageLayout }
                     )
                 }
             }
         ]
+    }
+
+    Connections {
+        target: (typeof mainView !== "undefined") ? mainView : ((typeof root !== "undefined") ? root : null)
+        onSessionDataChanged: {
+            refreshModel(typeof searchField !== "undefined" && searchField && searchField.visible ? searchField.text : "")
+        }
     }
 
     function refreshModel(query) {
@@ -337,7 +356,7 @@ Page {
 
     function openEditPage(m) {
         pageLayout.addPageToNextColumn(
-            pageLayout.primaryPage,
+            addSessionPage,
             Qt.resolvedUrl("SessionCreatePage.qml"),
             {
                 pageLayout: pageLayout,   

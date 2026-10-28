@@ -9,6 +9,7 @@ Page {
     id: settingsPage
     anchors.fill: parent
 
+    property var pageLayout
     property string selectedDate: ""
     property string currentWeightVal: "70"
 
@@ -19,8 +20,7 @@ Page {
             currentWeightVal = w
             weightInputField.text = w
 
-            var kcalIdx = workoutSelector.model.indexOf(String(settings.kcal_target))
-            if (kcalIdx !== -1) workoutSelector.selectedIndex = kcalIdx
+            kcalInputField.text = settings.kcal_target ? String(settings.kcal_target) : "500"
 
             var workoutsIdx = setSelector.model.indexOf(String(settings.num_workouts))
             if (workoutsIdx !== -1) setSelector.selectedIndex = workoutsIdx
@@ -48,7 +48,7 @@ Page {
     function saveSettings() {
         var weight = weightInputField.text.trim() !== "" ? weightInputField.text.trim() : (currentWeightVal || "70")
         currentWeightVal = weight
-        var kcal = workoutSelector.model[workoutSelector.selectedIndex]
+        var kcal = kcalInputField.text.trim() !== "" ? kcalInputField.text.trim() : "500"
         var workouts = setSelector.model[setSelector.selectedIndex]
         var goalWeight = goalWeightField.text.trim()
         var gender = femalePill.selected ? "Female" : "Male"
@@ -68,6 +68,18 @@ Page {
             backgroundColor: root.primaryColor
             dividerColor: LomiriColors.slate
         }
+
+        leadingActionBar.actions: [
+            Action {
+                iconName: "back"
+                text: i18n.tr("Back")
+                onTriggered: {
+                    if (pageLayout && typeof pageLayout.removePages === "function") {
+                        pageLayout.removePages(settingsPage)
+                    }
+                }
+            }
+        ]
 
         trailingActionBar.numberOfSlots: 1
         trailingActionBar.actions: [
@@ -221,7 +233,7 @@ Page {
                         width: parent.width
                         spacing: units.gu(0.6)
 
-                        Row {
+                        RowLayout {
                             width: parent.width
                             Label {
                                 text: i18n.tr("Current Weight (kg)")
@@ -235,7 +247,6 @@ Page {
                                 font.bold: true
                                 font.pixelSize: units.gu(1.4)
                                 color: root.primaryColor
-                                anchors.right: parent.right
                             }
                         }
 
@@ -391,10 +402,7 @@ Page {
                             spacing: units.gu(0.8)
                             Layout.alignment: Qt.AlignVCenter
 
-                            Label {
-                                text: "🩺"
-                                font.pixelSize: units.gu(1.8)
-                            }
+                            
 
                             Label {
                                 text: i18n.tr("Metabolic & Body Telemetry")
@@ -556,19 +564,12 @@ Page {
                             color: root.textSecondaryColor
                         }
 
-                        OptionSelector {
-                            id: workoutSelector
-                            model: [
-                                "150",
-                                "250",
-                                "300",
-                                "400",
-                                "500",
-                                "600",
-                                "700",
-                                "800",
-                                "1000"
-                            ]
+                        TextField {
+                            id: kcalInputField
+                            placeholderText: i18n.tr("e.g. 500")
+                            text: "500"
+                            width: parent.width
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
                         }
                     }
 
@@ -665,7 +666,7 @@ Page {
 
         Dialog {
             id: dialog
-            title: i18n.tr("Saved! 🎉")
+            title: i18n.tr("Saved!")
 
             Column {
                 spacing: units.gu(2)

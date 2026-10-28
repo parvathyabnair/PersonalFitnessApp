@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 12:18+0000\n"
+"POT-Creation-Date: 2026-10-28 12:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,412 +17,426 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/ActiveSessionPage.qml:181 ../qml/HomePage.qml:95
+#: ../qml/ActiveSessionPage.qml:181 ../qml/HomePage.qml:102
 msgid "Active Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:193
+#: ../qml/ActiveSessionPage.qml:192 ../qml/AddSessionPage.qml:28
+#: ../qml/MediaVaultPage.qml:94 ../qml/SessionCreatePage.qml:222
+#: ../qml/SettingsPage.qml:75
+msgid "Back"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:205
 msgid "Save Session"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:213
+#: ../qml/ActiveSessionPage.qml:225
 msgid "No Active Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:214
+#: ../qml/ActiveSessionPage.qml:226
 msgid ""
 "You don't have a session running right now. Choose a workout or quick start "
 "to track your time and burned calories."
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:218
+#: ../qml/ActiveSessionPage.qml:230
 msgid "Quick Start Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:239
+#: ../qml/ActiveSessionPage.qml:251
 msgid "Configure Custom Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:308
+#: ../qml/ActiveSessionPage.qml:320
 msgid "SESSION IN PROGRESS"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:309
+#: ../qml/ActiveSessionPage.qml:321
 msgid "REST INTERVAL • "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:309 ../qml/ActiveSessionPage.qml:388
+#: ../qml/ActiveSessionPage.qml:321 ../qml/ActiveSessionPage.qml:400
 msgid "SESSION PAUSED"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:322
+#: ../qml/ActiveSessionPage.qml:334
 msgid "Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:388
+#: ../qml/ActiveSessionPage.qml:400
 msgid "RECORDING WORKOUT"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:421
+#: ../qml/ActiveSessionPage.qml:433
 msgid "Edit Time"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:486
+#: ../qml/ActiveSessionPage.qml:498
 msgid "🎉 Workout Target Reached!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:505
+#: ../qml/ActiveSessionPage.qml:517
 msgid "⏸️ Auto-Paused for Rest (Resumes in "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:584
+#: ../qml/ActiveSessionPage.qml:591
 msgid "Metabolic Rate (MET)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:621
+#: ../qml/ActiveSessionPage.qml:628
 msgid "Caloric Burn Rate"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:645
+#: ../qml/ActiveSessionPage.qml:652
 msgid "Compendium Standard"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:667
+#: ../qml/ActiveSessionPage.qml:674
 msgid "Session Intensity Multiplier:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:688
+#: ../qml/ActiveSessionPage.qml:695
 msgid "Light (0.85×)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:714
+#: ../qml/ActiveSessionPage.qml:721
 msgid "Standard (1.0×)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:740
+#: ../qml/ActiveSessionPage.qml:747
 msgid "Heavy (1.2×)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:778
+#: ../qml/ActiveSessionPage.qml:785
 msgid "MET Scientific Metabolic Formula"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:798
+#: ../qml/ActiveSessionPage.qml:805
 msgid "Formula: Calories Burned = MET Value × Weight (kg) × Duration (hours)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:813
+#: ../qml/ActiveSessionPage.qml:820
 msgid "Live Calculation: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:822
+#: ../qml/ActiveSessionPage.qml:829
 msgid ""
 "Compendium of Physical Activities standardized sports medicine reference."
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:846
+#: ../qml/ActiveSessionPage.qml:853
 msgid "Pause"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:846
+#: ../qml/ActiveSessionPage.qml:853
 msgid "Resume"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:867
+#: ../qml/ActiveSessionPage.qml:874
 msgid "Finish & Save"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:875 ../qml/ActiveSessionPage.qml:1206
+#: ../qml/ActiveSessionPage.qml:882 ../qml/ActiveSessionPage.qml:1226
 msgid "Next Exercise"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:889
+#: ../qml/ActiveSessionPage.qml:896
 msgid "📷 Form Check / Photo"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:956
+#: ../qml/ActiveSessionPage.qml:962
 msgid "Select Workout Intensity"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:963
+#: ../qml/ActiveSessionPage.qml:971
 msgid ""
 "Choose intensity level to start your workout timer and MET calorie tracking:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:975
+#: ../qml/ActiveSessionPage.qml:983
 msgid "Light Activity (0.85×) • Warmup & Recovery"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:989
+#: ../qml/ActiveSessionPage.qml:995
 msgid "Moderate Activity (1.0×) • Typical Gym Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1003
+#: ../qml/ActiveSessionPage.qml:1007
 msgid "Vigorous Activity (1.2×) • High Exertion & PRs"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1013 ../qml/ActiveSessionPage.qml:1172
-#: ../qml/ActiveSessionPage.qml:1306 ../qml/ActiveSessionPage.qml:1400
-#: ../qml/MediaVaultPage.qml:987
+#: ../qml/ActiveSessionPage.qml:1019 ../qml/ActiveSessionPage.qml:1192
+#: ../qml/ActiveSessionPage.qml:1341 ../qml/ActiveSessionPage.qml:1446
+#: ../qml/MediaVaultPage.qml:999
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1029
+#: ../qml/ActiveSessionPage.qml:1027
+msgid "Start Workout"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:1049
 msgid "Edit Workout Time"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1036
+#: ../qml/ActiveSessionPage.qml:1056
 msgid "Adjust or enter current elapsed workout time:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1114
+#: ../qml/ActiveSessionPage.qml:1134 ../qml/SessionCreatePage.qml:807
 msgid "Hours"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1133 ../qml/SessionCreatePage.qml:774
+#: ../qml/ActiveSessionPage.qml:1153 ../qml/SessionCreatePage.qml:832
 msgid "Minutes"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1152 ../qml/SessionCreatePage.qml:798
+#: ../qml/ActiveSessionPage.qml:1172 ../qml/SessionCreatePage.qml:857
 msgid "Seconds"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1180
+#: ../qml/ActiveSessionPage.qml:1200
 msgid "Apply Time"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1213
+#: ../qml/ActiveSessionPage.qml:1235
 msgid ""
 "Previous exercise saved! Select next exercise and intensity to log directly:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1226
+#: ../qml/ActiveSessionPage.qml:1248
 msgid "Exercise / Workout Name"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1272
+#: ../qml/ActiveSessionPage.qml:1294
 msgid "Select Intensity to Start:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1283
+#: ../qml/ActiveSessionPage.qml:1305
 msgid "Light Effort (0.85×) • Warmup & Mobility"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1292
+#: ../qml/ActiveSessionPage.qml:1317
 msgid "Standard Effort (1.0×) • Regular Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1301
+#: ../qml/ActiveSessionPage.qml:1329
 msgid "Heavy Effort (1.2×) • Vigorous & Intense"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1343
+#: ../qml/ActiveSessionPage.qml:1352
+msgid "Start Exercise"
+msgstr ""
+
+#: ../qml/ActiveSessionPage.qml:1389
 msgid "Edit Workout Name"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1350
+#: ../qml/ActiveSessionPage.qml:1396
 msgid "Update the name of your current active workout:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1360
+#: ../qml/ActiveSessionPage.qml:1406
 msgid "Workout name"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1408 ../qml/SessionCreatePage.qml:217
-#: ../qml/SettingsPage.qml:76
+#: ../qml/ActiveSessionPage.qml:1454 ../qml/SessionCreatePage.qml:235
+#: ../qml/SettingsPage.qml:88
 msgid "Save"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1435
+#: ../qml/ActiveSessionPage.qml:1481
 msgid "Session Saved! 🎉"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1468
+#: ../qml/ActiveSessionPage.qml:1514
 msgid ""
 "Workout session saved successfully!\n"
 "\n"
 "⏱️ Duration: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1472
+#: ../qml/ActiveSessionPage.qml:1518
 msgid "Great!"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:16 ../qml/HomePage.qml:107
+#: ../qml/AddSessionPage.qml:16 ../qml/HomePage.qml:114
 msgid "Session Overview"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:28
+#: ../qml/AddSessionPage.qml:40
 msgid "Search"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:38
+#: ../qml/AddSessionPage.qml:50
 msgid "New Workout"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:133
+#: ../qml/AddSessionPage.qml:152
 msgid "Today"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:134
+#: ../qml/AddSessionPage.qml:153
 msgid "This Week"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:135
+#: ../qml/AddSessionPage.qml:154
 msgid "This Month"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:136
+#: ../qml/AddSessionPage.qml:155
 msgid "All"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:170
+#: ../qml/AddSessionPage.qml:189
 msgid "Search workouts..."
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:275
+#: ../qml/AddSessionPage.qml:294
 msgid "Sets: "
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:333
+#: ../qml/AddSessionPage.qml:352
 msgid "No Workouts Found"
 msgstr ""
 
-#: ../qml/AddSessionPage.qml:334
+#: ../qml/AddSessionPage.qml:353
 msgid "No sessions match the selected filter. Tap + to log your workout!"
 msgstr ""
 
-#: ../qml/HomePage.qml:61
+#: ../qml/HomePage.qml:68
 msgid "Personal Fitness"
 msgstr ""
 
-#: ../qml/HomePage.qml:78
+#: ../qml/HomePage.qml:85
 msgid "Dark Mode"
 msgstr ""
 
-#: ../qml/HomePage.qml:78
+#: ../qml/HomePage.qml:85
 msgid "Light Mode"
 msgstr ""
 
-#: ../qml/HomePage.qml:116 ../qml/SettingsPage.qml:64
+#: ../qml/HomePage.qml:123 ../qml/SettingsPage.qml:64
 msgid "Settings"
 msgstr ""
 
-#: ../qml/HomePage.qml:128
+#: ../qml/HomePage.qml:135
 msgid "Private Media Vault"
 msgstr ""
 
-#: ../qml/HomePage.qml:137 ../qml/HomePage.qml:1032
+#: ../qml/HomePage.qml:144 ../qml/HomePage.qml:1039
 msgid "MET Sports Guide"
 msgstr ""
 
-#: ../qml/HomePage.qml:179
+#: ../qml/HomePage.qml:186
 msgid "Welcome Back!"
 msgstr ""
 
-#: ../qml/HomePage.qml:232
+#: ../qml/HomePage.qml:239
 msgid "Live Session"
 msgstr ""
 
-#: ../qml/HomePage.qml:298 ../qml/HomePage.qml:790
+#: ../qml/HomePage.qml:305 ../qml/HomePage.qml:797
 msgid "Calories (kcal)"
 msgstr ""
 
-#: ../qml/HomePage.qml:348
+#: ../qml/HomePage.qml:355
 msgid "Current Weight"
 msgstr ""
 
-#: ../qml/HomePage.qml:398
+#: ../qml/HomePage.qml:405
 msgid "Goal Target"
 msgstr ""
 
-#: ../qml/HomePage.qml:426
+#: ../qml/HomePage.qml:433
 msgid "Daily Calorie Target"
 msgstr ""
 
-#: ../qml/HomePage.qml:488
+#: ../qml/HomePage.qml:495
 msgid "-Day Active Streak!"
 msgstr ""
 
-#: ../qml/HomePage.qml:489
+#: ../qml/HomePage.qml:496
 msgid "Workout Consistency"
 msgstr ""
 
-#: ../qml/HomePage.qml:509
+#: ../qml/HomePage.qml:516
 msgid " workouts this month"
 msgstr ""
 
-#: ../qml/HomePage.qml:541
+#: ../qml/HomePage.qml:548
 msgid "Total Sessions"
 msgstr ""
 
-#: ../qml/HomePage.qml:568
+#: ../qml/HomePage.qml:575
 msgid "Total Hours"
 msgstr ""
 
-#: ../qml/HomePage.qml:595
+#: ../qml/HomePage.qml:602
 msgid "Burned (kcal)"
 msgstr ""
 
-#: ../qml/HomePage.qml:634
+#: ../qml/HomePage.qml:641
 msgid "Hydration Tracker"
 msgstr ""
 
-#: ../qml/HomePage.qml:686
+#: ../qml/HomePage.qml:693
 msgid "+250 ml (Cup)"
 msgstr ""
 
-#: ../qml/HomePage.qml:714
+#: ../qml/HomePage.qml:721
 msgid "+500 ml (Bottle)"
 msgstr ""
 
-#: ../qml/HomePage.qml:742 ../qml/components/RestTimerCard.qml:134
+#: ../qml/HomePage.qml:749 ../qml/components/RestTimerCard.qml:135
 msgid "Reset"
 msgstr ""
 
-#: ../qml/HomePage.qml:781
+#: ../qml/HomePage.qml:788
 msgid "Weekly Progress"
 msgstr ""
 
-#: ../qml/HomePage.qml:922
+#: ../qml/HomePage.qml:929
 msgid "Ready to Workout?"
 msgstr ""
 
-#: ../qml/HomePage.qml:929
+#: ../qml/HomePage.qml:936
 msgid "Log sets, track rest timers, and hit daily goals."
 msgstr ""
 
-#: ../qml/HomePage.qml:943
+#: ../qml/HomePage.qml:950
 msgid "+ New Workout"
 msgstr ""
 
-#: ../qml/HomePage.qml:953
+#: ../qml/HomePage.qml:960
 msgid "Past Sessions"
 msgstr ""
 
-#: ../qml/HomePage.qml:1077
+#: ../qml/HomePage.qml:1084
 msgid "Scientific Formula:"
 msgstr ""
 
-#: ../qml/HomePage.qml:1091
+#: ../qml/HomePage.qml:1098
 msgid ""
 "Standard Compendium of Physical Activities formula used across sports "
 "medicine and research."
 msgstr ""
 
-#: ../qml/HomePage.qml:1131
+#: ../qml/HomePage.qml:1138
 msgid "Light Activity (< 3.0 METs)"
 msgstr ""
 
-#: ../qml/HomePage.qml:1161
+#: ../qml/HomePage.qml:1168
 msgid "Moderate Activity (3.0 – 6.0 METs)"
 msgstr ""
 
-#: ../qml/HomePage.qml:1192
+#: ../qml/HomePage.qml:1199
 msgid "Vigorous Activity (> 6.0 METs)"
 msgstr ""
 
-#: ../qml/HomePage.qml:1209
+#: ../qml/HomePage.qml:1216
 msgid "Understood"
 msgstr ""
 
@@ -430,349 +444,353 @@ msgstr ""
 msgid "Privacy Media Vault"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:96
+#: ../qml/MediaVaultPage.qml:108
 msgid "Snap Photo"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:104
+#: ../qml/MediaVaultPage.qml:116
 msgid "Record Video"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:162
+#: ../qml/MediaVaultPage.qml:174
 msgid "Sandboxed Local Storage Active"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:169
+#: ../qml/MediaVaultPage.qml:181
 msgid ""
 "Form-check clips & progress photos are stored isolated in the app sandbox (."
 "nomedia). They will never mix into your phone's public gallery."
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:185
+#: ../qml/MediaVaultPage.qml:197
 msgid "📸 Snap Photo"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:195
+#: ../qml/MediaVaultPage.qml:207
 msgid "🎥 Record Video"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:219
+#: ../qml/MediaVaultPage.qml:231
 msgid "All Media"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:241
+#: ../qml/MediaVaultPage.qml:253
 msgid "🎥 Videos"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:263
+#: ../qml/MediaVaultPage.qml:275
 msgid "📸 Photos"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:295
+#: ../qml/MediaVaultPage.qml:307
 msgid "No Private Media Yet"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:303
+#: ../qml/MediaVaultPage.qml:315
 msgid ""
 "Snap form-check videos during squats or bench presses, or capture progress "
 "photos. Everything stays inside this encrypted vault."
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:401
+#: ../qml/MediaVaultPage.qml:413
 msgid "PHOTO"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:401
+#: ../qml/MediaVaultPage.qml:413
 msgid "VIDEO"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:417
+#: ../qml/MediaVaultPage.qml:429
 msgid "Media Item"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:432
+#: ../qml/MediaVaultPage.qml:444
 msgid "Sandboxed private media"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:508
+#: ../qml/MediaVaultPage.qml:520
 msgid "Select Camera or Video App"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:509
+#: ../qml/MediaVaultPage.qml:521
 msgid "Select Camera or Gallery App"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:517
+#: ../qml/MediaVaultPage.qml:529
 msgid "Close"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:695
+#: ../qml/MediaVaultPage.qml:707
 msgid "Playing Private Form-Check Clip"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:827
+#: ../qml/MediaVaultPage.qml:839
 msgid "✏️ Edit Media Details"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:828
+#: ../qml/MediaVaultPage.qml:840
 msgid "🎥 Save Form Check Video"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:828
+#: ../qml/MediaVaultPage.qml:840
 msgid "📸 Save Progress Photo"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:874
+#: ../qml/MediaVaultPage.qml:886
 msgid "Private Video Recording"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:890
+#: ../qml/MediaVaultPage.qml:902
 msgid "Video Name / Title *"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:891
+#: ../qml/MediaVaultPage.qml:903
 msgid "Photo Name / Title *"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:901
+#: ../qml/MediaVaultPage.qml:913
 msgid "e.g. Squat Form Check, Deadlift PR"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:902
+#: ../qml/MediaVaultPage.qml:914
 msgid "e.g. Front Double Bicep, Morning Check-in"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:912
+#: ../qml/MediaVaultPage.qml:924
 msgid "Exercise / Category"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:921
+#: ../qml/MediaVaultPage.qml:933
 msgid "e.g. Squats, Bench Press, Progress Photo"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:969
+#: ../qml/MediaVaultPage.qml:981
 msgid "Notes (Optional)"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:977
+#: ../qml/MediaVaultPage.qml:989
 msgid "e.g. Felt heavy, depth was parallel"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:995 ../qml/SessionCreatePage.qml:886
+#: ../qml/MediaVaultPage.qml:1007 ../qml/SessionCreatePage.qml:945
 msgid "Save Changes"
 msgstr ""
 
-#: ../qml/MediaVaultPage.qml:995
+#: ../qml/MediaVaultPage.qml:1007
 msgid "Save to Vault"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:205
+#: ../qml/SessionCreatePage.qml:211
 msgid "Create Session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:205
+#: ../qml/SessionCreatePage.qml:211
 msgid "Edit Session"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:319
+#: ../qml/SessionCreatePage.qml:340
 msgid "Workout Category"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:342
+#: ../qml/SessionCreatePage.qml:363
 msgid "Exercise"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:360
+#: ../qml/SessionCreatePage.qml:381
 msgid "Cardio Activity"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:378
+#: ../qml/SessionCreatePage.qml:399
 msgid "Routine Type"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:397
+#: ../qml/SessionCreatePage.qml:418
 msgid "Enter workout name..."
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:438
+#: ../qml/SessionCreatePage.qml:459
 msgid "Metabolic Forecast (Compendium)"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:495
+#: ../qml/SessionCreatePage.qml:516
 msgid "Duration: "
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:495
+#: ../qml/SessionCreatePage.qml:516
 msgid "Target: "
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:497
+#: ../qml/SessionCreatePage.qml:518
 msgid "Est. 45-min gym workout ("
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:497
+#: ../qml/SessionCreatePage.qml:518
 msgid "Target: 30 mins ("
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:520
+#: ../qml/SessionCreatePage.qml:541
 msgid "Estimated Burn"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:550
+#: ../qml/SessionCreatePage.qml:571
 msgid "Number of Sets"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:588
+#: ../qml/SessionCreatePage.qml:609
 msgid "Sets Breakdown"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:611
+#: ../qml/SessionCreatePage.qml:632
 msgid "SET "
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:628
+#: ../qml/SessionCreatePage.qml:649
 msgid "Weight"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:653
+#: ../qml/SessionCreatePage.qml:674
 msgid "Reps"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:703
+#: ../qml/SessionCreatePage.qml:724
 msgid "Target Duration"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:703
+#: ../qml/SessionCreatePage.qml:724
 msgid "Workout Duration"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:841
+#: ../qml/SessionCreatePage.qml:900
 msgid "Workout Date"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:858
+#: ../qml/SessionCreatePage.qml:917
 msgid "Change"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:874
+#: ../qml/SessionCreatePage.qml:933
 msgid "Start Workout Now"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:886
+#: ../qml/SessionCreatePage.qml:945
 msgid "Save to Log"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:916 ../qml/SettingsPage.qml:648
+#: ../qml/SessionCreatePage.qml:975 ../qml/SettingsPage.qml:649
 msgid "Confirm"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:938
+#: ../qml/SessionCreatePage.qml:997
 msgid "Success! 🎉"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:947
+#: ../qml/SessionCreatePage.qml:1006
 msgid "Session saved successfully!"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:955
+#: ../qml/SessionCreatePage.qml:1014
 msgid "Back to Overview"
 msgstr ""
 
-#: ../qml/SessionCreatePage.qml:964 ../qml/SettingsPage.qml:679
+#: ../qml/SessionCreatePage.qml:1025 ../qml/SettingsPage.qml:680
 msgid "OK"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:119
+#: ../qml/SettingsPage.qml:131
 msgid "Personal Profile"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:131
+#: ../qml/SettingsPage.qml:143
 msgid "Gender"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:163
+#: ../qml/SettingsPage.qml:175
 msgid "Male"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:201
+#: ../qml/SettingsPage.qml:213
 msgid "Female"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:227
+#: ../qml/SettingsPage.qml:239
 msgid "Current Weight (kg)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:245
+#: ../qml/SettingsPage.qml:256
 msgid "e.g. 70"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:294
+#: ../qml/SettingsPage.qml:305
 msgid "Target Goal Weight (kg)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:302
+#: ../qml/SettingsPage.qml:313
 msgid "e.g. 65"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:318
+#: ../qml/SettingsPage.qml:329
 msgid "Height (cm)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:338
+#: ../qml/SettingsPage.qml:349
 msgid "Age (years)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:400
+#: ../qml/SettingsPage.qml:408
 msgid "Metabolic & Body Telemetry"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:410
+#: ../qml/SettingsPage.qml:418
 msgid "Mifflin-St Jeor"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:503
+#: ../qml/SettingsPage.qml:511
 msgid "Resting BMR (1.0 MET)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:516
+#: ../qml/SettingsPage.qml:524
 msgid ""
 " kcal/day. Adding physical workouts at higher METs accelerates fat loss and "
 "conditioning."
 msgstr ""
 
-#: ../qml/SettingsPage.qml:516
+#: ../qml/SettingsPage.qml:524
 msgid "At 1.0 MET baseline rest, your body requires ~"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:541
+#: ../qml/SettingsPage.qml:549
 msgid "Daily & Weekly Targets"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:553
+#: ../qml/SettingsPage.qml:561
 msgid "Daily Calorie Burn Target (kcal)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:581
+#: ../qml/SettingsPage.qml:569
+msgid "e.g. 500"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:582
 msgid "Target Workouts per Week"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:599
+#: ../qml/SettingsPage.qml:600
 msgid "Goal Target Date"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:607
+#: ../qml/SettingsPage.qml:608
 msgid "Select Goal Date"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:622
+#: ../qml/SettingsPage.qml:623
 msgid "Save Settings"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:668
-msgid "Saved! 🎉"
+#: ../qml/SettingsPage.qml:669
+msgid "Saved!"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:673
+#: ../qml/SettingsPage.qml:674
 msgid "Your fitness profile and targets have been saved successfully."
 msgstr ""
 
@@ -800,15 +818,15 @@ msgstr ""
 msgid "Workout timer auto-paused • Automatically resumes when rest ends"
 msgstr ""
 
-#: ../qml/components/RestTimerCard.qml:124
+#: ../qml/components/RestTimerCard.qml:125
 msgid "Pause Rest"
 msgstr ""
 
-#: ../qml/components/RestTimerCard.qml:124
+#: ../qml/components/RestTimerCard.qml:125
 msgid "Resume Rest"
 msgstr ""
 
-#: ../qml/components/RestTimerCard.qml:124
+#: ../qml/components/RestTimerCard.qml:125
 msgid "Start Rest"
 msgstr ""
 

@@ -97,8 +97,9 @@ Rectangle {
                     text: modelData + "s"
                     width: (restTimerRoot.width - units.gu(6)) / 4
                     height: units.gu(3.8)
-                    color: (restTimerRunning && restDuration === modelData) ? restTimerRoot.primaryColor : restTimerRoot.cardBorderColor
+                    color: restTimerRoot.restDuration === modelData ? restTimerRoot.primaryColor : restTimerRoot.cardBorderColor
                     onClicked: {
+                        restTimerRoot.restDuration = modelData
                         restTimerRoot.startRestRequested(modelData)
                     }
                 }
@@ -122,7 +123,7 @@ Rectangle {
 
             Button {
                 text: restTimerRunning ? i18n.tr("Pause Rest") : (restTimeLeft === 0 ? i18n.tr("Start Rest") : i18n.tr("Resume Rest"))
-                color: restTimerRunning ? "#F59E0B" : restTimerRoot.primaryColor
+                color: restTimerRunning ? "#F59E0B" : restTimerRoot.cardBorderColor
                 width: units.gu(14)
                 height: units.gu(4.2)
                 onClicked: {
