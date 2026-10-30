@@ -300,16 +300,103 @@ Page {
         formReady = true
     }
 
+    PropertyAnimation {
+        id: scrollAnim
+        target: sessionFlickable
+        property: "contentY"
+        duration: 200
+        easing.type: Easing.OutQuad
+    }
+
+    function ensureVisible(item) {
+        if (!item || !sessionFlickable) return
+        var pos = item.mapToItem(sessionFlickable.contentItem, 0, 0)
+        var itemY = pos.y
+        var itemHeight = item.height
+        var viewportHeight = sessionFlickable.height
+        var margin = units.gu(4)
+
+        var newContentY = sessionFlickable.contentY
+        if (itemY - margin < sessionFlickable.contentY) {
+            newContentY = Math.max(0, itemY - margin)
+        } else if (itemY + itemHeight + margin > sessionFlickable.contentY + viewportHeight) {
+            var targetY = itemY + itemHeight + margin - viewportHeight
+            var maxY = Math.max(0, sessionFlickable.contentHeight - viewportHeight)
+            newContentY = Math.min(maxY, targetY)
+        }
+
+        if (Math.abs(newContentY - sessionFlickable.contentY) > 1) {
+            scrollAnim.stop()
+            scrollAnim.to = newContentY
+            scrollAnim.start()
+        }
+    }
+
+    Connections {
+        target: Qt.inputMethod
+        onVisibleChanged: {
+            if (Qt.inputMethod.visible) {
+                ensureVisibleTimer.restart()
+            }
+        }
+        onKeyboardRectangleChanged: {
+            if (Qt.inputMethod.visible) {
+                ensureVisibleTimer.restart()
+            }
+        }
+    }
+
+    Timer {
+        id: ensureVisibleTimer
+        interval: 120
+        repeat: false
+        onTriggered: {
+            if (customTextField && customTextField.activeFocus) {
+                ensureVisible(customTextField)
+                return
+            }
+            for (var i = 0; i < weightFields.length; i++) {
+                if (weightFields[i] && weightFields[i].activeFocus) {
+                    ensureVisible(weightFields[i])
+                    return
+                }
+            }
+            for (var j = 0; j < repsFields.length; j++) {
+                if (repsFields[j] && repsFields[j].activeFocus) {
+                    ensureVisible(repsFields[j])
+                    return
+                }
+            }
+            if (typeof durationHourField !== "undefined" && durationHourField && durationHourField.activeFocus) {
+                ensureVisible(durationHourField)
+            } else if (typeof durationMinField !== "undefined" && durationMinField && durationMinField.activeFocus) {
+                ensureVisible(durationMinField)
+            } else if (typeof durationSecField !== "undefined" && durationSecField && durationSecField.activeFocus) {
+                ensureVisible(durationSecField)
+            }
+        }
+    }
+
     Flickable {
+        id: sessionFlickable
         anchors.top: header.bottom
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Qt.inputMethod.visible ? (Qt.inputMethod.keyboardRectangle.height > 0 ? Qt.inputMethod.keyboardRectangle.height : units.gu(30)) : 0
         anchors.left: parent.left
         anchors.right: parent.right
         contentWidth: width
-        contentHeight: contentColumn.height + units.gu(6)
+        contentHeight: contentColumn.height + (Qt.inputMethod.visible ? units.gu(14) : units.gu(6))
         clip: true
         flickableDirection: Flickable.VerticalFlick
         boundsBehavior: Flickable.DragOverBounds
+
+        onFlickStarted: {
+            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
+        }
+
+        Behavior on anchors.bottomMargin {
+            NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+        }
 
         Column {
             id: contentColumn
@@ -353,6 +440,7 @@ Page {
                             "Custom Workout"
                         ]
                         onSelectedIndexChanged: {
+                            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
                         }
@@ -371,6 +459,7 @@ Page {
                         model: strengthWorkouts
                         visible: categorySelector.selectedIndex === 0
                         onSelectedIndexChanged: {
+                            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
                         }
@@ -389,6 +478,7 @@ Page {
                         model: cardioWorkouts
                         visible: categorySelector.selectedIndex === 1
                         onSelectedIndexChanged: {
+                            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
                         }
@@ -407,6 +497,7 @@ Page {
                         model: customWorkouts
                         visible: categorySelector.selectedIndex === 4
                         onSelectedIndexChanged: {
+                            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
                         }
@@ -421,6 +512,10 @@ Page {
                         onTextChanged: {
                             if (createSessionPage.formReady)
                                 createSessionPage.isSaved = false
+                        }
+                        onAccepted: Qt.inputMethod.hide()
+                        onActiveFocusChanged: {
+                            if (activeFocus) ensureVisibleTimer.restart()
                         }
                     }
                 }
@@ -578,6 +673,7 @@ Page {
                         id: setSelector
                         model: ["1", "2", "3", "4", "5"]
                         onSelectedIndexChanged: {
+                            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
                             weightFields = []
                             repsFields = []
                             if (createSessionPage.formReady)
@@ -652,6 +748,10 @@ Page {
                                             onTextChanged: {
                                                 if (activeFocus) createSessionPage.isSaved = false
                                             }
+                                            onAccepted: Qt.inputMethod.hide()
+                                            onActiveFocusChanged: {
+                                                if (activeFocus) ensureVisibleTimer.restart()
+                                            }
                                             Component.onCompleted: weightFields[index] = this
                                             Component.onDestruction: weightFields[index] = null
                                         }
@@ -676,6 +776,10 @@ Page {
                                             text: (isEditMode && repsArray.length > index) ? repsArray[index] : ""
                                             onTextChanged: {
                                                 if (activeFocus) createSessionPage.isSaved = false
+                                            }
+                                            onAccepted: Qt.inputMethod.hide()
+                                            onActiveFocusChanged: {
+                                                if (activeFocus) ensureVisibleTimer.restart()
                                             }
                                             Component.onCompleted: repsFields[index] = this
                                             Component.onDestruction: repsFields[index] = null
@@ -820,6 +924,10 @@ Page {
                                     if (activeFocus && createSessionPage.formReady)
                                         createSessionPage.isSaved = false
                                 }
+                                onAccepted: Qt.inputMethod.hide()
+                                onActiveFocusChanged: {
+                                    if (activeFocus) ensureVisibleTimer.restart()
+                                }
                             }
                         }
 
@@ -845,6 +953,10 @@ Page {
                                     if (activeFocus && createSessionPage.formReady)
                                         createSessionPage.isSaved = false
                                 }
+                                onAccepted: Qt.inputMethod.hide()
+                                onActiveFocusChanged: {
+                                    if (activeFocus) ensureVisibleTimer.restart()
+                                }
                             }
                         }
 
@@ -869,6 +981,10 @@ Page {
                                 onTextChanged: {
                                     if (activeFocus && createSessionPage.formReady)
                                         createSessionPage.isSaved = false
+                                }
+                                onAccepted: Qt.inputMethod.hide()
+                                onActiveFocusChanged: {
+                                    if (activeFocus) ensureVisibleTimer.restart()
                                 }
                             }
                         }
@@ -994,7 +1110,7 @@ Page {
 
         Dialog {
             id: succDialog
-            title: i18n.tr("Success! 🎉")
+            title: i18n.tr("Success!")
 
             Column {
                 spacing: units.gu(2)

@@ -51,7 +51,7 @@ Rectangle {
             Label {
                 text: restTimerRunning ? 
                       (workoutPausedForRest ? i18n.tr("Resting: ") + restTimeLeft + "s" : i18n.tr("Resting: ") + restTimeLeft + "s") : 
-                      (restTimeLeft === 0 ? i18n.tr("Ready for next set! 💪") : i18n.tr("Paused: ") + restTimeLeft + "s")
+                      (restTimeLeft === 0 ? i18n.tr("Ready for next set!") : i18n.tr("Paused: ") + restTimeLeft + "s")
                 font.pixelSize: units.gu(1.4)
                 font.bold: true
                 color: restTimerRunning ? restTimerRoot.primaryColor : (restTimeLeft === 0 ? "#10B981" : "#F59E0B")

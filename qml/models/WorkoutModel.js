@@ -143,9 +143,11 @@ function getWorkoutStats() {
     var stats = {
         totalWorkouts: 0,
         totalDurationSeconds: 0,
+        thisMonthDurationSeconds: 0,
         totalCalories: 0,
         streakDays: 0,
-        thisMonthWorkouts: 0
+        thisMonthWorkouts: 0,
+        thisWeekWorkouts: 0
     };
     db.transaction(function(tx) {
         var rs = tx.executeSql("SELECT date, duration, calories FROM sessions ORDER BY date DESC");
@@ -155,6 +157,11 @@ function getWorkoutStats() {
         var currentYear = today.getFullYear();
         var currentMonth = today.getMonth();
         
+        var day = today.getDay();
+        var diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        var startOfWeek = new Date(today.getFullYear(), today.getMonth(), diff);
+        startOfWeek.setHours(0, 0, 0, 0);
+
         var datesSet = {};
         for (var i = 0; i < rs.rows.length; i++) {
             var item = rs.rows.item(i);
@@ -166,6 +173,10 @@ function getWorkoutStats() {
                 if (!isNaN(d.getTime())) {
                     if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
                         stats.thisMonthWorkouts++;
+                        stats.thisMonthDurationSeconds += (item.duration || 0);
+                    }
+                    if (d >= startOfWeek) {
+                        stats.thisWeekWorkouts++;
                     }
                     var dateKey = Qt.formatDate(d, "yyyy-MM-dd");
                     datesSet[dateKey] = true;

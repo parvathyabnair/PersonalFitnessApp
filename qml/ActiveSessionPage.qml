@@ -2,6 +2,7 @@ import QtQuick 2.7
 import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
+import Qt.labs.settings 1.0
 import "database.js" as DB
 import "components"
 
@@ -11,8 +12,8 @@ Page {
 
     // REQUIRED PROPERTIES
     property var pageLayout
-    property int sessionId: -1
-    property string workout: "Workout"
+    property int sessionId: (typeof root !== "undefined" && root.activeSessionId !== -1) ? root.activeSessionId : -1
+    property string workout: (typeof root !== "undefined" && root.activeSessionWorkout !== "") ? root.activeSessionWorkout : "Workout"
 
     // TIMER PROPERTIES (BIND TO GLOBAL)
     property int secondsElapsed: root.activeSessionSeconds
@@ -20,7 +21,7 @@ Page {
 
     // MET (Metabolic Equivalent of Task) Calculation Properties
     property real intensityMultiplier: 1.0
-    property string intensityLevel: "standard" // "light", "standard", "vigorous"
+    property string intensityLevel: "standard" // "light", "standard", "high" / "vigorous"
     property real baseMet: DB.getMetValue(root.activeSessionWorkout || workout || "Workout")
     property real effectiveMet: baseMet * intensityMultiplier
     property var metInfo: DB.getMetIntensityInfo(effectiveMet)
@@ -38,6 +39,79 @@ Page {
     property double restStartTimestamp: 0
     property double restInitialMs: 0
     property bool workoutPausedForRest: false
+
+    Settings {
+        id: restStorage
+        category: "ActiveSessionRestTimer"
+        property bool savedRunning: false
+        property int savedDuration: 60
+        property int savedTimeLeft: 0
+        property double savedStartTimestamp: 0
+        property double savedInitialMs: 0
+        property bool savedWorkoutPausedForRest: false
+    }
+
+    function syncRestStorage() {
+        restStorage.savedRunning = restTimerRunning
+        restStorage.savedDuration = restDuration
+        restStorage.savedTimeLeft = restTimeLeft
+        restStorage.savedStartTimestamp = restStartTimestamp
+        restStorage.savedInitialMs = restInitialMs
+        restStorage.savedWorkoutPausedForRest = workoutPausedForRest
+    }
+
+    function restoreRestTimerState() {
+        if (restStorage.savedRunning && restStorage.savedStartTimestamp > 0) {
+            var now = Date.now()
+            var elapsedMs = now - restStorage.savedStartTimestamp
+            var remainingMs = Math.max(0, restStorage.savedInitialMs - elapsedMs)
+            restDuration = restStorage.savedDuration > 0 ? restStorage.savedDuration : 60
+            workoutPausedForRest = restStorage.savedWorkoutPausedForRest
+            if (remainingMs > 0) {
+                restInitialMs = remainingMs
+                restTimeLeft = Math.ceil(remainingMs / 1000)
+                restStartTimestamp = now
+                restTimerRunning = true
+            } else {
+                restTimeLeft = 0
+                restTimerRunning = false
+                restStartTimestamp = 0
+                restInitialMs = 0
+                restStorage.savedRunning = false
+                if (workoutPausedForRest) {
+                    workoutPausedForRest = false
+                    root.activeSessionRunning = true
+                }
+            }
+            syncRestStorage()
+        }
+    }
+
+    Component.onCompleted: {
+        restoreRestTimerState()
+    }
+
+    Connections {
+        target: Qt.application
+        onStateChanged: {
+            if (Qt.application.state === Qt.ApplicationActive && restTimerRunning && restStartTimestamp > 0) {
+                var elapsedMs = Date.now() - restStartTimestamp
+                var remainingMs = Math.max(0, restInitialMs - elapsedMs)
+                restTimeLeft = Math.ceil(remainingMs / 1000)
+                if (remainingMs <= 0) {
+                    restTimeLeft = 0
+                    restTimerRunning = false
+                    restStartTimestamp = 0
+                    restInitialMs = 0
+                    if (workoutPausedForRest) {
+                        workoutPausedForRest = false
+                        root.activeSessionRunning = true
+                    }
+                }
+                syncRestStorage()
+            }
+        }
+    }
 
     function setSessionTime(newTotalSeconds) {
         var s = Math.max(0, parseInt(newTotalSeconds) || 0)
@@ -71,6 +145,7 @@ Page {
         restStartTimestamp = Date.now()
         restTimeLeft = seconds
         restTimerRunning = true
+        syncRestStorage()
     }
 
     function toggleRestPause() {
@@ -94,6 +169,7 @@ Page {
             restStartTimestamp = Date.now()
             restTimerRunning = true
         }
+        syncRestStorage()
     }
 
     function resetRest() {
@@ -105,6 +181,7 @@ Page {
             workoutPausedForRest = false
             root.activeSessionRunning = true
         }
+        syncRestStorage()
     }
 
     function adjustRest(deltaSecs) {
@@ -119,6 +196,7 @@ Page {
         } else {
             restTimeLeft = restDuration
         }
+        syncRestStorage()
     }
 
     Timer {
@@ -141,6 +219,7 @@ Page {
                         workoutPausedForRest = false
                         root.activeSessionRunning = true
                     }
+                    syncRestStorage()
                 }
             }
         }
@@ -173,6 +252,15 @@ Page {
         root.activeSessionRunning = false
         workoutPausedForRest = false
         restTimerRunning = false
+        root.activeSessionId = -1
+        root.activeSessionWorkout = ""
+        root.activeSessionSeconds = 0
+        root.sessionAccumulatedMs = 0
+        root.lastResumeTimestamp = 0
+        restStorage.savedRunning = false
+        restStorage.savedStartTimestamp = 0
+        restStorage.savedInitialMs = 0
+        restStorage.savedTimeLeft = 0
 
         PopupUtils.open(savedDialog)
     }
@@ -265,6 +353,7 @@ Page {
     Flickable {
         anchors.top: header.bottom
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Qt.inputMethod.visible ? (Qt.inputMethod.keyboardRectangle.height > 0 ? Qt.inputMethod.keyboardRectangle.height : units.gu(30)) : 0
         anchors.left: parent.left
         anchors.right: parent.right
         contentWidth: width
@@ -273,6 +362,10 @@ Page {
         visible: root.activeSessionId !== -1
         flickableDirection: Flickable.VerticalFlick
         boundsBehavior: Flickable.DragOverBounds
+
+        Behavior on anchors.bottomMargin {
+            NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+        }
 
         Column {
             id: activeContentColumn
@@ -671,7 +764,7 @@ Page {
                         spacing: units.gu(0.6)
 
                         Label {
-                            text: i18n.tr("Session Intensity Multiplier:")
+                            text: i18n.tr("Session Intensity Multiplier (Pace):")
                             font.bold: true
                             font.pixelSize: units.gu(1.2)
                             color: root.textSecondaryColor
@@ -681,7 +774,7 @@ Page {
                             width: parent.width
                             spacing: units.gu(0.8)
 
-                            // Light Effort (0.85x)
+                            // Light Effort
                             Rectangle {
                                 width: (parent.width - units.gu(1.6)) / 3
                                 height: units.gu(3.8)
@@ -707,21 +800,21 @@ Page {
                                 }
                             }
 
-                            // Standard Effort (1.0x)
+                            // Standard Effort (1.0x Baseline)
                             Rectangle {
                                 width: (parent.width - units.gu(1.6)) / 3
                                 height: units.gu(3.8)
                                 radius: units.dp(8)
-                                color: activePage.intensityLevel === "standard" ? root.primaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
-                                border.color: activePage.intensityLevel === "standard" ? root.primaryColor : root.cardBorderColor
+                                color: (activePage.intensityLevel === "moderate" || activePage.intensityLevel === "standard") ? root.primaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: (activePage.intensityLevel === "moderate" || activePage.intensityLevel === "standard") ? root.primaryColor : root.cardBorderColor
                                 border.width: units.dp(1)
 
                                 Label {
                                     anchors.centerIn: parent
                                     text: i18n.tr("Standard (1.0×)")
-                                    font.bold: activePage.intensityLevel === "standard"
+                                    font.bold: (activePage.intensityLevel === "moderate" || activePage.intensityLevel === "standard")
                                     font.pixelSize: units.gu(1.1)
-                                    color: activePage.intensityLevel === "standard" ? "white" : root.textPrimaryColor
+                                    color: (activePage.intensityLevel === "moderate" || activePage.intensityLevel === "standard") ? "white" : root.textPrimaryColor
                                 }
 
                                 MouseArea {
@@ -733,28 +826,28 @@ Page {
                                 }
                             }
 
-                            // Vigorous Effort (1.2x)
+                            // High / Vigorous Push Effort
                             Rectangle {
                                 width: (parent.width - units.gu(1.6)) / 3
                                 height: units.gu(3.8)
                                 radius: units.dp(8)
-                                color: activePage.intensityLevel === "vigorous" ? "#EF4444" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
-                                border.color: activePage.intensityLevel === "vigorous" ? "#EF4444" : root.cardBorderColor
+                                color: (activePage.intensityLevel === "vigorous" || activePage.intensityLevel === "high") ? "#EF4444" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: (activePage.intensityLevel === "vigorous" || activePage.intensityLevel === "high") ? "#EF4444" : root.cardBorderColor
                                 border.width: units.dp(1)
 
                                 Label {
                                     anchors.centerIn: parent
-                                    text: i18n.tr("Heavy (1.2×)")
-                                    font.bold: activePage.intensityLevel === "vigorous"
+                                    text: i18n.tr("High (1.2×)")
+                                    font.bold: (activePage.intensityLevel === "vigorous" || activePage.intensityLevel === "high")
                                     font.pixelSize: units.gu(1.1)
-                                    color: activePage.intensityLevel === "vigorous" ? "white" : root.textPrimaryColor
+                                    color: (activePage.intensityLevel === "vigorous" || activePage.intensityLevel === "high") ? "white" : root.textPrimaryColor
                                 }
 
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: {
                                         activePage.intensityMultiplier = 1.2
-                                        activePage.intensityLevel = "vigorous"
+                                        activePage.intensityLevel = "high"
                                     }
                                 }
                             }
@@ -967,20 +1060,13 @@ Page {
                 spacing: units.gu(1.5)
                 width: parent.width
 
-                Label {
-                    text: i18n.tr("Choose intensity level to start your workout timer and MET calorie tracking:")
-                    font.pixelSize: units.gu(1.2)
-                    color: root.textSecondaryColor
-                    wrapMode: Text.WordWrap
-                    width: parent.width
-                }
 
                 // Light Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
                     color: intensityDlg.selectedLevel === "light" ? root.accentBlue : root.cardBorderColor
-                    text: (intensityDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light Activity (0.85×) • Warmup & Recovery")
+                    text: (intensityDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light (0.85×)")
                     onClicked: {
                         intensityDlg.selectedLevel = "light"
                         intensityDlg.selectedMultiplier = 0.85
@@ -991,22 +1077,22 @@ Page {
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
-                    color: intensityDlg.selectedLevel === "standard" ? root.primaryColor : root.cardBorderColor
-                    text: (intensityDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Moderate Activity (1.0×) • Typical Gym Workout")
+                    color: (intensityDlg.selectedLevel === "moderate" || intensityDlg.selectedLevel === "standard") ? root.primaryColor : root.cardBorderColor
+                    text: (intensityDlg.selectedLevel === "moderate" || intensityDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard (1.0×)")
                     onClicked: {
                         intensityDlg.selectedLevel = "standard"
                         intensityDlg.selectedMultiplier = 1.0
                     }
                 }
 
-                // Heavy Intensity Button (Only colored if selected)
+                // High / Vigorous Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
-                    color: intensityDlg.selectedLevel === "vigorous" ? "#EF4444" : root.cardBorderColor
-                    text: (intensityDlg.selectedLevel === "vigorous" ? "✓ " : "") + i18n.tr("Vigorous Activity (1.2×) • High Exertion & PRs")
+                    color: (intensityDlg.selectedLevel === "vigorous" || intensityDlg.selectedLevel === "high") ? "#EF4444" : root.cardBorderColor
+                    text: (intensityDlg.selectedLevel === "vigorous" || intensityDlg.selectedLevel === "high" ? "✓ " : "") + i18n.tr("High (1.2×)")
                     onClicked: {
-                        intensityDlg.selectedLevel = "vigorous"
+                        intensityDlg.selectedLevel = "high"
                         intensityDlg.selectedMultiplier = 1.2
                     }
                 }
@@ -1142,6 +1228,7 @@ Page {
                             text: Math.floor(root.activeSessionSeconds / 3600).toString()
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                             width: parent.width
+                            onAccepted: Qt.inputMethod.hide()
                         }
                     }
 
@@ -1161,6 +1248,7 @@ Page {
                             text: Math.floor((root.activeSessionSeconds % 3600) / 60).toString()
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                             width: parent.width
+                            onAccepted: Qt.inputMethod.hide()
                         }
                     }
 
@@ -1180,6 +1268,7 @@ Page {
                             text: (root.activeSessionSeconds % 60).toString()
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                             width: parent.width
+                            onAccepted: Qt.inputMethod.hide()
                         }
                     }
                 }
@@ -1193,7 +1282,10 @@ Page {
                         color: root.cardBorderColor
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
-                        onClicked: PopupUtils.close(editTimeDlg)
+                        onClicked: {
+                            Qt.inputMethod.hide()
+                            PopupUtils.close(editTimeDlg)
+                        }
                     }
 
                     Button {
@@ -1202,6 +1294,7 @@ Page {
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
                         onClicked: {
+                            Qt.inputMethod.hide()
                             var h = Math.max(0, parseInt(hourField.text) || 0)
                             var m = Math.max(0, parseInt(minField.text) || 0)
                             var s = Math.max(0, Math.min(59, parseInt(secField.text) || 0))
@@ -1224,7 +1317,7 @@ Page {
         Dialog {
             id: nextExDlg
             title: i18n.tr("Next Exercise")
-            property string selectedLevel: "standard"
+            property string selectedLevel: (activePage && activePage.intensityLevel) ? activePage.intensityLevel : "standard"
             property double selectedMultiplier: 1.0
 
             Column {
@@ -1255,6 +1348,7 @@ Page {
                         id: nextWorkoutField
                         text: "General Workout"
                         width: parent.width
+                        onAccepted: Qt.inputMethod.hide()
                     }
                 }
 
@@ -1302,7 +1396,7 @@ Page {
                     width: parent.width
                     height: units.gu(4.5)
                     color: nextExDlg.selectedLevel === "light" ? root.accentBlue : root.cardBorderColor
-                    text: (nextExDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light Effort (0.85×) • Warmup & Mobility")
+                    text: (nextExDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light (0.85×)")
                     onClicked: {
                         nextExDlg.selectedLevel = "light"
                         nextExDlg.selectedMultiplier = 0.85
@@ -1313,22 +1407,22 @@ Page {
                 Button {
                     width: parent.width
                     height: units.gu(4.5)
-                    color: nextExDlg.selectedLevel === "standard" ? root.primaryColor : root.cardBorderColor
-                    text: (nextExDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard Effort (1.0×) • Regular Workout")
+                    color: (nextExDlg.selectedLevel === "moderate" || nextExDlg.selectedLevel === "standard") ? root.primaryColor : root.cardBorderColor
+                    text: (nextExDlg.selectedLevel === "moderate" || nextExDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard (1.0×)")
                     onClicked: {
                         nextExDlg.selectedLevel = "standard"
                         nextExDlg.selectedMultiplier = 1.0
                     }
                 }
 
-                // Heavy Intensity Button (Only colored if selected)
+                // High / Vigorous Intensity Button (Only colored if selected)
                 Button {
                     width: parent.width
                     height: units.gu(4.5)
-                    color: nextExDlg.selectedLevel === "vigorous" ? "#EF4444" : root.cardBorderColor
-                    text: (nextExDlg.selectedLevel === "vigorous" ? "✓ " : "") + i18n.tr("Heavy Effort (1.2×) • Vigorous & Intense")
+                    color: (nextExDlg.selectedLevel === "vigorous" || nextExDlg.selectedLevel === "high") ? "#EF4444" : root.cardBorderColor
+                    text: (nextExDlg.selectedLevel === "vigorous" || nextExDlg.selectedLevel === "high" ? "✓ " : "") + i18n.tr("High (1.2×)")
                     onClicked: {
-                        nextExDlg.selectedLevel = "vigorous"
+                        nextExDlg.selectedLevel = "high"
                         nextExDlg.selectedMultiplier = 1.2
                     }
                 }
@@ -1343,6 +1437,7 @@ Page {
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
                         onClicked: {
+                            Qt.inputMethod.hide()
                             PopupUtils.close(nextExDlg)
                             root.activeSessionRunning = true
                         }
@@ -1354,6 +1449,7 @@ Page {
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
                         onClicked: {
+                            Qt.inputMethod.hide()
                             startNext(nextWorkoutField.text, nextExDlg.selectedMultiplier, nextExDlg.selectedLevel)
                         }
                     }
@@ -1405,6 +1501,7 @@ Page {
                     text: root.activeSessionWorkout
                     placeholderText: i18n.tr("Workout name")
                     width: parent.width
+                    onAccepted: Qt.inputMethod.hide()
                 }
 
                 Flow {
@@ -1447,7 +1544,10 @@ Page {
                         color: root.cardBorderColor
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
-                        onClicked: PopupUtils.close(editWorkoutNameDlg)
+                        onClicked: {
+                            Qt.inputMethod.hide()
+                            PopupUtils.close(editWorkoutNameDlg)
+                        }
                     }
 
                     Button {
@@ -1456,6 +1556,7 @@ Page {
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
                         onClicked: {
+                            Qt.inputMethod.hide()
                             var trimmed = editNameField.text.trim()
                             if (trimmed !== "") {
                                 root.activeSessionWorkout = trimmed
@@ -1478,40 +1579,19 @@ Page {
 
         Dialog {
             id: dialogBox
-            title: i18n.tr("Session Saved! 🎉")
+            title: i18n.tr("Session Saved!")
 
             Column {
-                spacing: units.gu(1.5)
+                spacing: units.gu(1.8)
                 width: parent.width
-
-                Row {
-                    spacing: units.gu(0.8)
-                    anchors.horizontalCenter: parent.horizontalCenter
-
-                    Image {
-                        source: Qt.resolvedUrl("../assets/fire-svgrepo-com.svg")
-                        width: units.gu(2.4)
-                        height: units.gu(2.4)
-                        sourceSize.width: units.gu(2.4)
-                        sourceSize.height: units.gu(2.4)
-                        fillMode: Image.PreserveAspectFit
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Label {
-                        text: caloriesBurned.toFixed(1) + " kcal"
-                        font.bold: true
-                        font.pixelSize: units.gu(2.0)
-                        color: root.accentOrange
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
 
                 Label {
                     width: parent.width
                     wrapMode: Text.WordWrap
                     color: root.textPrimaryColor
-                    text: i18n.tr("Workout session saved successfully!\n\n⏱️ Duration: " + timeString + "\n⚡ Intensity: " + activePage.effectiveMet.toFixed(1) + " METs (" + activePage.metInfo.category + ")\n📊 Calculated via sports science Compendium MET formula.")
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pixelSize: units.gu(1.3)
+                    text: i18n.tr("Workout saved successfully!")
                 }
 
                 Button {

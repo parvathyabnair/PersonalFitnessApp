@@ -17,7 +17,8 @@ Page {
 
     property int todaysWater: 0
     property int targetWater: 2500
-    property var workoutStats: ({ totalWorkouts: 0, streakDays: 0, thisMonthWorkouts: 0, totalDurationSeconds: 0, totalCalories: 0 })
+    property var workoutStats: ({ totalWorkouts: 0, streakDays: 0, thisMonthWorkouts: 0, thisMonthDurationSeconds: 0, thisWeekWorkouts: 0, totalDurationSeconds: 0, totalCalories: 0 })
+    property int selectedHydrationMins: (typeof root !== "undefined" && root.reminderIntervalSeconds > 0) ? Math.round(root.reminderIntervalSeconds / 60) : 45
 
     function loadOverviewData() {
         var settings = DB.getSettings()
@@ -115,6 +116,15 @@ Page {
 
                 onTriggered: {
                     pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("AddSessionPage.qml"), {pageLayout: pageLayout})
+                }
+            },
+
+            Action {
+                iconName: "alarm-clock"
+                text: i18n.tr("Hydration Reminder")
+
+                onTriggered: {
+                    pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("HydrationReminderPage.qml"), {pageLayout: pageLayout})
                 }
             },
 
@@ -466,7 +476,7 @@ Page {
                 }
             }
 
-            // FITNESS STREAK & LIFETIME MILESTONES CARD
+            // ACTIVITY SUMMARY - THIS MONTH
             Rectangle {
                 width: parent.width
                 height: streakCol.height + units.gu(2.8)
@@ -481,7 +491,7 @@ Page {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.margins: units.gu(1.4)
-                    spacing: units.gu(1)
+                    spacing: units.gu(1.2)
 
                     RowLayout {
                         width: parent.width
@@ -489,14 +499,11 @@ Page {
                         Row {
                             spacing: units.gu(0.8)
 
-
                             Label {
-                                text: workoutStats.streakDays > 0 ?
-                                      (workoutStats.streakDays + i18n.tr("-Day Active Streak!")) :
-                                      i18n.tr("Workout Consistency")
+                                text: i18n.tr("Activity Summary")
                                 font.bold: true
-                                font.pixelSize: units.gu(1.5)
-                                color: root.accentOrange
+                                font.pixelSize: units.gu(1.6)
+                                color: root.textPrimaryColor
                             }
                         }
 
@@ -504,31 +511,32 @@ Page {
 
                         Rectangle {
                             height: units.gu(2.4)
-                            width: monthBadge.width + units.gu(1.4)
+                            width: monthBadge.width + units.gu(1.6)
                             radius: height / 2
-                            color: Qt.rgba(16, 185, 129, 0.2)
+                            color: Qt.rgba(16/255, 185/255, 129/255, 0.18)
                             border.color: "#10B981"
                             border.width: units.dp(1)
 
                             Label {
                                 id: monthBadge
                                 anchors.centerIn: parent
-                                text: workoutStats.thisMonthWorkouts + i18n.tr(" workouts this month")
+                                text: Qt.formatDate(new Date(), "MMMM yyyy")
                                 font.bold: true
-                                font.pixelSize: units.gu(1.0)
+                                font.pixelSize: units.gu(1.05)
                                 color: "#10B981"
                             }
                         }
                     }
 
-                    // Stats triplet row
+                    // Stats Triplet Row: Workouts (This Month), This Week, Total Training Time
                     Row {
                         width: parent.width
                         spacing: units.gu(1)
 
+                        // Box 1: This Month Workouts
                         Rectangle {
                             width: (parent.width - units.gu(2)) / 3
-                            height: units.gu(6)
+                            height: units.gu(6.6)
                             radius: units.dp(8)
                             color: root.isDarkMode ? "#25262B" : "#F8F9FA"
 
@@ -537,52 +545,26 @@ Page {
                                 spacing: units.gu(0.2)
 
                                 Label {
-                                    text: workoutStats.totalWorkouts
+                                    text: workoutStats.thisMonthWorkouts
                                     font.bold: true
-                                    font.pixelSize: units.gu(1.8)
-                                    color: root.textPrimaryColor
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-
-                                Label {
-                                    text: i18n.tr("Total Sessions")
-                                    font.pixelSize: units.gu(0.9)
-                                    color: root.textSecondaryColor
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            width: (parent.width - units.gu(2)) / 3
-                            height: units.gu(6)
-                            radius: units.dp(8)
-                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: units.gu(0.2)
-
-                                Label {
-                                    text: (workoutStats.totalDurationSeconds / 3600).toFixed(1) + "h"
-                                    font.bold: true
-                                    font.pixelSize: units.gu(1.8)
+                                    font.pixelSize: units.gu(2.0)
                                     color: root.accentBlue
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
                                 Label {
-                                    text: i18n.tr("Total Hours")
-                                    font.pixelSize: units.gu(0.9)
+                                    text: i18n.tr("This Month")
+                                    font.pixelSize: units.gu(0.95)
                                     color: root.textSecondaryColor
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
                             }
                         }
 
+                        // Box 2: This Week Workouts
                         Rectangle {
                             width: (parent.width - units.gu(2)) / 3
-                            height: units.gu(6)
+                            height: units.gu(6.6)
                             radius: units.dp(8)
                             color: root.isDarkMode ? "#25262B" : "#F8F9FA"
 
@@ -591,16 +573,46 @@ Page {
                                 spacing: units.gu(0.2)
 
                                 Label {
-                                    text: Math.round(workoutStats.totalCalories)
+                                    text: workoutStats.thisWeekWorkouts
                                     font.bold: true
-                                    font.pixelSize: units.gu(1.8)
+                                    font.pixelSize: units.gu(2.0)
+                                    color: root.accentGreen
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: i18n.tr("This Week")
+                                    font.pixelSize: units.gu(0.95)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        // Box 3: Total Training Time
+                        Rectangle {
+                            width: (parent.width - units.gu(2)) / 3
+                            height: units.gu(6.6)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.2)
+
+                                Label {
+                                    text: workoutStats.totalDurationSeconds >= 3600 ?
+                                          (workoutStats.totalDurationSeconds / 3600).toFixed(1) + "h" :
+                                          Math.max(0, Math.round(workoutStats.totalDurationSeconds / 60)) + "m"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
                                     color: root.accentOrange
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
                                 Label {
-                                    text: i18n.tr("Burned (kcal)")
-                                    font.pixelSize: units.gu(0.9)
+                                    text: workoutStats.totalDurationSeconds >= 3600 ? i18n.tr("Total Hours") : i18n.tr("Total Time")
+                                    font.pixelSize: units.gu(0.95)
                                     color: root.textSecondaryColor
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
@@ -759,6 +771,226 @@ Page {
                                 onClicked: {
                                     hydrationCard.selectedHydrationAction = "reset"
                                     todaysWater = DB.resetTodaysWater()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // HYDRATION REMINDER DASHBOARD MENU CARD
+            Rectangle {
+                width: parent.width
+                height: reminderDashboardCol.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: (typeof root !== "undefined" && root.reminderActive) ? "#38BDF8" : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
+                border.width: units.dp(1)
+
+                Column {
+                    id: reminderDashboardCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Row {
+                            spacing: units.gu(0.8)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Rectangle {
+                                width: units.gu(3.8)
+                                height: units.gu(3.8)
+                                radius: width / 2
+                                color: (typeof root !== "undefined" && root.reminderActive) ? Qt.rgba(56/255, 189/255, 248/255, 0.2) : ((typeof root !== "undefined" && root.reminderPaused) ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : (root.isDarkMode ? "#2C2D32" : "#F1F3F5"))
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: "⏱️"
+                                    font.pixelSize: units.gu(1.8)
+                                }
+                            }
+
+                            Column {
+                                spacing: units.gu(0.1)
+
+                                Label {
+                                    text: i18n.tr("Hydration Reminder")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.6)
+                                    color: root.textPrimaryColor
+                                }
+
+                                Label {
+                                    text: (typeof root !== "undefined" && root.reminderActive) ?
+                                          (i18n.tr("Next drink in ") + Math.floor(root.reminderSecondsLeft / 60) + "m " + (root.reminderSecondsLeft % 60 < 10 ? "0" : "") + (root.reminderSecondsLeft % 60) + "s") :
+                                          ((typeof root !== "undefined" && root.reminderPaused) ?
+                                           (i18n.tr("Paused • ") + Math.floor(root.reminderSecondsLeft / 60) + "m " + (root.reminderSecondsLeft % 60 < 10 ? "0" : "") + (root.reminderSecondsLeft % 60) + "s remaining") :
+                                           (i18n.tr("Reminder is off • Interval: ") + homePage.selectedHydrationMins + i18n.tr("m")))
+                                    font.pixelSize: units.gu(1.1)
+                                    font.bold: (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused))
+                                    color: (typeof root !== "undefined" && root.reminderActive) ? "#38BDF8" : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.textSecondaryColor)
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredHeight: units.gu(2.8)
+                            Layout.preferredWidth: Math.max(units.gu(8.5), homeReminderStatusLabel.implicitWidth + units.gu(2.8))
+                            implicitHeight: Layout.preferredHeight
+                            implicitWidth: Layout.preferredWidth
+                            height: Layout.preferredHeight
+                            width: Layout.preferredWidth
+                            radius: height / 2
+                            color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? Qt.rgba(16/255, 185/255, 129/255, 0.18) :
+                                   ((typeof root !== "undefined" && root.reminderPaused) ? Qt.rgba(245/255, 158/255, 11/255, 0.18) :
+                                   (root.isDarkMode ? "#2C2D32" : "#E9ECEF"))
+                            border.color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? "#10B981" :
+                                          ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
+                            border.width: units.dp(1.5)
+
+                            Label {
+                                id: homeReminderStatusLabel
+                                anchors.centerIn: parent
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                text: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? i18n.tr("ACTIVE") :
+                                      ((typeof root !== "undefined" && root.reminderPaused) ? i18n.tr("PAUSED") : i18n.tr("OFF"))
+                                font.bold: true
+                                font.pixelSize: units.gu(1.05)
+                                color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? "#10B981" :
+                                       ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.textSecondaryColor)
+                            }
+                        }
+                    }
+
+                    // Quick Preset Chips
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(0.8)
+
+                        Repeater {
+                            model: [
+                                { label: "30m", mins: 30 },
+                                { label: "45m", mins: 45 },
+                                { label: "60m", mins: 60 },
+                                { label: "90m", mins: 90 },
+                                { label: "120m", mins: 120 }
+                            ]
+
+                            Rectangle {
+                                property bool isSelected: (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused)) ?
+                                    (Math.round(root.reminderIntervalSeconds / 60) === modelData.mins) :
+                                    (homePage.selectedHydrationMins === modelData.mins)
+                                width: (parent.width - units.gu(3.2)) / 5
+                                height: units.gu(3.4)
+                                radius: units.dp(6)
+                                color: isSelected ? "#38BDF8" : (root.isDarkMode ? "#2C2D32" : "#F1F3F5")
+                                border.color: isSelected ? "#38BDF8" : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    font.bold: isSelected
+                                    font.pixelSize: units.gu(1.1)
+                                    color: isSelected ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        homePage.selectedHydrationMins = modelData.mins
+                                        if (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused)) {
+                                            root.startReminder(
+                                                modelData.mins * 60,
+                                                i18n.tr("💧 Time to Hydrate!"),
+                                                i18n.tr("Drink a glass of water to keep your metabolism and hydration at peak performance."),
+                                                true,
+                                                "water"
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Quick Action Row
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1)
+
+                        // When Active: Pause and Stop
+                        Button {
+                            visible: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused)
+                            text: i18n.tr("Pause")
+                            color: "#F59E0B"
+                            width: (parent.width - units.gu(1)) / 2
+                            height: units.gu(3.8)
+                            onClicked: {
+                                if (typeof root !== "undefined") root.pauseReminder()
+                            }
+                        }
+
+                        Button {
+                            visible: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused)
+                            text: i18n.tr("Stop")
+                            color: "#EF4444"
+                            width: (parent.width - units.gu(1)) / 2
+                            height: units.gu(3.8)
+                            onClicked: {
+                                if (typeof root !== "undefined") root.stopReminder()
+                            }
+                        }
+
+                        // When Paused: Resume and Stop
+                        Button {
+                            visible: (typeof root !== "undefined" && root.reminderPaused && !root.reminderActive)
+                            text: i18n.tr("Resume")
+                            color: "#10B981"
+                            width: (parent.width - units.gu(1)) / 2
+                            height: units.gu(3.8)
+                            onClicked: {
+                                if (typeof root !== "undefined") root.resumeReminder()
+                            }
+                        }
+
+                        Button {
+                            visible: (typeof root !== "undefined" && root.reminderPaused && !root.reminderActive)
+                            text: i18n.tr("Stop")
+                            color: "#EF4444"
+                            width: (parent.width - units.gu(1)) / 2
+                            height: units.gu(3.8)
+                            onClicked: {
+                                if (typeof root !== "undefined") root.stopReminder()
+                            }
+                        }
+
+                        // When Off: Start Reminder with selected duration
+                        Button {
+                            visible: (typeof root !== "undefined" && !root.reminderActive && !root.reminderPaused)
+                            text: i18n.tr("Start Reminder (") + homePage.selectedHydrationMins + i18n.tr("m)")
+                            color: "#38BDF8"
+                            width: parent.width
+                            height: units.gu(3.8)
+                            onClicked: {
+                                if (typeof root !== "undefined") {
+                                    root.startReminder(
+                                        homePage.selectedHydrationMins * 60,
+                                        i18n.tr("💧 Time to Hydrate!"),
+                                        i18n.tr("Drink a glass of water to keep your metabolism and hydration at peak performance."),
+                                        true,
+                                        "water"
+                                    )
                                 }
                             }
                         }

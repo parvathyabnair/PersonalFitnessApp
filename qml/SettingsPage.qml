@@ -13,6 +13,72 @@ Page {
     property string selectedDate: ""
     property string currentWeightVal: "70"
 
+    PropertyAnimation {
+        id: scrollAnim
+        target: settingsFlickable
+        property: "contentY"
+        duration: 200
+        easing.type: Easing.OutQuad
+    }
+
+    function ensureVisible(item) {
+        if (!item || !settingsFlickable) return
+        var pos = item.mapToItem(settingsFlickable.contentItem, 0, 0)
+        var itemY = pos.y
+        var itemHeight = item.height
+        var viewportHeight = settingsFlickable.height
+        var margin = units.gu(4)
+
+        var newContentY = settingsFlickable.contentY
+        if (itemY - margin < settingsFlickable.contentY) {
+            newContentY = Math.max(0, itemY - margin)
+        } else if (itemY + itemHeight + margin > settingsFlickable.contentY + viewportHeight) {
+            var targetY = itemY + itemHeight + margin - viewportHeight
+            var maxY = Math.max(0, settingsFlickable.contentHeight - viewportHeight)
+            newContentY = Math.min(maxY, targetY)
+        }
+
+        if (Math.abs(newContentY - settingsFlickable.contentY) > 1) {
+            scrollAnim.stop()
+            scrollAnim.to = newContentY
+            scrollAnim.start()
+        }
+    }
+
+    Connections {
+        target: Qt.inputMethod
+        onVisibleChanged: {
+            if (Qt.inputMethod.visible) {
+                ensureVisibleTimer.restart()
+            }
+        }
+        onKeyboardRectangleChanged: {
+            if (Qt.inputMethod.visible) {
+                ensureVisibleTimer.restart()
+            }
+        }
+    }
+
+    Timer {
+        id: ensureVisibleTimer
+        interval: 120
+        repeat: false
+        onTriggered: {
+            if (kcalInputField && kcalInputField.activeFocus) {
+                ensureVisible(kcalInputField)
+            } else if (weightInputField && weightInputField.activeFocus) {
+                ensureVisible(weightInputField)
+            } else if (goalWeightField && goalWeightField.activeFocus) {
+                ensureVisible(goalWeightField)
+            } else if (heightField && heightField.activeFocus) {
+                ensureVisible(heightField)
+            } else if (ageField && ageField.activeFocus) {
+                ensureVisible(ageField)
+            }
+        }
+    }
+
+
     function loadSettings() {
         var settings = DB.getSettings()
         if (settings) {
@@ -92,15 +158,26 @@ Page {
     }
 
     Flickable {
+        id: settingsFlickable
         anchors.top: header.bottom
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Qt.inputMethod.visible ? (Qt.inputMethod.keyboardRectangle.height > 0 ? Qt.inputMethod.keyboardRectangle.height : units.gu(30)) : 0
         anchors.left: parent.left
         anchors.right: parent.right
         contentWidth: width
-        contentHeight: column.height + units.gu(6)
+        contentHeight: column.height + units.gu(10)
         clip: true
         flickableDirection: Flickable.VerticalFlick
         boundsBehavior: Flickable.DragOverBounds
+
+        onFlickStarted: {
+            if (Qt.inputMethod.visible) Qt.inputMethod.hide()
+        }
+
+        Behavior on anchors.bottomMargin {
+            NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+        }
+
 
         Column {
             id: column
@@ -261,6 +338,13 @@ Page {
                                     settingsPage.currentWeightVal = text.trim()
                                 }
                             }
+                            onActiveFocusChanged: {
+                                if (activeFocus) ensureVisibleTimer.restart()
+                            }
+                            onAccepted: {
+                                focus = false
+                                Qt.inputMethod.hide()
+                            }
                         }
 
                         // Quick weight preset chips
@@ -313,6 +397,13 @@ Page {
                             placeholderText: i18n.tr("e.g. 65")
                             width: parent.width
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            onActiveFocusChanged: {
+                                if (activeFocus) ensureVisibleTimer.restart()
+                            }
+                            onAccepted: {
+                                focus = false
+                                Qt.inputMethod.hide()
+                            }
                         }
                     }
 
@@ -338,6 +429,13 @@ Page {
                                 text: "175"
                                 width: parent.width
                                 inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                onActiveFocusChanged: {
+                                    if (activeFocus) ensureVisibleTimer.restart()
+                                }
+                                onAccepted: {
+                                    focus = false
+                                    Qt.inputMethod.hide()
+                                }
                             }
                         }
 
@@ -358,6 +456,13 @@ Page {
                                 text: "25"
                                 width: parent.width
                                 inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                onActiveFocusChanged: {
+                                    if (activeFocus) ensureVisibleTimer.restart()
+                                }
+                                onAccepted: {
+                                    focus = false
+                                    Qt.inputMethod.hide()
+                                }
                             }
                         }
                     }
@@ -570,6 +675,13 @@ Page {
                             text: "500"
                             width: parent.width
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            onActiveFocusChanged: {
+                                if (activeFocus) ensureVisibleTimer.restart()
+                            }
+                            onAccepted: {
+                                focus = false
+                                Qt.inputMethod.hide()
+                            }
                         }
                     }
 

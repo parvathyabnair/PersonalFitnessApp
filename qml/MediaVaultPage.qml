@@ -124,12 +124,17 @@ Page {
     Flickable {
         anchors.top: header.bottom
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Qt.inputMethod.visible ? (Qt.inputMethod.keyboardRectangle.height > 0 ? Qt.inputMethod.keyboardRectangle.height : units.gu(30)) : 0
         anchors.left: parent.left
         anchors.right: parent.right
         contentWidth: width
         contentHeight: mainCol.height + units.gu(5)
         clip: true
         flickableDirection: Flickable.VerticalFlick
+
+        Behavior on anchors.bottomMargin {
+            NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+        }
 
         Column {
             id: mainCol
@@ -751,7 +756,7 @@ Page {
             titleInput.text = defaultTitle
             notesInput.text = ""
             visible = true
-            titleInput.forceActiveFocus()
+            // Do not force focus so user can immediately click Save to Vault without keyboard blocking
         }
 
         function openForEdit(item) {
@@ -765,15 +770,16 @@ Page {
             titleInput.text = item.title || ""
             notesInput.text = item.notes || ""
             visible = true
-            titleInput.forceActiveFocus()
+            // Do not force focus so user can immediately review details without keyboard blocking
         }
 
         function close() {
-            visible = false
             Qt.inputMethod.hide()
+            visible = false
         }
 
         function confirmSave() {
+            Qt.inputMethod.hide()
             var chosenTitle = titleInput.text.trim()
             if (chosenTitle === "") {
                 chosenTitle = (mediaType === "video") ? "Form Check Video" : "Progress Photo"
@@ -799,31 +805,69 @@ Page {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: saveMediaModal.close()
+            onClicked: {
+                if (Qt.inputMethod.visible) {
+                    Qt.inputMethod.hide()
+                } else {
+                    saveMediaModal.close()
+                }
+            }
         }
 
         Rectangle {
             id: modalBox
-            anchors.centerIn: parent
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: Qt.inputMethod.visible ?
+                units.gu(1) :
+                Math.max(units.gu(2), (parent.height - height) / 2)
             width: Math.min(units.gu(42), parent.width - units.gu(3))
-            height: Math.min(units.gu(58), parent.height - units.gu(4))
+            height: Qt.inputMethod.visible ?
+                Math.min(units.gu(58), Math.max(units.gu(26), parent.height - (Qt.inputMethod.keyboardRectangle.height > 0 ? Qt.inputMethod.keyboardRectangle.height : units.gu(32)) - units.gu(2))) :
+                Math.min(units.gu(58), parent.height - units.gu(4))
             radius: units.dp(16)
             color: root.cardBgColor
             border.color: root.cardBorderColor
             border.width: units.dp(1)
             clip: true
 
+            Behavior on anchors.topMargin {
+                NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+            }
+            Behavior on height {
+                NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+            }
+
             MouseArea {
                 anchors.fill: parent
-                onClicked: {} // Block clicks inside from dismissing modal
+                onClicked: {
+                    if (Qt.inputMethod.visible) {
+                        Qt.inputMethod.hide()
+                    }
+                }
             }
 
             Flickable {
+                id: modalFlickable
                 anchors.fill: parent
-                anchors.margins: units.gu(2)
+                anchors.margins: units.gu(1.5)
                 contentWidth: width
                 contentHeight: modalContentCol.height + units.gu(2)
                 clip: true
+                flickableDirection: Flickable.VerticalFlick
+                boundsBehavior: Flickable.DragOverBounds
+
+                function ensureVisible(item) {
+                    if (!item) return
+                    var pos = item.mapToItem(contentItem, 0, 0)
+                    var itemY = pos.y
+                    var itemH = item.height
+                    if (itemY - units.gu(2) < contentY) {
+                        contentY = Math.max(0, itemY - units.gu(2))
+                    } else if (itemY + itemH + units.gu(4) > contentY + height) {
+                        contentY = Math.min(Math.max(0, contentHeight - height), itemY + itemH + units.gu(4) - height)
+                    }
+                }
 
                 Column {
                     id: modalContentCol
@@ -842,6 +886,15 @@ Page {
                             font.pixelSize: units.gu(1.6)
                             color: root.textPrimaryColor
                             Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+
+                        Button {
+                            text: i18n.tr("Done")
+                            visible: Qt.inputMethod.visible
+                            height: units.gu(3.6)
+                            color: root.primaryColor
+                            onClicked: Qt.inputMethod.hide()
                         }
 
                         Button {
@@ -912,6 +965,13 @@ Page {
                             placeholderText: (saveMediaModal.mediaType === "video") ? 
                                 i18n.tr("e.g. Squat Form Check, Deadlift PR") : 
                                 i18n.tr("e.g. Front Double Bicep, Morning Check-in")
+                            onActiveFocusChanged: {
+                                if (activeFocus) modalFlickable.ensureVisible(this)
+                            }
+                            onAccepted: {
+                                focus = false
+                                Qt.inputMethod.hide()
+                            }
                         }
                     }
 
@@ -931,6 +991,13 @@ Page {
                             id: exerciseInput
                             width: parent.width
                             placeholderText: i18n.tr("e.g. Squats, Bench Press, Progress Photo")
+                            onActiveFocusChanged: {
+                                if (activeFocus) modalFlickable.ensureVisible(this)
+                            }
+                            onAccepted: {
+                                focus = false
+                                Qt.inputMethod.hide()
+                            }
                         }
 
                         // Quick selection chips
@@ -987,6 +1054,13 @@ Page {
                             id: notesInput
                             width: parent.width
                             placeholderText: i18n.tr("e.g. Felt heavy, depth was parallel")
+                            onActiveFocusChanged: {
+                                if (activeFocus) modalFlickable.ensureVisible(this)
+                            }
+                            onAccepted: {
+                                focus = false
+                                Qt.inputMethod.hide()
+                            }
                         }
                     }
 

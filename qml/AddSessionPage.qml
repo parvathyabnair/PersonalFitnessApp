@@ -189,6 +189,7 @@ Page {
                 placeholderText: i18n.tr("Search workouts...")
                 width: parent.width
                 onTextChanged: refreshModel(text)
+                onAccepted: Qt.inputMethod.hide()
             }
         }
 
@@ -199,9 +200,14 @@ Page {
             anchors.top: topSection.bottom
             anchors.topMargin: units.gu(1.5)
             anchors.bottom: parent.bottom
+            anchors.bottomMargin: Qt.inputMethod.visible ? (Qt.inputMethod.keyboardRectangle.height > 0 ? Qt.inputMethod.keyboardRectangle.height : units.gu(30)) : 0
             model: sessionModel
             clip: true
             visible: count > 0
+
+            Behavior on anchors.bottomMargin {
+                NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+            }
 
             delegate: ListItem {
                 width: parent.width
