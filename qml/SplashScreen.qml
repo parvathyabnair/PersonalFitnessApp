@@ -103,7 +103,7 @@ Rectangle {
                     height: parent.height
                     width: 0
                     radius: height / 2
-                    color: '#FF5252'
+                    color: '#fc5d5d'
                 }
             }
 

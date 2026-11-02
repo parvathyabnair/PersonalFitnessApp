@@ -397,7 +397,7 @@ Page {
                             width: units.gu(1)
                             height: units.gu(1)
                             radius: width / 2
-                            color: root.activeSessionRunning ? "#10B981" : (activePage.workoutPausedForRest ? "#38BDF8" : "#F59E0B")
+                            color: root.activeSessionRunning ? "#10B981" : (activePage.workoutPausedForRest ? root.secondaryColor : "#F59E0B")
                             anchors.verticalCenter: parent.verticalCenter
 
                             SequentialAnimation on opacity {
@@ -414,7 +414,7 @@ Page {
                                   (activePage.workoutPausedForRest ? (i18n.tr("REST INTERVAL • ") + activePage.restTimeLeft + "s") : i18n.tr("SESSION PAUSED"))
                             font.bold: true
                             font.pixelSize: units.gu(1.2)
-                            color: root.activeSessionRunning ? "#10B981" : (activePage.workoutPausedForRest ? "#38BDF8" : "#F59E0B")
+                            color: root.activeSessionRunning ? "#10B981" : (activePage.workoutPausedForRest ? root.secondaryColor : "#F59E0B")
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }
@@ -602,7 +602,7 @@ Page {
                         height: units.gu(3)
                         width: restAutoPauseLabel.width + units.gu(3)
                         radius: height / 2
-                        color: "#0284C7"
+                        color: root.secondaryColor
 
                         Label {
                             id: restAutoPauseLabel
@@ -610,7 +610,7 @@ Page {
                             text: i18n.tr("⏸️ Auto-Paused for Rest (Resumes in ") + activePage.restTimeLeft + "s)"
                             font.bold: true
                             font.pixelSize: units.gu(1.2)
-                            color: "white"
+                            color: "#1A1B1E"
                         }
                     }
 
@@ -695,21 +695,28 @@ Page {
                             width: metBadgeText.width + units.gu(1.6)
                             radius: height / 2
                             color: Qt.rgba(0, 0, 0, 0.4)
-                            border.color: activePage.metInfo.color
+                            border.color: (activePage.intensityLevel === "light") ? root.secondaryColor :
+                                          (activePage.intensityLevel === "high" || activePage.intensityLevel === "vigorous") ? "#EF4444" : "#34D399"
                             border.width: units.dp(1.5)
 
                             Label {
                                 id: metBadgeText
                                 anchors.centerIn: parent
-                                text: activePage.effectiveMet.toFixed(1) + " METs • " + activePage.metInfo.category
+                                text: {
+                                    var pace = (activePage.intensityLevel === "light") ? i18n.tr("Relaxed Pace") :
+                                               (activePage.intensityLevel === "high" || activePage.intensityLevel === "vigorous") ? i18n.tr("Intense Pace") :
+                                               i18n.tr("Standard Pace");
+                                    return activePage.effectiveMet.toFixed(1) + " METs • " + pace;
+                                }
                                 font.bold: true
                                 font.pixelSize: units.gu(1.1)
-                                color: activePage.metInfo.color
+                                color: (activePage.intensityLevel === "light") ? root.secondaryColor :
+                                       (activePage.intensityLevel === "high" || activePage.intensityLevel === "vigorous") ? "#EF4444" : "#34D399"
                             }
                         }
                     }
 
-                    // Burn Rate & Details Row
+                    // Burn Rate & Hourly Estimate Row
                     RowLayout {
                         width: parent.width
 
@@ -742,17 +749,23 @@ Page {
                             Layout.alignment: Qt.AlignRight
 
                             Label {
-                                text: i18n.tr("Compendium Standard")
+                                text: i18n.tr("Hourly Burn")
                                 font.pixelSize: units.gu(1.1)
                                 color: root.textSecondaryColor
                                 anchors.right: parent.right
                             }
 
                             Label {
-                                text: activePage.baseMet.toFixed(1) + " MET Baseline"
+                                text: {
+                                    var weight = 70;
+                                    var s = DB.getSettings();
+                                    if (s && s.weight) weight = parseFloat(s.weight);
+                                    var ratePerHour = activePage.effectiveMet * weight;
+                                    return "~" + Math.round(ratePerHour) + " kcal / hr";
+                                }
                                 font.bold: true
-                                font.pixelSize: units.gu(1.4)
-                                color: root.accentBlue
+                                font.pixelSize: units.gu(1.6)
+                                color: root.secondaryColor
                                 anchors.right: parent.right
                             }
                         }
@@ -764,7 +777,7 @@ Page {
                         spacing: units.gu(0.6)
 
                         Label {
-                            text: i18n.tr("Session Intensity Multiplier (Pace):")
+                            text: i18n.tr("Workout Pace / Effort:")
                             font.bold: true
                             font.pixelSize: units.gu(1.2)
                             color: root.textSecondaryColor
@@ -774,18 +787,18 @@ Page {
                             width: parent.width
                             spacing: units.gu(0.8)
 
-                            // Light Effort
+                            // Relaxed Effort
                             Rectangle {
                                 width: (parent.width - units.gu(1.6)) / 3
                                 height: units.gu(3.8)
                                 radius: units.dp(8)
-                                color: activePage.intensityLevel === "light" ? root.accentBlue : (root.isDarkMode ? "#25262B" : "#F1F3F5")
-                                border.color: activePage.intensityLevel === "light" ? root.accentBlue : root.cardBorderColor
+                                color: activePage.intensityLevel === "light" ? root.secondaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: activePage.intensityLevel === "light" ? root.secondaryColor : root.cardBorderColor
                                 border.width: units.dp(1)
 
                                 Label {
                                     anchors.centerIn: parent
-                                    text: i18n.tr("Light (0.85×)")
+                                    text: i18n.tr("Relaxed (0.85×)")
                                     font.bold: activePage.intensityLevel === "light"
                                     font.pixelSize: units.gu(1.1)
                                     color: activePage.intensityLevel === "light" ? "white" : root.textPrimaryColor
@@ -826,7 +839,7 @@ Page {
                                 }
                             }
 
-                            // High / Vigorous Push Effort
+                            // Intense Effort
                             Rectangle {
                                 width: (parent.width - units.gu(1.6)) / 3
                                 height: units.gu(3.8)
@@ -837,7 +850,7 @@ Page {
 
                                 Label {
                                     anchors.centerIn: parent
-                                    text: i18n.tr("High (1.2×)")
+                                    text: i18n.tr("Intense (1.2×)")
                                     font.bold: (activePage.intensityLevel === "vigorous" || activePage.intensityLevel === "high")
                                     font.pixelSize: units.gu(1.1)
                                     color: (activePage.intensityLevel === "vigorous" || activePage.intensityLevel === "high") ? "white" : root.textPrimaryColor
@@ -875,10 +888,10 @@ Page {
                                 width: parent.width
 
                                 Label {
-                                    text: "ℹ️ " + i18n.tr("MET Scientific Metabolic Formula")
+                                    text: "ℹ️ " + i18n.tr("How Calories are Calculated")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.1)
-                                    color: root.accentBlue
+                                    color: root.secondaryColor
                                     Layout.fillWidth: true
                                 }
 
@@ -895,7 +908,7 @@ Page {
                                 visible: activePage.showMetExplainer
 
                                 Label {
-                                    text: i18n.tr("Formula: Calories Burned = MET Value × Weight (kg) × Duration (hours)")
+                                    text: i18n.tr("Formula: Calories = Workout MET × Weight (kg) × Duration (hours)")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.1)
                                     color: root.textPrimaryColor
@@ -919,7 +932,7 @@ Page {
                                 }
 
                                 Label {
-                                    text: i18n.tr("Compendium of Physical Activities standardized sports medicine reference.")
+                                    text: i18n.tr("1 MET represents resting energy burn. Higher MET values indicate greater workout energy expenditure.")
                                     font.pixelSize: units.gu(1.0)
                                     color: root.textSecondaryColor
                                     wrapMode: Text.WordWrap
@@ -1052,7 +1065,7 @@ Page {
 
         Dialog {
             id: intensityDlg
-            title: i18n.tr("Select Workout Intensity")
+            title: i18n.tr("Select Workout Pace")
             property string selectedLevel: (activePage && activePage.intensityLevel) ? activePage.intensityLevel : "standard"
             property double selectedMultiplier: (activePage && activePage.intensityMultiplier) ? activePage.intensityMultiplier : 1.0
 
@@ -1060,37 +1073,44 @@ Page {
                 spacing: units.gu(1.5)
                 width: parent.width
 
+                Label {
+                    text: i18n.tr("Adjusts calorie burn rate to match your effort:")
+                    font.pixelSize: units.gu(1.1)
+                    color: root.textSecondaryColor
+                    wrapMode: Text.WordWrap
+                    width: parent.width
+                }
 
-                // Light Intensity Button (Only colored if selected)
+                // Relaxed Intensity Button
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
-                    color: intensityDlg.selectedLevel === "light" ? root.accentBlue : root.cardBorderColor
-                    text: (intensityDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light (0.85×)")
+                    color: intensityDlg.selectedLevel === "light" ? root.secondaryColor : root.cardBorderColor
+                    text: (intensityDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Relaxed Pace (0.85×)")
                     onClicked: {
                         intensityDlg.selectedLevel = "light"
                         intensityDlg.selectedMultiplier = 0.85
                     }
                 }
 
-                // Standard Intensity Button (Only colored if selected)
+                // Standard Intensity Button
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
                     color: (intensityDlg.selectedLevel === "moderate" || intensityDlg.selectedLevel === "standard") ? root.primaryColor : root.cardBorderColor
-                    text: (intensityDlg.selectedLevel === "moderate" || intensityDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard (1.0×)")
+                    text: (intensityDlg.selectedLevel === "moderate" || intensityDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard Pace (1.0×)")
                     onClicked: {
                         intensityDlg.selectedLevel = "standard"
                         intensityDlg.selectedMultiplier = 1.0
                     }
                 }
 
-                // High / Vigorous Intensity Button (Only colored if selected)
+                // Intense Intensity Button
                 Button {
                     width: parent.width
                     height: units.gu(4.8)
                     color: (intensityDlg.selectedLevel === "vigorous" || intensityDlg.selectedLevel === "high") ? "#EF4444" : root.cardBorderColor
-                    text: (intensityDlg.selectedLevel === "vigorous" || intensityDlg.selectedLevel === "high" ? "✓ " : "") + i18n.tr("High (1.2×)")
+                    text: (intensityDlg.selectedLevel === "vigorous" || intensityDlg.selectedLevel === "high" ? "✓ " : "") + i18n.tr("Intense Pace (1.2×)")
                     onClicked: {
                         intensityDlg.selectedLevel = "high"
                         intensityDlg.selectedMultiplier = 1.2
@@ -1385,42 +1405,42 @@ Page {
                 }
 
                 Label {
-                    text: i18n.tr("Select Intensity to Start:")
+                    text: i18n.tr("Select Workout Pace:")
                     font.bold: true
                     font.pixelSize: units.gu(1.2)
                     color: root.textPrimaryColor
                 }
 
-                // Light Intensity Button (Only colored if selected)
+                // Relaxed Intensity Button
                 Button {
                     width: parent.width
                     height: units.gu(4.5)
-                    color: nextExDlg.selectedLevel === "light" ? root.accentBlue : root.cardBorderColor
-                    text: (nextExDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Light (0.85×)")
+                    color: nextExDlg.selectedLevel === "light" ? root.secondaryColor : root.cardBorderColor
+                    text: (nextExDlg.selectedLevel === "light" ? "✓ " : "") + i18n.tr("Relaxed Pace (0.85×)")
                     onClicked: {
                         nextExDlg.selectedLevel = "light"
                         nextExDlg.selectedMultiplier = 0.85
                     }
                 }
 
-                // Standard Intensity Button (Only colored if selected)
+                // Standard Intensity Button
                 Button {
                     width: parent.width
                     height: units.gu(4.5)
                     color: (nextExDlg.selectedLevel === "moderate" || nextExDlg.selectedLevel === "standard") ? root.primaryColor : root.cardBorderColor
-                    text: (nextExDlg.selectedLevel === "moderate" || nextExDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard (1.0×)")
+                    text: (nextExDlg.selectedLevel === "moderate" || nextExDlg.selectedLevel === "standard" ? "✓ " : "") + i18n.tr("Standard Pace (1.0×)")
                     onClicked: {
                         nextExDlg.selectedLevel = "standard"
                         nextExDlg.selectedMultiplier = 1.0
                     }
                 }
 
-                // High / Vigorous Intensity Button (Only colored if selected)
+                // Intense Intensity Button
                 Button {
                     width: parent.width
                     height: units.gu(4.5)
                     color: (nextExDlg.selectedLevel === "vigorous" || nextExDlg.selectedLevel === "high") ? "#EF4444" : root.cardBorderColor
-                    text: (nextExDlg.selectedLevel === "vigorous" || nextExDlg.selectedLevel === "high" ? "✓ " : "") + i18n.tr("High (1.2×)")
+                    text: (nextExDlg.selectedLevel === "vigorous" || nextExDlg.selectedLevel === "high" ? "✓ " : "") + i18n.tr("Intense Pace (1.2×)")
                     onClicked: {
                         nextExDlg.selectedLevel = "high"
                         nextExDlg.selectedMultiplier = 1.2

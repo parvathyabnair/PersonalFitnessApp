@@ -122,42 +122,72 @@ Page {
         var dateVal = selectedDate !== "" ? selectedDate : new Date().toISOString()
         var totalSecs = getTotalDurationSeconds()
 
-        if (isTimeBased) {
-            if (isEditMode) {
-                DB.updateSession(sessionId, workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
-                DB.updateSessionTime(sessionId, totalSecs)
-                currentSessionId = sessionId
+        // Check if we are updating an existing session to prevent duplicate database rows
+        var targetId = -1
+        if (isEditMode && sessionId !== -1) {
+            targetId = sessionId
+        } else if (currentSessionId !== -1) {
+            targetId = currentSessionId
+        }
+
+        if (targetId !== -1) {
+            // ALREADY EXISTS IN DB - UPDATE INSTEAD OF DUPLICATING
+            if (isTimeBased) {
+                DB.updateSession(targetId, workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
+                DB.updateSessionTime(targetId, totalSecs)
             } else {
-                currentSessionId = DB.insertSession(workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
-                DB.updateSessionTime(currentSessionId, totalSecs)
+                var setsVal = setSelector.model[setSelector.selectedIndex]
+                var numSets = parseInt(setsVal)
+
+                var wArray = []
+                for (var i = 0; i < numSets; i++) {
+                    wArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
+                }
+                var weightVal = JSON.stringify(wArray)
+
+                var rArray = []
+                for (var i = 0; i < numSets; i++) {
+                    rArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
+                }
+                var repsVal = JSON.stringify(rArray)
+
+                DB.updateSession(targetId, workoutVal, setsVal, repsVal, weightVal, dateVal)
+                if (totalSecs > 0) {
+                    DB.updateSessionTime(targetId, totalSecs)
+                }
             }
+            currentSessionId = targetId
+            sessionId = targetId
+            isEditMode = true
             currentWorkout = workoutVal
         } else {
-            var setsVal = setSelector.model[setSelector.selectedIndex]
-            var numSets = parseInt(setsVal)
-
-            var wArray = []
-            for (var i = 0; i < numSets; i++) {
-                wArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
-            }
-            var weightVal = JSON.stringify(wArray)
-
-            var rArray = []
-            for (var i = 0; i < numSets; i++) {
-                rArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
-            }
-            var repsVal = JSON.stringify(rArray)
-
-            if (isEditMode) {
-                DB.updateSession(sessionId, workoutVal, setsVal, repsVal, weightVal, dateVal)
-                DB.updateSessionTime(sessionId, totalSecs)
-                currentSessionId = sessionId
+            // BRAND NEW SESSION - INSERT FOR THE FIRST TIME
+            if (isTimeBased) {
+                currentSessionId = DB.insertSession(workoutVal, "1", JSON.stringify([""]), JSON.stringify([""]), dateVal)
+                DB.updateSessionTime(currentSessionId, totalSecs)
             } else {
+                var setsVal = setSelector.model[setSelector.selectedIndex]
+                var numSets = parseInt(setsVal)
+
+                var wArray = []
+                for (var i = 0; i < numSets; i++) {
+                    wArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
+                }
+                var weightVal = JSON.stringify(wArray)
+
+                var rArray = []
+                for (var i = 0; i < numSets; i++) {
+                    rArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
+                }
+                var repsVal = JSON.stringify(rArray)
+
                 currentSessionId = DB.insertSession(workoutVal, setsVal, repsVal, weightVal, dateVal)
                 if (totalSecs > 0) {
                     DB.updateSessionTime(currentSessionId, totalSecs)
                 }
             }
+            sessionId = currentSessionId
+            isEditMode = true
             currentWorkout = workoutVal   
         }
 
@@ -183,16 +213,19 @@ Page {
         }
 
         if (pageLayout) {
-            root.activeSessionId = currentSessionId
-            root.activeSessionWorkout = currentWorkout
-            root.activeSessionSeconds = 0
-            root.activeSessionRunning = true
-            
-            var targetSecs = getTotalDurationSeconds()
-            if (isTimeBased && targetSecs > 0) {
-                root.activeSessionTargetSeconds = targetSecs
-            } else {
-                root.activeSessionTargetSeconds = -1
+            // If the active session is ALREADY running for this session, do not wipe elapsed seconds
+            if (root.activeSessionId !== currentSessionId || !root.activeSessionRunning) {
+                root.activeSessionId = currentSessionId
+                root.activeSessionWorkout = currentWorkout
+                root.activeSessionSeconds = 0
+                root.activeSessionRunning = true
+                
+                var targetSecs = getTotalDurationSeconds()
+                if (isTimeBased && targetSecs > 0) {
+                    root.activeSessionTargetSeconds = targetSecs
+                } else {
+                    root.activeSessionTargetSeconds = -1
+                }
             }
 
             pageLayout.addPageToNextColumn(
@@ -243,6 +276,7 @@ Page {
 
     Component.onCompleted: {
         if (isEditMode) {
+            currentSessionId = sessionId
             var strengthIdx = strengthWorkouts.indexOf(workout)
             var cardioIdx = cardioWorkouts.indexOf(workout)
             
@@ -1046,8 +1080,11 @@ Page {
                 spacing: units.gu(1.5)
 
                 Button {
-                    text: i18n.tr("Start Workout Now")
-                    color: root.cardBorderColor
+                    text: (root.activeSessionRunning && root.activeSessionId === currentSessionId && currentSessionId !== -1) ?
+                          i18n.tr("Resume Workout") :
+                          i18n.tr("Start Workout Now")
+                    color: (root.activeSessionRunning && root.activeSessionId === currentSessionId && currentSessionId !== -1) ?
+                           root.secondaryColor : root.cardBorderColor
                     width: (parent.width - units.gu(1.5)) * 0.6
                     height: units.gu(5)
 

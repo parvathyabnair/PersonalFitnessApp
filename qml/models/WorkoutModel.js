@@ -161,6 +161,7 @@ function getWorkoutStats() {
         var diff = today.getDate() - day + (day === 0 ? -6 : 1);
         var startOfWeek = new Date(today.getFullYear(), today.getMonth(), diff);
         startOfWeek.setHours(0, 0, 0, 0);
+        var endOfWeek = new Date(startOfWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
 
         var datesSet = {};
         for (var i = 0; i < rs.rows.length; i++) {
@@ -175,7 +176,7 @@ function getWorkoutStats() {
                         stats.thisMonthWorkouts++;
                         stats.thisMonthDurationSeconds += (item.duration || 0);
                     }
-                    if (d >= startOfWeek) {
+                    if (d >= startOfWeek && d < endOfWeek) {
                         stats.thisWeekWorkouts++;
                     }
                     var dateKey = Qt.formatDate(d, "yyyy-MM-dd");

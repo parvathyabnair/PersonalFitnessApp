@@ -10,7 +10,8 @@ Rectangle {
     property bool restTimerRunning: false
     property bool workoutPausedForRest: false
 
-    property color primaryColor: (typeof root !== "undefined" && root.primaryColor) ? root.primaryColor : "#FF5252"
+    property color primaryColor: (typeof root !== "undefined" && root.primaryColor) ? root.primaryColor : "#fc5d5d"
+    property color secondaryColor: (typeof root !== "undefined" && root.secondaryColor) ? root.secondaryColor : "#79cff2"
     property color cardBgColor: (typeof root !== "undefined" && root.cardBgColor) ? root.cardBgColor : "#FFFFFF"
     property color cardBorderColor: (typeof root !== "undefined" && root.cardBorderColor) ? root.cardBorderColor : "#E9ECEF"
     property color textPrimaryColor: (typeof root !== "undefined" && root.textPrimaryColor) ? root.textPrimaryColor : "#1A1B1E"
@@ -64,8 +65,8 @@ Rectangle {
             width: parent.width
             height: units.gu(3.2)
             radius: units.dp(6)
-            color: Qt.rgba(2/255, 132/255, 199/255, 0.15)
-            border.color: "#0284C7"
+            color: (typeof root !== "undefined" && root.secondaryLightColor) ? root.secondaryLightColor : Qt.rgba(restTimerRoot.secondaryColor.r, restTimerRoot.secondaryColor.g, restTimerRoot.secondaryColor.b, 0.20)
+            border.color: restTimerRoot.secondaryColor
             border.width: units.dp(1)
 
             Row {
@@ -81,7 +82,7 @@ Rectangle {
                     text: i18n.tr("Workout timer auto-paused • Automatically resumes when rest ends")
                     font.pixelSize: units.gu(1.1)
                     font.bold: true
-                    color: "#0284C7"
+                    color: (typeof root !== "undefined" && root.isDarkMode) ? "#FFFFFF" : "#1A1B1E"
                 }
             }
         }

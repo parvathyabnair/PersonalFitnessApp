@@ -36,14 +36,16 @@ MainView {
 
     // THEME PALETTE HELPERS (Used consistently across all pages)
     readonly property bool isDarkMode: Theme.name === "Ubuntu.Components.Themes.SuruDark"
-    readonly property color primaryColor: "#FF5252"
-    readonly property color primaryHoverColor: "#FF6E6E"
-    readonly property color primaryLightColor: isDarkMode ? "#3D2224" : "#FFEAEA"
+    readonly property color primaryColor: '#fc5d5d'
+    readonly property color secondaryColor: '#79cff2'
+    readonly property color primaryHoverColor: "#fd7e7e"
+    readonly property color primaryLightColor: isDarkMode ? "#3D2020" : "#FDEAEA"
+    readonly property color secondaryLightColor: isDarkMode ? "#162832" : "#EAF7FD"
     readonly property color cardBgColor: isDarkMode ? "#25262B" : "#FFFFFF"
     readonly property color cardBorderColor: isDarkMode ? "#373A40" : "#E9ECEF"
     readonly property color textPrimaryColor: isDarkMode ? "#F8F9FA" : "#1A1B1E"
     readonly property color textSecondaryColor: isDarkMode ? "#A0A0A5" : "#6C757D"
-    readonly property color accentBlue: isDarkMode ? "#38BDF8" : "#0284C7"
+    readonly property color accentBlue: secondaryColor
     readonly property color accentGreen: isDarkMode ? "#34D399" : "#10B981"
     readonly property color accentOrange: isDarkMode ? "#FB923C" : "#F97316"
 
@@ -173,7 +175,7 @@ MainView {
     property bool reminderPaused: false
     property int reminderIntervalSeconds: 2700 // default 45 mins
     property int reminderSecondsLeft: 0
-    property string reminderTitle: i18n.tr("💧 Time to Hydrate!")
+    property string reminderTitle: i18n.tr("Time to Hydrate!")
     property string reminderMessage: i18n.tr("Take a refreshing drink of water to keep your hydration on track.")
     property bool reminderRepeat: true
     property string reminderType: "water" // "water" or "custom"
@@ -188,7 +190,7 @@ MainView {
         property int savedIntervalSeconds: 2700
         property int savedSecondsLeft: 2700
         property double savedTargetTimestamp: 0
-        property string savedTitle: "💧 Time to Hydrate!"
+        property string savedTitle: "Time to Hydrate!"
         property string savedMessage: "Take a refreshing drink of water to keep your hydration on track."
         property bool savedRepeat: true
         property string savedType: "water"
@@ -242,7 +244,7 @@ MainView {
         var s = parseInt(seconds) || 2700
         reminderIntervalSeconds = s
         reminderSecondsLeft = s
-        reminderTitle = title || i18n.tr("💧 Time to Hydrate!")
+        reminderTitle = title || i18n.tr("Time to Hydrate!")
         reminderMessage = message || i18n.tr("Take a refreshing drink of water to keep your hydration on track.")
         reminderRepeat = (typeof repeat !== "undefined") ? repeat : true
         reminderType = type || "water"
@@ -337,7 +339,7 @@ MainView {
 
     function restoreReminderState() {
         reminderIntervalSeconds = reminderStorage.savedIntervalSeconds > 0 ? reminderStorage.savedIntervalSeconds : 2700
-        reminderTitle = reminderStorage.savedTitle || i18n.tr("💧 Time to Hydrate!")
+        reminderTitle = reminderStorage.savedTitle || i18n.tr("Time to Hydrate!")
         reminderMessage = reminderStorage.savedMessage || i18n.tr("Take a refreshing drink of water to keep your hydration on track.")
         reminderRepeat = (typeof reminderStorage.savedRepeat !== "undefined") ? reminderStorage.savedRepeat : true
         reminderType = reminderStorage.savedType || "water"
@@ -468,7 +470,7 @@ MainView {
         height: bannerCol.height + units.gu(2.8)
         radius: units.dp(16)
         color: root.isDarkMode ? "#25262B" : "#FFFFFF"
-        border.color: reminderType === "water" ? "#38BDF8" : root.primaryColor
+        border.color: reminderType === "water" ? root.secondaryColor : root.primaryColor
         border.width: units.dp(2)
         anchors.horizontalCenter: parent.horizontalCenter
 
@@ -487,7 +489,7 @@ MainView {
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
-            color: reminderType === "water" ? Qt.rgba(56/255, 189/255, 248/255, 0.08) : Qt.rgba(255/255, 82/255, 82/255, 0.08)
+            color: reminderType === "water" ? Qt.rgba(root.secondaryColor.r, root.secondaryColor.g, root.secondaryColor.b, 0.15) : Qt.rgba(root.primaryColor.r, root.primaryColor.g, root.primaryColor.b, 0.15)
             z: -1
         }
 
@@ -578,7 +580,7 @@ MainView {
                 Button {
                     visible: root.reminderType === "water"
                     text: i18n.tr("+250 ml (Cup)")
-                    color: "#38BDF8"
+                    color: root.secondaryColor
                     width: (parent.width - units.gu(2)) / 3
                     height: units.gu(3.8)
                     onClicked: {
@@ -591,7 +593,7 @@ MainView {
                 Button {
                     visible: root.reminderType === "water"
                     text: i18n.tr("+500 ml")
-                    color: "#0284C7"
+                    color: root.secondaryColor
                     width: (parent.width - units.gu(2)) / 3
                     height: units.gu(3.8)
                     onClicked: {

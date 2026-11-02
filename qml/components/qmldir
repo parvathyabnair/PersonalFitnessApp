@@ -3,3 +3,4 @@ ListHeader 1.0 ListHeader.qml
 StatCard 1.0 StatCard.qml
 MetricPill 1.0 MetricPill.qml
 RestTimerCard 1.0 RestTimerCard.qml
+ExportReportModal 1.0 ExportReportModal.qml

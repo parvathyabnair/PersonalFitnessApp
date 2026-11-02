@@ -4,8 +4,8 @@ import Lomiri.Components 1.3
 Rectangle {
     id: pill
     property string text: ""
-    property color pillColor: "#38BDF8"
-    property color textColor: "white"
+    property color pillColor: (typeof root !== "undefined" && root.secondaryColor) ? root.secondaryColor : "#79cff2"
+    property color textColor: "#1A1B1E"
     property real textSize: units.gu(1.1)
 
     height: units.gu(2.8)

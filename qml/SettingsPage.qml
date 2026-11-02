@@ -3,6 +3,7 @@ import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import Lomiri.Components.Pickers 1.3
 import QtQuick.Layouts 1.3
+import "components"
 import "database.js" as DB
 
 Page {
@@ -88,9 +89,6 @@ Page {
 
             kcalInputField.text = settings.kcal_target ? String(settings.kcal_target) : "500"
 
-            var workoutsIdx = setSelector.model.indexOf(String(settings.num_workouts))
-            if (workoutsIdx !== -1) setSelector.selectedIndex = workoutsIdx
-
             selectedDate = settings.date || ""
             goalWeightField.text = settings.goal_weight || ""
             
@@ -115,7 +113,8 @@ Page {
         var weight = weightInputField.text.trim() !== "" ? weightInputField.text.trim() : (currentWeightVal || "70")
         currentWeightVal = weight
         var kcal = kcalInputField.text.trim() !== "" ? kcalInputField.text.trim() : "500"
-        var workouts = setSelector.model[setSelector.selectedIndex]
+        var currentSettings = DB.getSettings()
+        var workouts = (currentSettings && currentSettings.num_workouts) ? currentSettings.num_workouts : "3"
         var goalWeight = goalWeightField.text.trim()
         var gender = femalePill.selected ? "Female" : "Male"
         var dateVal = selectedDate !== "" ? selectedDate : Qt.formatDate(new Date(), "MM/dd/yyyy")
@@ -600,7 +599,7 @@ Page {
                                         text: metabolicCard.currentBmr.toString()
                                         font.bold: true
                                         font.pixelSize: units.gu(2.4)
-                                        color: "#38BDF8"
+                                        color: root.secondaryColor
                                     }
 
                                     Label {
@@ -685,24 +684,6 @@ Page {
                         }
                     }
 
-                    // Number of Workouts Target
-                    Column {
-                        width: parent.width
-                        spacing: units.gu(0.6)
-
-                        Label {
-                            text: i18n.tr("Target Workouts per Week")
-                            font.bold: true
-                            font.pixelSize: units.gu(1.4)
-                            color: root.textSecondaryColor
-                        }
-
-                        OptionSelector {
-                            id: setSelector
-                            model: ["1", "2", "3", "4", "5", "6", "7"]
-                        }
-                    }
-
                     // Target Date
                     Column {
                         width: parent.width
@@ -725,6 +706,80 @@ Page {
                             onClicked: {
                                 PopupUtils.open(datePickerPopover, dateButton)
                             }
+                        }
+                    }
+                }
+            }
+
+            // FITNESS REPORTS & DATA EXPORT SECTION CARD
+            Rectangle {
+                width: parent.width
+                height: exportColumn.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+
+                Column {
+                    id: exportColumn
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.5)
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: units.gu(1)
+
+                        Rectangle {
+                            width: units.gu(3.8)
+                            height: units.gu(3.8)
+                            radius: units.dp(8)
+                            color: Qt.rgba(root.primaryColor.r, root.primaryColor.g, root.primaryColor.b, 0.12)
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: "📊"
+                                font.pixelSize: units.gu(1.8)
+                            }
+                        }
+
+                        Column {
+                            Layout.fillWidth: true
+                            spacing: units.dp(2)
+
+                            Label {
+                                text: i18n.tr("Fitness Reports & Data")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.6)
+                                color: root.textPrimaryColor
+                            }
+
+                            Label {
+                                text: i18n.tr("Export training history and health stats")
+                                font.pixelSize: units.gu(1.1)
+                                color: root.textSecondaryColor
+                            }
+                        }
+                    }
+
+                    Label {
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                        text: i18n.tr("Generate a formatted printable PDF report with your profile, MET stats, and session logs, or export raw CSV data for spreadsheets.")
+                        font.pixelSize: units.gu(1.15)
+                        color: root.textSecondaryColor
+                    }
+
+                    Button {
+                        text: i18n.tr("📄 Export Fitness Report (PDF / CSV)")
+                        color: root.secondaryColor
+                        width: parent.width
+                        height: units.gu(4.6)
+
+                        onClicked: {
+                            exportModalItem.openModal()
                         }
                     }
                 }
@@ -797,6 +852,10 @@ Page {
                 }
             }
         }
+    }
+
+    ExportReportModal {
+        id: exportModalItem
     }
 
     Component.onCompleted: {

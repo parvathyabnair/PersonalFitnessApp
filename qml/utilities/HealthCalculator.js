@@ -11,7 +11,7 @@ function calculateBMI(weightKg, heightCm) {
     var color = "#34D399";
     if (bmiVal < 18.5) {
         status = "Underweight";
-        color = "#38BDF8";
+        color = "#79cff2";
     } else if (bmiVal >= 25.0 && bmiVal < 30.0) {
         status = "Overweight";
         color = "#FBBF24";

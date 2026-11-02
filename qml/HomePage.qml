@@ -2,6 +2,7 @@ import QtQuick 2.7
 import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
+import "components"
 import "database.js" as DB
 
 Page {
@@ -134,6 +135,15 @@ Page {
 
                 onTriggered: {
                     pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SettingsPage.qml"), {pageLayout: pageLayout})
+                }
+            },
+
+            Action {
+                iconName: "document-save-as"
+                text: i18n.tr("Export Report")
+
+                onTriggered: {
+                    exportModalItem.openModal()
                 }
             },
 
@@ -284,7 +294,7 @@ Page {
                         height: units.dp(4)
                         anchors.top: parent.top
                         radius: units.dp(12)
-                        color: root.accentOrange
+                        color: root.primaryColor
                     }
 
                     Column {
@@ -335,7 +345,7 @@ Page {
                         height: units.dp(4)
                         anchors.top: parent.top
                         radius: units.dp(12)
-                        color: root.accentBlue
+                        color: root.secondaryColor
                     }
 
                     Column {
@@ -509,23 +519,42 @@ Page {
 
                         Item { Layout.fillWidth: true }
 
-                        Rectangle {
-                            height: units.gu(2.4)
-                            width: monthBadge.width + units.gu(1.6)
-                            radius: height / 2
-                            color: Qt.rgba(16/255, 185/255, 129/255, 0.18)
-                            border.color: "#10B981"
-                            border.width: units.dp(1)
+                        AbstractButton {
+                            height: units.gu(3.6)
+                            width: contentRow.implicitWidth + units.gu(2)
+                            onClicked: exportModalItem.openModal()
 
-                            Label {
-                                id: monthBadge
-                                anchors.centerIn: parent
-                                text: Qt.formatDate(new Date(), "MMMM yyyy")
-                                font.bold: true
-                                font.pixelSize: units.gu(1.05)
-                                color: "#10B981"
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: units.dp(8)
+                                color: Qt.rgba(root.secondaryColor.r, root.secondaryColor.g, root.secondaryColor.b, 0.15)
+                                border.color: root.secondaryColor
+                                border.width: units.dp(1)
+
+                                Row {
+                                    id: contentRow
+                                    anchors.centerIn: parent
+                                    spacing: units.gu(0.6)
+
+                                    Icon {
+                                        name: "document-save-as"
+                                        width: units.gu(1.8)
+                                        height: units.gu(1.8)
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        color: root.isDarkMode ? root.secondaryColor : Qt.darker(root.secondaryColor, 1.25)
+                                    }
+
+                                    Label {
+                                        text: i18n.tr("Export Report")
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.15)
+                                        color: root.isDarkMode ? root.secondaryColor : Qt.darker(root.secondaryColor, 1.25)
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                }
                             }
                         }
+
                     }
 
                     // Stats Triplet Row: Workouts (This Month), This Week, Total Training Time
@@ -548,7 +577,7 @@ Page {
                                     text: workoutStats.thisMonthWorkouts
                                     font.bold: true
                                     font.pixelSize: units.gu(2.0)
-                                    color: root.accentBlue
+                                    color: root.primaryColor
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
@@ -576,7 +605,7 @@ Page {
                                     text: workoutStats.thisWeekWorkouts
                                     font.bold: true
                                     font.pixelSize: units.gu(2.0)
-                                    color: root.accentGreen
+                                    color: root.secondaryColor
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
@@ -589,7 +618,7 @@ Page {
                             }
                         }
 
-                        // Box 3: Total Training Time
+                        // Box 3: Month Training Time
                         Rectangle {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(6.6)
@@ -601,17 +630,24 @@ Page {
                                 spacing: units.gu(0.2)
 
                                 Label {
-                                    text: workoutStats.totalDurationSeconds >= 3600 ?
-                                          (workoutStats.totalDurationSeconds / 3600).toFixed(1) + "h" :
-                                          Math.max(0, Math.round(workoutStats.totalDurationSeconds / 60)) + "m"
+                                    text: {
+                                        var secs = workoutStats.thisMonthDurationSeconds || 0
+                                        if (secs > 0 && secs < 3600) {
+                                            return Math.round(secs / 60) + "m"
+                                        }
+                                        return (secs / 3600).toFixed(1) + "h"
+                                    }
                                     font.bold: true
                                     font.pixelSize: units.gu(2.0)
-                                    color: root.accentOrange
+                                    color: root.accentGreen
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
                                 Label {
-                                    text: workoutStats.totalDurationSeconds >= 3600 ? i18n.tr("Total Hours") : i18n.tr("Total Time")
+                                    text: {
+                                        var secs = workoutStats.thisMonthDurationSeconds || 0
+                                        return (secs > 0 && secs < 3600) ? i18n.tr("Month Time") : i18n.tr("Month Hours")
+                                    }
                                     font.pixelSize: units.gu(0.95)
                                     color: root.textSecondaryColor
                                     anchors.horizontalCenter: parent.horizontalCenter
@@ -663,7 +699,7 @@ Page {
                             text: todaysWater + " / " + targetWater + " ml (" + Math.min(100, Math.round((todaysWater / targetWater) * 100)) + "%)"
                             font.bold: true
                             font.pixelSize: units.gu(1.3)
-                            color: "#38BDF8"
+                            color: root.secondaryColor
                         }
                     }
 
@@ -678,7 +714,7 @@ Page {
                             width: Math.min(parent.width, Math.max(units.gu(1.4), parent.width * Math.min(1.0, todaysWater / targetWater)))
                             height: parent.height
                             radius: parent.radius
-                            color: "#38BDF8"
+                            color: root.secondaryColor
 
                             Behavior on width {
                                 NumberAnimation { duration: 400; easing.type: Easing.OutQuad }
@@ -696,8 +732,8 @@ Page {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(3.8)
                             radius: units.dp(8)
-                            color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "#38BDF8" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
-                            border.color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "#38BDF8" : root.cardBorderColor
+                            color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? root.secondaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                            border.color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? root.secondaryColor : root.cardBorderColor
                             border.width: units.dp(1)
 
                             Label {
@@ -705,7 +741,7 @@ Page {
                                 text: i18n.tr("+250 ml (Cup)")
                                 font.bold: hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed
                                 font.pixelSize: units.gu(1.1)
-                                color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "white" : root.textPrimaryColor
+                                color: (hydrationCard.selectedHydrationAction === "cup" || cupMouse.pressed) ? "#1A1B1E" : root.textPrimaryColor
                             }
 
                             MouseArea {
@@ -724,8 +760,8 @@ Page {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(3.8)
                             radius: units.dp(8)
-                            color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "#38BDF8" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
-                            border.color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "#38BDF8" : root.cardBorderColor
+                            color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? root.secondaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                            border.color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? root.secondaryColor : root.cardBorderColor
                             border.width: units.dp(1)
 
                             Label {
@@ -733,7 +769,7 @@ Page {
                                 text: i18n.tr("+500 ml (Bottle)")
                                 font.bold: hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed
                                 font.pixelSize: units.gu(1.1)
-                                color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "white" : root.textPrimaryColor
+                                color: (hydrationCard.selectedHydrationAction === "bottle" || bottleMouse.pressed) ? "#1A1B1E" : root.textPrimaryColor
                             }
 
                             MouseArea {
@@ -752,8 +788,8 @@ Page {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(3.8)
                             radius: units.dp(8)
-                            color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "#38BDF8" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
-                            border.color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "#38BDF8" : root.cardBorderColor
+                            color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? root.secondaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                            border.color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? root.secondaryColor : root.cardBorderColor
                             border.width: units.dp(1)
 
                             Label {
@@ -761,7 +797,7 @@ Page {
                                 text: i18n.tr("Reset")
                                 font.bold: hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed
                                 font.pixelSize: units.gu(1.1)
-                                color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "white" : root.textPrimaryColor
+                                color: (hydrationCard.selectedHydrationAction === "reset" || resetMouse.pressed) ? "#1A1B1E" : root.textPrimaryColor
                             }
 
                             MouseArea {
@@ -784,7 +820,7 @@ Page {
                 height: reminderDashboardCol.height + units.gu(3)
                 radius: units.dp(12)
                 color: root.cardBgColor
-                border.color: (typeof root !== "undefined" && root.reminderActive) ? "#38BDF8" : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
+                border.color: (typeof root !== "undefined" && root.reminderActive) ? root.secondaryColor : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
                 border.width: units.dp(1)
 
                 Column {
@@ -802,18 +838,7 @@ Page {
                             spacing: units.gu(0.8)
                             Layout.alignment: Qt.AlignVCenter
 
-                            Rectangle {
-                                width: units.gu(3.8)
-                                height: units.gu(3.8)
-                                radius: width / 2
-                                color: (typeof root !== "undefined" && root.reminderActive) ? Qt.rgba(56/255, 189/255, 248/255, 0.2) : ((typeof root !== "undefined" && root.reminderPaused) ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : (root.isDarkMode ? "#2C2D32" : "#F1F3F5"))
-
-                                Label {
-                                    anchors.centerIn: parent
-                                    text: "⏱️"
-                                    font.pixelSize: units.gu(1.8)
-                                }
-                            }
+                          
 
                             Column {
                                 spacing: units.gu(0.1)
@@ -833,7 +858,7 @@ Page {
                                            (i18n.tr("Reminder is off • Interval: ") + homePage.selectedHydrationMins + i18n.tr("m")))
                                     font.pixelSize: units.gu(1.1)
                                     font.bold: (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused))
-                                    color: (typeof root !== "undefined" && root.reminderActive) ? "#38BDF8" : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.textSecondaryColor)
+                                    color: (typeof root !== "undefined" && root.reminderActive) ? root.secondaryColor : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.textSecondaryColor)
                                 }
                             }
                         }
@@ -892,8 +917,8 @@ Page {
                                 width: (parent.width - units.gu(3.2)) / 5
                                 height: units.gu(3.4)
                                 radius: units.dp(6)
-                                color: isSelected ? "#38BDF8" : (root.isDarkMode ? "#2C2D32" : "#F1F3F5")
-                                border.color: isSelected ? "#38BDF8" : root.cardBorderColor
+                                color: isSelected ? root.secondaryColor : (root.isDarkMode ? "#2C2D32" : "#F1F3F5")
+                                border.color: isSelected ? root.secondaryColor : root.cardBorderColor
                                 border.width: units.dp(1)
 
                                 Label {
@@ -901,7 +926,7 @@ Page {
                                     text: modelData.label
                                     font.bold: isSelected
                                     font.pixelSize: units.gu(1.1)
-                                    color: isSelected ? "white" : root.textPrimaryColor
+                                    color: isSelected ? "#1A1B1E" : root.textPrimaryColor
                                 }
 
                                 MouseArea {
@@ -912,7 +937,7 @@ Page {
                                         if (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused)) {
                                             root.startReminder(
                                                 modelData.mins * 60,
-                                                i18n.tr("💧 Time to Hydrate!"),
+                                                i18n.tr("Time to Hydrate!"),
                                                 i18n.tr("Drink a glass of water to keep your metabolism and hydration at peak performance."),
                                                 true,
                                                 "water"
@@ -979,14 +1004,14 @@ Page {
                         Button {
                             visible: (typeof root !== "undefined" && !root.reminderActive && !root.reminderPaused)
                             text: i18n.tr("Start Reminder (") + homePage.selectedHydrationMins + i18n.tr("m)")
-                            color: "#38BDF8"
+                            color: root.secondaryColor
                             width: parent.width
                             height: units.gu(3.8)
                             onClicked: {
                                 if (typeof root !== "undefined") {
                                     root.startReminder(
                                         homePage.selectedHydrationMins * 60,
-                                        i18n.tr("💧 Time to Hydrate!"),
+                                        i18n.tr("Time to Hydrate!"),
                                         i18n.tr("Drink a glass of water to keep your metabolism and hydration at peak performance."),
                                         true,
                                         "water"
@@ -1099,8 +1124,8 @@ Page {
                             ctx.closePath();
                             
                             var grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + chartHeight);
-                            grad.addColorStop(0, "rgba(255, 82, 82, 0.35)");
-                            grad.addColorStop(1, "rgba(255, 82, 82, 0.0)");
+                            grad.addColorStop(0, "rgba(247, 135, 135, 0.35)");
+                            grad.addColorStop(1, "rgba(247, 135, 135, 0.0)");
                             ctx.fillStyle = grad;
                             ctx.fill();
                             
@@ -1112,7 +1137,7 @@ Page {
                                 var py2 = paddingTop + chartHeight - (weeklyData[n].value / maxVal) * chartHeight;
                                 ctx.lineTo(px2, py2);
                             }
-                            ctx.strokeStyle = "#FF5252";
+                            ctx.strokeStyle = root.primaryColor;
                             ctx.lineWidth = units.dp(2.5);
                             ctx.stroke();
                             
@@ -1123,7 +1148,7 @@ Page {
                                 
                                 ctx.beginPath();
                                 ctx.arc(dotX, dotY, units.dp(4), 0, 2 * Math.PI, false);
-                                ctx.fillStyle = "#FF5252";
+                                ctx.fillStyle = root.primaryColor;
                                 ctx.fill();
                                 
                                 ctx.beginPath();
@@ -1198,6 +1223,8 @@ Page {
                             }
                         }
                     }
+
+                  
 
                 }
             }
@@ -1301,7 +1328,7 @@ Page {
                     height: formulaCol.height + units.gu(1.6)
                     radius: units.dp(10)
                     color: root.isDarkMode ? "#1C2438" : "#EBF5FF"
-                    border.color: "#38BDF8"
+                    border.color: root.secondaryColor
                     border.width: units.dp(1)
 
                     Column {
@@ -1316,7 +1343,7 @@ Page {
                             text: i18n.tr("Scientific Formula:")
                             font.bold: true
                             font.pixelSize: units.gu(1.1)
-                            color: "#0284C7"
+                            color: root.secondaryColor
                         }
 
                         Label {
@@ -1355,7 +1382,7 @@ Page {
                             height: lightCol.height + units.gu(1.2)
                             radius: units.dp(8)
                             color: root.isDarkMode ? "#1A252C" : "#F0F9FF"
-                            border.color: "#38BDF8"
+                            border.color: root.secondaryColor
                             border.width: units.dp(1)
 
                             Column {
@@ -1370,7 +1397,7 @@ Page {
                                     text: i18n.tr("Light Activity (< 3.0 METs)")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.2)
-                                    color: "#0284C7"
+                                    color: root.secondaryColor
                                 }
                                 Label { text: "• Sitting / Resting: 1.0 MET (Baseline)"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
                                 Label { text: "• Walking slowly (strolling): 2.0 METs"; font.pixelSize: units.gu(1.0); color: root.textPrimaryColor }
@@ -1453,5 +1480,9 @@ Page {
                 }
             }
         }
+    }
+
+    ExportReportModal {
+        id: exportModalItem
     }
 }

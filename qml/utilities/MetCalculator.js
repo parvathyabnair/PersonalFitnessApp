@@ -101,7 +101,7 @@ function getMetIntensityInfo(met) {
         return {
             category: "Light Activity",
             label: "Light Activity",
-            color: "#38BDF8", // Vibrant Sky Blue
+            color: "#79cff2", // Secondary Sky Blue
             badge: "< 3.0 METs",
             level: "light",
             description: "Low exertion baseline (e.g. stretching, casual walking)"

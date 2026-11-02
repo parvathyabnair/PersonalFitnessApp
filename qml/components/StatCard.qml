@@ -7,7 +7,7 @@ Rectangle {
     property string value: "0"
     property string unit: ""
     property string icon: ""
-    property color accentColor: "#FF5252"
+    property color accentColor: (typeof root !== "undefined" && root.primaryColor) ? root.primaryColor : "#fc5d5d"
     property color cardBgColor: (typeof root !== "undefined" && root.cardBgColor) ? root.cardBgColor : "#FFFFFF"
     property color cardBorderColor: (typeof root !== "undefined" && root.cardBorderColor) ? root.cardBorderColor : "#E9ECEF"
     property color textPrimaryColor: (typeof root !== "undefined" && root.textPrimaryColor) ? root.textPrimaryColor : "#1A1B1E"

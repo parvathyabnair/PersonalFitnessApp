@@ -147,7 +147,7 @@ Page {
                 height: heroCol.height + units.gu(3)
                 radius: units.dp(16)
                 color: root.cardBgColor
-                border.color: (typeof root !== "undefined" && root.reminderActive) ? "#38BDF8" : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
+                border.color: (typeof root !== "undefined" && root.reminderActive) ? root.secondaryColor : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
                 border.width: units.dp(1.5)
 
                 Column {
@@ -165,18 +165,7 @@ Page {
                             spacing: units.gu(1)
                             Layout.alignment: Qt.AlignVCenter
 
-                            Rectangle {
-                                width: units.gu(4.5)
-                                height: units.gu(4.5)
-                                radius: width / 2
-                                color: (typeof root !== "undefined" && root.reminderActive) ? Qt.rgba(56/255, 189/255, 248/255, 0.2) : ((typeof root !== "undefined" && root.reminderPaused) ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : (root.isDarkMode ? "#2C2D32" : "#F1F3F5"))
-
-                                Label {
-                                    anchors.centerIn: parent
-                                    text: "💧"
-                                    font.pixelSize: units.gu(2.2)
-                                }
-                            }
+                           
 
                             Column {
                                 spacing: units.gu(0.2)
@@ -239,7 +228,7 @@ Page {
                         height: units.gu(9)
                         radius: units.dp(12)
                         color: root.isDarkMode ? "#1B2228" : "#F0F9FF"
-                        border.color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? "#38BDF8" : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
+                        border.color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? root.secondaryColor : ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.cardBorderColor)
                         border.width: units.dp(1)
 
                         Column {
@@ -252,7 +241,7 @@ Page {
                                       "--:--"
                                 font.bold: true
                                 font.pixelSize: units.gu(3.2)
-                                color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? "#38BDF8" :
+                                color: (typeof root !== "undefined" && root.reminderActive && !root.reminderPaused) ? root.secondaryColor :
                                        ((typeof root !== "undefined" && root.reminderPaused) ? "#F59E0B" : root.textSecondaryColor)
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
@@ -327,11 +316,11 @@ Page {
                             width: parent.width
                             height: units.gu(4.8)
                             text: i18n.tr("Start Reminder")
-                            color: "#38BDF8"
+                            color: root.secondaryColor
                             onClicked: {
                                 if (typeof root !== "undefined") {
                                     var m = parseInt(customMinsField.text.trim()) || 45
-                                    var t = customTitleField.text.trim() || i18n.tr("💧 Time to Hydrate!")
+                                    var t = customTitleField.text.trim() || i18n.tr("Time to Hydrate!")
                                     root.startReminder(
                                         m * 60,
                                         t,
@@ -394,8 +383,8 @@ Page {
                                     width: (parent.width - units.gu(4)) / 6
                                     height: units.gu(3.8)
                                     radius: units.dp(8)
-                                    color: isSelected ? "#38BDF8" : (root.isDarkMode ? "#2C2D32" : "#F1F3F5")
-                                    border.color: isSelected ? "#38BDF8" : root.cardBorderColor
+                                    color: isSelected ? root.secondaryColor : (root.isDarkMode ? "#2C2D32" : "#F1F3F5")
+                                    border.color: isSelected ? root.secondaryColor : root.cardBorderColor
                                     border.width: units.dp(1)
 
                                     Label {
@@ -403,7 +392,7 @@ Page {
                                         text: modelData + "m"
                                         font.bold: isSelected
                                         font.pixelSize: units.gu(1.2)
-                                        color: isSelected ? "white" : root.textPrimaryColor
+                                        color: isSelected ? "#1A1B1E" : root.textPrimaryColor
                                     }
 
                                     MouseArea {
@@ -414,7 +403,7 @@ Page {
                                             if (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused)) {
                                                 root.startReminder(
                                                     parseInt(modelData) * 60,
-                                                    customTitleField.text.trim() || i18n.tr("💧 Time to Hydrate!"),
+                                                    customTitleField.text.trim() || i18n.tr("Time to Hydrate!"),
                                                     i18n.tr("Take a refreshing drink of water to keep your hydration on track."),
                                                     repeatCheck.checked,
                                                     "water"
@@ -455,7 +444,7 @@ Page {
                                 if (typeof root !== "undefined" && (root.reminderActive || root.reminderPaused)) {
                                     root.startReminder(
                                         m * 60,
-                                        customTitleField.text.trim() || i18n.tr("💧 Time to Hydrate!"),
+                                        customTitleField.text.trim() || i18n.tr("Time to Hydrate!"),
                                         i18n.tr("Take a refreshing drink of water to keep your hydration on track."),
                                         repeatCheck.checked,
                                         "water"
@@ -550,7 +539,7 @@ Page {
                             text: todaysWater + " / " + targetWater + " ml"
                             font.bold: true
                             font.pixelSize: units.gu(1.4)
-                            color: "#38BDF8"
+                            color: root.secondaryColor
                         }
                     }
 
@@ -565,7 +554,7 @@ Page {
                             width: Math.min(parent.width, Math.max(units.gu(1.4), parent.width * Math.min(1.0, todaysWater / targetWater)))
                             height: parent.height
                             radius: parent.radius
-                            color: "#38BDF8"
+                            color: root.secondaryColor
 
                             Behavior on width {
                                 NumberAnimation { duration: 400; easing.type: Easing.OutQuad }
@@ -582,7 +571,7 @@ Page {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(4)
                             text: i18n.tr("+250 ml (Cup)")
-                            color: "#38BDF8"
+                            color: root.secondaryColor
                             onClicked: {
                                 todaysWater = DB.addWater(250)
                                 if (typeof root !== "undefined") root.sessionDataChanged()
@@ -593,7 +582,7 @@ Page {
                             width: (parent.width - units.gu(2)) / 3
                             height: units.gu(4)
                             text: i18n.tr("+500 ml")
-                            color: "#0284C7"
+                            color: root.secondaryColor
                             onClicked: {
                                 todaysWater = DB.addWater(500)
                                 if (typeof root !== "undefined") root.sessionDataChanged()

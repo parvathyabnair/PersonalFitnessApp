@@ -130,6 +130,84 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: units.gu(1.2)
 
+            // ACTIVE SESSION RESUME BANNER
+            Rectangle {
+                width: parent.width
+                height: units.gu(5.2)
+                radius: units.dp(10)
+                visible: (typeof root !== "undefined") && root.activeSessionRunning && root.activeSessionId !== -1
+                color: root.isDarkMode ? "#2D1D1C" : "#FEF2F2"
+                border.color: root.primaryColor
+                border.width: units.dp(1)
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: units.gu(1.2)
+                    anchors.rightMargin: units.gu(1.2)
+                    spacing: units.gu(1)
+
+                    Rectangle {
+                        width: units.gu(1.2)
+                        height: units.gu(1.2)
+                        radius: units.dp(6)
+                        color: root.primaryColor
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 1.0; to: 0.2; duration: 600 }
+                            NumberAnimation { from: 0.2; to: 1.0; duration: 600 }
+                        }
+                    }
+
+                    Column {
+                        Layout.fillWidth: true
+                        spacing: units.dp(2)
+
+                        Label {
+                            text: i18n.tr("Workout in Progress: ") + (root.activeSessionWorkout || "Workout")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.3)
+                            color: root.textPrimaryColor
+                            elide: Text.ElideRight
+                        }
+
+                        Label {
+                            text: i18n.tr("Tap to resume active workout timer")
+                            font.pixelSize: units.gu(1.0)
+                            color: root.textSecondaryColor
+                        }
+                    }
+
+                    Label {
+                        text: {
+                            var sec = root.activeSessionSeconds
+                            var h = Math.floor(sec / 3600)
+                            var m = Math.floor((sec % 3600) / 60)
+                            var s = sec % 60
+                            return ("0" + h).slice(-2) + ":" + ("0" + m).slice(-2) + ":" + ("0" + s).slice(-2)
+                        }
+                        font.bold: true
+                        font.pixelSize: units.gu(1.4)
+                        color: root.primaryColor
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        pageLayout.addPageToNextColumn(
+                            addSessionPage,
+                            Qt.resolvedUrl("ActiveSessionPage.qml"),
+                            {
+                                pageLayout: pageLayout,
+                                sessionId: root.activeSessionId,
+                                workout: root.activeSessionWorkout
+                            }
+                        )
+                    }
+                }
+            }
+
             // MODERN FILTER PILLS
             Rectangle {
                 id: topFilterBar
@@ -248,7 +326,21 @@ Page {
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: openEditPage(model)
+                        onClicked: {
+                            if ((typeof root !== "undefined") && root.activeSessionRunning && root.activeSessionId === model.id) {
+                                pageLayout.addPageToNextColumn(
+                                    addSessionPage,
+                                    Qt.resolvedUrl("ActiveSessionPage.qml"),
+                                    {
+                                        pageLayout: pageLayout,
+                                        sessionId: root.activeSessionId,
+                                        workout: root.activeSessionWorkout
+                                    }
+                                )
+                            } else {
+                                openEditPage(model)
+                            }
+                        }
 
                         Column {
                             anchors.fill: parent
@@ -259,13 +351,34 @@ Page {
                             RowLayout {
                                 width: parent.width
 
-                                Label {
+                                Row {
                                     Layout.fillWidth: true
-                                    text: model.workout
-                                    font.bold: true
-                                    font.pixelSize: units.gu(1.8)
-                                    color: root.textPrimaryColor
-                                    elide: Text.ElideRight
+                                    spacing: units.gu(0.8)
+
+                                    Label {
+                                        text: model.workout
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.8)
+                                        color: root.textPrimaryColor
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Rectangle {
+                                        visible: (typeof root !== "undefined") && root.activeSessionRunning && root.activeSessionId === model.id
+                                        width: units.gu(5.5)
+                                        height: units.gu(2)
+                                        radius: units.dp(4)
+                                        color: root.primaryColor
+                                        anchors.verticalCenter: parent.verticalCenter
+
+                                        Label {
+                                            anchors.centerIn: parent
+                                            text: "● LIVE"
+                                            font.bold: true
+                                            font.pixelSize: units.gu(0.9)
+                                            color: "white"
+                                        }
+                                    }
                                 }
 
                                 Label {
@@ -313,11 +426,24 @@ Page {
                             RowLayout {
                                 width: parent.width
 
-                                Label {
-                                    text: "⏱ " + formatTime(model.duration)
-                                    color: root.textSecondaryColor
-                                    font.pixelSize: units.gu(1.3)
+                                Row {
+                                    spacing: units.gu(0.5)
                                     Layout.alignment: Qt.AlignVCenter
+
+                                    Icon {
+                                        name: "alarm-clock"
+                                        width: units.gu(1.8)
+                                        height: units.gu(1.8)
+                                        color: root.textSecondaryColor
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+
+                                    Label {
+                                        text: formatTime(model.duration)
+                                        color: root.textSecondaryColor
+                                        font.pixelSize: units.gu(1.3)
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                 }
 
                                 Item { Layout.fillWidth: true }

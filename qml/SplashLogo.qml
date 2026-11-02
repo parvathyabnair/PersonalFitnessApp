@@ -17,7 +17,7 @@ Item {
         // Fallback if logo doesn't exist
         Rectangle {
             anchors.fill: parent
-            color: '#FF5252'
+            color: '#fc5d5d'
             radius: units.dp(24)
             visible: logo.status === Image.Error || logo.status === Image.Null
             
