@@ -99,8 +99,8 @@ function getMetIntensityInfo(met) {
     var m = parseFloat(met) || 1.0;
     if (m < 3.0) {
         return {
-            category: "Light Activity",
-            label: "Light Activity",
+            category: "Relaxed Pace",
+            label: "Relaxed Pace",
             color: "#79cff2", // Secondary Sky Blue
             badge: "< 3.0 METs",
             level: "light",
@@ -108,8 +108,8 @@ function getMetIntensityInfo(met) {
         };
     } else if (m <= 6.0) {
         return {
-            category: "Moderate Activity",
-            label: "Moderate Activity",
+            category: "Standard Pace",
+            label: "Standard Pace",
             color: "#34D399", // Emerald Green
             badge: "3.0 - 6.0 METs",
             level: "moderate",
@@ -117,8 +117,8 @@ function getMetIntensityInfo(met) {
         };
     } else {
         return {
-            category: "Vigorous Activity",
-            label: "Vigorous Activity",
+            category: "Intense Pace",
+            label: "Intense Pace",
             color: "#EF4444", // Crimson / Red
             badge: "> 6.0 METs",
             level: "vigorous",

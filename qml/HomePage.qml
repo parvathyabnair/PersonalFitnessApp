@@ -1394,7 +1394,7 @@ Page {
                                 spacing: units.gu(0.5)
 
                                 Label {
-                                    text: i18n.tr("Light Activity (< 3.0 METs)")
+                                    text: i18n.tr("Relaxed Pace (< 3.0 METs)")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.2)
                                     color: root.secondaryColor
@@ -1424,7 +1424,7 @@ Page {
                                 spacing: units.gu(0.5)
 
                                 Label {
-                                    text: i18n.tr("Moderate Activity (3.0 – 6.0 METs)")
+                                    text: i18n.tr("Standard Pace (3.0 – 6.0 METs)")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.2)
                                     color: "#16A34A"
@@ -1455,7 +1455,7 @@ Page {
                                 spacing: units.gu(0.5)
 
                                 Label {
-                                    text: i18n.tr("Vigorous Activity (> 6.0 METs)")
+                                    text: i18n.tr("Intense Pace (> 6.0 METs)")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.2)
                                     color: "#EA580C"

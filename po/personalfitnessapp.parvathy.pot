@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:07+0000\n"
+"POT-Creation-Date: 2026-11-04 05:06+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -85,15 +85,18 @@ msgstr ""
 msgid "Metabolic Rate (MET)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:706
+#: ../qml/ActiveSessionPage.qml:706 ../qml/ActiveSessionPage.qml:1092
+#: ../qml/ActiveSessionPage.qml:1422
 msgid "Relaxed Pace"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:707
+#: ../qml/ActiveSessionPage.qml:707 ../qml/ActiveSessionPage.qml:1116
+#: ../qml/ActiveSessionPage.qml:1446
 msgid "Intense Pace"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:708
+#: ../qml/ActiveSessionPage.qml:708 ../qml/ActiveSessionPage.qml:1104
+#: ../qml/ActiveSessionPage.qml:1434
 msgid "Standard Pace"
 msgstr ""
 
@@ -110,15 +113,15 @@ msgid "Workout Pace / Effort:"
 msgstr ""
 
 #: ../qml/ActiveSessionPage.qml:801
-msgid "Relaxed (0.85×)"
+msgid "Relaxed"
 msgstr ""
 
 #: ../qml/ActiveSessionPage.qml:827
-msgid "Standard (1.0×)"
+msgid "Standard"
 msgstr ""
 
 #: ../qml/ActiveSessionPage.qml:853
-msgid "Intense (1.2×)"
+msgid "Intense"
 msgstr ""
 
 #: ../qml/ActiveSessionPage.qml:891
@@ -126,138 +129,126 @@ msgid "How Calories are Calculated"
 msgstr ""
 
 #: ../qml/ActiveSessionPage.qml:911
-msgid "Formula: Calories = Workout MET × Weight (kg) × Duration (hours)"
+msgid "Formula: Calories = Workout MET × Weight (kg) × (Duration in mins / 60)"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:926
+#: ../qml/ActiveSessionPage.qml:929
 msgid "Live Calculation: "
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:935
+#: ../qml/ActiveSessionPage.qml:938
 msgid ""
 "1 MET represents resting energy burn. Higher MET values indicate greater "
 "workout energy expenditure."
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:959 ../qml/HomePage.qml:960
+#: ../qml/ActiveSessionPage.qml:962 ../qml/HomePage.qml:960
 #: ../qml/HydrationReminderPage.qml:272
 msgid "Pause"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:959 ../qml/HomePage.qml:983
+#: ../qml/ActiveSessionPage.qml:962 ../qml/HomePage.qml:983
 #: ../qml/HydrationReminderPage.qml:295
 msgid "Resume"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:980
+#: ../qml/ActiveSessionPage.qml:983
 msgid "Finish & Save"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:988 ../qml/ActiveSessionPage.qml:1339
+#: ../qml/ActiveSessionPage.qml:991 ../qml/ActiveSessionPage.qml:1342
 msgid "Next Exercise"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1002
+#: ../qml/ActiveSessionPage.qml:1005
 msgid "📷 Form Check / Photo"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1068
+#: ../qml/ActiveSessionPage.qml:1071
 msgid "Select Workout Pace"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1077
+#: ../qml/ActiveSessionPage.qml:1080
 msgid "Adjusts calorie burn rate to match your effort:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1089 ../qml/ActiveSessionPage.qml:1419
-msgid "Relaxed Pace (0.85×)"
-msgstr ""
-
-#: ../qml/ActiveSessionPage.qml:1101 ../qml/ActiveSessionPage.qml:1431
-msgid "Standard Pace (1.0×)"
-msgstr ""
-
-#: ../qml/ActiveSessionPage.qml:1113 ../qml/ActiveSessionPage.qml:1443
-msgid "Intense Pace (1.2×)"
-msgstr ""
-
-#: ../qml/ActiveSessionPage.qml:1125 ../qml/ActiveSessionPage.qml:1301
-#: ../qml/ActiveSessionPage.qml:1455 ../qml/ActiveSessionPage.qml:1563
+#: ../qml/ActiveSessionPage.qml:1128 ../qml/ActiveSessionPage.qml:1304
+#: ../qml/ActiveSessionPage.qml:1458 ../qml/ActiveSessionPage.qml:1566
 #: ../qml/MediaVaultPage.qml:1073 ../qml/components/ExportReportModal.qml:519
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1133
+#: ../qml/ActiveSessionPage.qml:1136
 msgid "Start Workout"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1155
+#: ../qml/ActiveSessionPage.qml:1158
 msgid "Edit Workout Time"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1162
+#: ../qml/ActiveSessionPage.qml:1165
 msgid "Adjust or enter current elapsed workout time:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1240 ../qml/SessionCreatePage.qml:945
+#: ../qml/ActiveSessionPage.qml:1243 ../qml/SessionCreatePage.qml:945
 msgid "Hours"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1260 ../qml/SessionCreatePage.qml:974
+#: ../qml/ActiveSessionPage.qml:1263 ../qml/SessionCreatePage.qml:974
 msgid "Minutes"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1280 ../qml/SessionCreatePage.qml:1003
+#: ../qml/ActiveSessionPage.qml:1283 ../qml/SessionCreatePage.qml:1003
 msgid "Seconds"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1312
+#: ../qml/ActiveSessionPage.qml:1315
 msgid "Apply Time"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1348
+#: ../qml/ActiveSessionPage.qml:1351
 msgid ""
 "Previous exercise saved! Select next exercise and intensity to log directly:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1361
+#: ../qml/ActiveSessionPage.qml:1364
 msgid "Exercise / Workout Name"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1408
+#: ../qml/ActiveSessionPage.qml:1411
 msgid "Select Workout Pace:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1467
+#: ../qml/ActiveSessionPage.qml:1470
 msgid "Start Exercise"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1505
+#: ../qml/ActiveSessionPage.qml:1508
 msgid "Edit Workout Name"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1512
+#: ../qml/ActiveSessionPage.qml:1515
 msgid "Update the name of your current active workout:"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1522
+#: ../qml/ActiveSessionPage.qml:1525
 msgid "Workout name"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1574 ../qml/SessionCreatePage.qml:268
+#: ../qml/ActiveSessionPage.qml:1577 ../qml/SessionCreatePage.qml:268
 #: ../qml/SettingsPage.qml:153
 msgid "Save"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1602
+#: ../qml/ActiveSessionPage.qml:1605
 msgid "Session Saved!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1614
+#: ../qml/ActiveSessionPage.qml:1617
 msgid "Workout saved successfully!"
 msgstr ""
 
-#: ../qml/ActiveSessionPage.qml:1618
+#: ../qml/ActiveSessionPage.qml:1621
 msgid "Great!"
 msgstr ""
 
@@ -487,15 +478,15 @@ msgid ""
 msgstr ""
 
 #: ../qml/HomePage.qml:1397
-msgid "Light Activity (< 3.0 METs)"
+msgid "Relaxed Pace (< 3.0 METs)"
 msgstr ""
 
 #: ../qml/HomePage.qml:1427
-msgid "Moderate Activity (3.0 – 6.0 METs)"
+msgid "Standard Pace (3.0 – 6.0 METs)"
 msgstr ""
 
 #: ../qml/HomePage.qml:1458
-msgid "Vigorous Activity (> 6.0 METs)"
+msgid "Intense Pace (> 6.0 METs)"
 msgstr ""
 
 #: ../qml/HomePage.qml:1475
