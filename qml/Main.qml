@@ -347,12 +347,7 @@ MainView {
     }
 
     function dismissReminderNotification() {
-        showReminderNotification = false
-        if (reminderRepeat && reminderIntervalSeconds > 0) {
-            startReminder(reminderIntervalSeconds, reminderTitle, reminderMessage, reminderRepeat, reminderType)
-        } else {
-            stopReminder()
-        }
+        stopReminder()
     }
 
     function triggerManualNotification(title, message, isWater) {

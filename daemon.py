@@ -458,12 +458,7 @@ class FitnessReminderDaemon:
                 if now_ms >= target_ts:
                     log(f"Reminder target reached ({target_ts}), dispatching notification...")
                     self.send_notification(title, message)
-                    if repeat and interval > 0:
-                        new_target = now_ms + (interval * 1000.0)
-                        self._update_reminder_target(new_target, interval)
-                        self._schedule_wakeup(interval)
-                    else:
-                        self._mark_reminder_completed()
+                    self._mark_reminder_completed()
                 else:
                     remaining_sec = (target_ts - now_ms) / 1000.0
                     if remaining_sec <= 300:
@@ -512,3 +507,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

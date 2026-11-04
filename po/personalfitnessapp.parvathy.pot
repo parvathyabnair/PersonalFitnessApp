@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: personalfitnessapp.parvathy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 11:03+0000\n"
+"POT-Creation-Date: 2026-11-04 11:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -380,7 +380,7 @@ msgid "Hydration Tracker"
 msgstr ""
 
 #: ../qml/HomePage.qml:741 ../qml/HydrationReminderPage.qml:573
-#: ../qml/Main.qml:626
+#: ../qml/Main.qml:641
 msgid "+250 ml (Cup)"
 msgstr ""
 
@@ -567,19 +567,19 @@ msgstr ""
 msgid "Today's Hydration Progress"
 msgstr ""
 
-#: ../qml/HydrationReminderPage.qml:584 ../qml/Main.qml:639
+#: ../qml/HydrationReminderPage.qml:584 ../qml/Main.qml:654
 msgid "+500 ml"
 msgstr ""
 
-#: ../qml/Main.qml:579
+#: ../qml/Main.qml:594
 msgid "Timely Reminder • Just now"
 msgstr ""
 
-#: ../qml/Main.qml:653
+#: ../qml/Main.qml:668
 msgid "Done 💪"
 msgstr ""
 
-#: ../qml/Main.qml:664
+#: ../qml/Main.qml:679
 msgid "Snooze (10m)"
 msgstr ""
 
