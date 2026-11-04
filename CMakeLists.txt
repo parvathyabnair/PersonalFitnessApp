@@ -43,6 +43,8 @@ install(FILES push.json DESTINATION ${DATA_DIR})
 install(PROGRAMS push-helper DESTINATION ${DATA_DIR})
 install(PROGRAMS notify-dispatcher.py DESTINATION ${DATA_DIR})
 install(PROGRAMS personalfitnessapp-reminder-daemon.py DESTINATION ${DATA_DIR})
+install(FILES backend.py DESTINATION ${DATA_DIR})
+install(PROGRAMS scheduled-notification.py DESTINATION ${DATA_DIR})
 
 install(DIRECTORY assets DESTINATION ${DATA_DIR})
 

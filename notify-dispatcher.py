@@ -43,38 +43,42 @@ def dispatch(summary="Time to Hydrate!", body="Take a refreshing drink of water 
     }
     payload_str = json.dumps(payload)
 
-    # 1. Dispatch via com.ubuntu.Postal
-    try:
-        subprocess.run([
-            "gdbus", "call", "--session",
-            "--dest", "com.ubuntu.Postal",
-            "--object-path", f"/com/ubuntu/Postal/{OBJECT_SUFFIX}",
-            "--method", "com.ubuntu.Postal.Post",
-            APP_ID, payload_str
-        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
-    except Exception:
-        pass
+    # 1. Dispatch via com.ubuntu.Postal (both hook targets)
+    for hook_target in [f"{APP_PKG}_personalfitnessapp", f"{APP_PKG}_push", APP_PKG]:
+        for obj_path in [f"/com/ubuntu/Postal/{OBJECT_SUFFIX}", f"/com/ubuntu/Postal/{OBJECT_SUFFIX}_2epersonalfitnessapp"]:
+            try:
+                subprocess.run([
+                    "gdbus", "call", "--session",
+                    "--dest", "com.ubuntu.Postal",
+                    "--object-path", obj_path,
+                    "--method", "com.ubuntu.Postal.Post",
+                    hook_target, payload_str
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
+            except Exception:
+                pass
 
     # 2. Dispatch via com.lomiri.Postal (Lomiri namespace)
-    try:
-        subprocess.run([
-            "gdbus", "call", "--session",
-            "--dest", "com.lomiri.Postal",
-            "--object-path", f"/com/lomiri/Postal/{OBJECT_SUFFIX}",
-            "--method", "com.lomiri.Postal.Post",
-            APP_ID, payload_str
-        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
-    except Exception:
-        pass
+    for hook_target in [f"{APP_PKG}_personalfitnessapp", f"{APP_PKG}_push", APP_PKG]:
+        for obj_path in [f"/com/lomiri/Postal/{OBJECT_SUFFIX}", f"/com/lomiri/Postal/{OBJECT_SUFFIX}_2epersonalfitnessapp"]:
+            try:
+                subprocess.run([
+                    "gdbus", "call", "--session",
+                    "--dest", "com.lomiri.Postal",
+                    "--object-path", obj_path,
+                    "--method", "com.lomiri.Postal.Post",
+                    hook_target, payload_str
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
+            except Exception:
+                pass
 
-    # 3. Dispatch via org.freedesktop.Notifications (Desktop / Lomiri fallback)
+    # 3. Dispatch via org.freedesktop.Notifications (Desktop / Lomiri shell fallback)
     try:
         subprocess.run([
             "gdbus", "call", "--session",
             "--dest", "org.freedesktop.Notifications",
             "--object-path", "/org/freedesktop/Notifications",
             "--method", "org.freedesktop.Notifications.Notify",
-            "Personal Fitness App", "0", resolved_icon, summary, body, "[]", "{}", "-1"
+            "Personal Fitness App", "0", resolved_icon, summary, body, "[]", "{}", "5000"
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
     except Exception:
         pass

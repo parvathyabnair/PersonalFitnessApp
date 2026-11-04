@@ -217,45 +217,26 @@ MainView {
     function dispatchSystemNotification(title, message) {
         var t = title || reminderTitle || i18n.tr("Time to Hydrate!")
         var m = message || reminderMessage || i18n.tr("Take a refreshing drink of water to keep your hydration on track.")
-        try {
-            var xhr = new XMLHttpRequest()
-            xhr.open("POST", "http://127.0.0.1:45454/notify", true)
-            xhr.setRequestHeader("Content-Type", "application/json")
-            xhr.send(JSON.stringify({
-                summary: t,
-                body: m,
-                icon: "assets/logo.png"
-            }))
-        } catch(e) {
-            console.log("System notification dispatch error:", e)
+        if (notificationBackendLoader.item && typeof notificationBackendLoader.item.dispatchNow === "function") {
+            notificationBackendLoader.item.dispatchNow(t, m)
         }
     }
 
     function triggerReminderNotification() {
         showReminderNotification = true
         dispatchSystemNotification(reminderTitle, reminderMessage)
-        if (reminderRepeat) {
-            var target = Date.now() + (reminderIntervalSeconds * 1000)
-            reminderTargetTimestamp = target
-            reminderSecondsLeft = reminderIntervalSeconds
-            reminderActive = true
-            reminderPaused = false
 
-            reminderStorage.savedActive = true
-            reminderStorage.savedPaused = false
-            reminderStorage.savedTargetTimestamp = target
-            reminderStorage.savedSecondsLeft = reminderIntervalSeconds
-        } else {
-            reminderActive = false
-            reminderPaused = false
-            reminderSecondsLeft = 0
-            reminderTargetTimestamp = 0
+        // When reminder triggers, stop countdown so it stays at 0:00!
+        // It must NOT automatically restart another countdown in the background without user interaction.
+        reminderActive = false
+        reminderPaused = false
+        reminderSecondsLeft = 0
+        reminderTargetTimestamp = 0
 
-            reminderStorage.savedActive = false
-            reminderStorage.savedPaused = false
-            reminderStorage.savedTargetTimestamp = 0
-            reminderStorage.savedSecondsLeft = 0
-        }
+        reminderStorage.savedActive = false
+        reminderStorage.savedPaused = false
+        reminderStorage.savedTargetTimestamp = 0
+        reminderStorage.savedSecondsLeft = 0
     }
 
     function startReminder(seconds, title, message, repeat, type) {
@@ -280,6 +261,11 @@ MainView {
         reminderStorage.savedMessage = reminderMessage
         reminderStorage.savedRepeat = reminderRepeat
         reminderStorage.savedType = reminderType
+
+        // Schedule detached background worker for when the app is closed or minimized
+        if (notificationBackendLoader.item && typeof notificationBackendLoader.item.schedule === "function") {
+            notificationBackendLoader.item.schedule(s, reminderTitle, reminderMessage)
+        }
     }
 
     function pauseReminder() {
@@ -295,6 +281,10 @@ MainView {
             reminderStorage.savedPaused = true
             reminderStorage.savedSecondsLeft = reminderSecondsLeft
             reminderStorage.savedTargetTimestamp = 0
+
+            if (notificationBackendLoader.item && typeof notificationBackendLoader.item.cancel === "function") {
+                notificationBackendLoader.item.cancel()
+            }
         }
     }
 
@@ -312,6 +302,10 @@ MainView {
             reminderStorage.savedPaused = false
             reminderStorage.savedTargetTimestamp = target
             reminderStorage.savedSecondsLeft = reminderSecondsLeft
+
+            if (notificationBackendLoader.item && typeof notificationBackendLoader.item.schedule === "function") {
+                notificationBackendLoader.item.schedule(reminderSecondsLeft, reminderTitle, reminderMessage)
+            }
         }
     }
 
@@ -326,6 +320,10 @@ MainView {
         reminderStorage.savedPaused = false
         reminderStorage.savedTargetTimestamp = 0
         reminderStorage.savedSecondsLeft = 0
+
+        if (notificationBackendLoader.item && typeof notificationBackendLoader.item.cancel === "function") {
+            notificationBackendLoader.item.cancel()
+        }
     }
 
     function snoozeReminder(minutes) {
@@ -342,10 +340,19 @@ MainView {
         reminderStorage.savedPaused = false
         reminderStorage.savedTargetTimestamp = target
         reminderStorage.savedSecondsLeft = s
+
+        if (notificationBackendLoader.item && typeof notificationBackendLoader.item.schedule === "function") {
+            notificationBackendLoader.item.schedule(s, reminderTitle, reminderMessage)
+        }
     }
 
     function dismissReminderNotification() {
         showReminderNotification = false
+        if (reminderRepeat && reminderIntervalSeconds > 0) {
+            startReminder(reminderIntervalSeconds, reminderTitle, reminderMessage, reminderRepeat, reminderType)
+        } else {
+            stopReminder()
+        }
     }
 
     function triggerManualNotification(title, message, isWater) {
@@ -377,29 +384,17 @@ MainView {
                 reminderTargetTimestamp = reminderStorage.savedTargetTimestamp
                 reminderSecondsLeft = Math.ceil(diffMs / 1000)
             } else {
-                if (reminderRepeat) {
-                    var elapsed = now - reminderStorage.savedTargetTimestamp
-                    var intervalMs = reminderIntervalSeconds * 1000
-                    var remainderMs = intervalMs - (elapsed % intervalMs)
-                    reminderTargetTimestamp = now + remainderMs
-                    reminderSecondsLeft = Math.ceil(remainderMs / 1000)
-                    reminderActive = true
-                    reminderPaused = false
-                    reminderStorage.savedTargetTimestamp = reminderTargetTimestamp
-                    reminderStorage.savedSecondsLeft = reminderSecondsLeft
-                    showReminderNotification = true
-                    dispatchSystemNotification(reminderTitle, reminderMessage)
-                } else {
-                    reminderActive = false
-                    reminderPaused = false
-                    reminderSecondsLeft = 0
-                    reminderTargetTimestamp = 0
-                    reminderStorage.savedActive = false
-                    reminderStorage.savedTargetTimestamp = 0
-                    reminderStorage.savedSecondsLeft = 0
-                    showReminderNotification = true
-                    dispatchSystemNotification(reminderTitle, reminderMessage)
-                }
+                // Timer reached 0 while app was closed!
+                // Stop timer at 0:00 and present notification without silently restarting countdown.
+                reminderActive = false
+                reminderPaused = false
+                reminderSecondsLeft = 0
+                reminderTargetTimestamp = 0
+                reminderStorage.savedActive = false
+                reminderStorage.savedTargetTimestamp = 0
+                reminderStorage.savedSecondsLeft = 0
+                showReminderNotification = true
+                dispatchSystemNotification(reminderTitle, reminderMessage)
             }
         } else {
             reminderActive = false
@@ -452,6 +447,16 @@ MainView {
         ignoreUnknownSignals: true
         onNotificationReceived: {
             triggerReminderNotification()
+        }
+    }
+
+    // Python Background Notification Scheduler Integration
+    Loader {
+        id: notificationBackendLoader
+        source: "NotificationBackend.qml"
+        active: true
+        onLoaded: {
+            console.log("NotificationBackend loaded.")
         }
     }
 
