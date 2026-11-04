@@ -38,6 +38,12 @@ endif()
 configure_file(manifest.json.in ${CMAKE_CURRENT_BINARY_DIR}/manifest.json)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manifest.json DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${PROJECT_NAME}.apparmor DESTINATION ${DATA_DIR})
+install(FILES push-apparmor.json DESTINATION ${DATA_DIR})
+install(FILES push.json DESTINATION ${DATA_DIR})
+install(PROGRAMS push-helper DESTINATION ${DATA_DIR})
+install(PROGRAMS notify-dispatcher.py DESTINATION ${DATA_DIR})
+install(PROGRAMS personalfitnessapp-reminder-daemon.py DESTINATION ${DATA_DIR})
+install(PROGRAMS personalfitnessapp DESTINATION ${DATA_DIR})
 
 install(DIRECTORY assets DESTINATION ${DATA_DIR})
 

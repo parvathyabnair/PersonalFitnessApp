@@ -214,8 +214,26 @@ MainView {
         }
     }
 
+    function dispatchSystemNotification(title, message) {
+        var t = title || reminderTitle || i18n.tr("Time to Hydrate!")
+        var m = message || reminderMessage || i18n.tr("Take a refreshing drink of water to keep your hydration on track.")
+        try {
+            var xhr = new XMLHttpRequest()
+            xhr.open("POST", "http://127.0.0.1:45454/notify", true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.send(JSON.stringify({
+                summary: t,
+                body: m,
+                icon: "assets/logo.png"
+            }))
+        } catch(e) {
+            console.log("System notification dispatch error:", e)
+        }
+    }
+
     function triggerReminderNotification() {
         showReminderNotification = true
+        dispatchSystemNotification(reminderTitle, reminderMessage)
         if (reminderRepeat) {
             var target = Date.now() + (reminderIntervalSeconds * 1000)
             reminderTargetTimestamp = target
@@ -335,6 +353,7 @@ MainView {
         if (message) reminderMessage = message
         reminderType = isWater ? "water" : "custom"
         showReminderNotification = true
+        dispatchSystemNotification(reminderTitle, reminderMessage)
     }
 
     function restoreReminderState() {
@@ -369,6 +388,7 @@ MainView {
                     reminderStorage.savedTargetTimestamp = reminderTargetTimestamp
                     reminderStorage.savedSecondsLeft = reminderSecondsLeft
                     showReminderNotification = true
+                    dispatchSystemNotification(reminderTitle, reminderMessage)
                 } else {
                     reminderActive = false
                     reminderPaused = false
@@ -378,6 +398,7 @@ MainView {
                     reminderStorage.savedTargetTimestamp = 0
                     reminderStorage.savedSecondsLeft = 0
                     showReminderNotification = true
+                    dispatchSystemNotification(reminderTitle, reminderMessage)
                 }
             }
         } else {
@@ -414,6 +435,24 @@ MainView {
         DB.createTable()
         restoreReminderState()
         restoreActiveSessionState()
+    }
+
+    // Ubuntu Touch Push Notification Client Integration
+    Loader {
+        id: pushNotificationLoader
+        source: "PushNotificationClient.qml"
+        active: true
+        onLoaded: {
+            console.log("PushNotificationClient loaded.")
+        }
+    }
+
+    Connections {
+        target: pushNotificationLoader.item
+        ignoreUnknownSignals: true
+        onNotificationReceived: {
+            triggerReminderNotification()
+        }
     }
 
     AdaptivePageLayout {

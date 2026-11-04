@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Ubuntu Touch Push Notification Helper for Personal Fitness App
+Receives incoming push notification JSON payload from the system Postal daemon,
+formats the notification card with summary, body, icon, popup, sound, and vibration,
+and writes the formatted JSON to outfile for Lomiri's notification center.
+"""
+import sys
+import json
+import os
+
+def main():
+    if len(sys.argv) < 3:
+        return
+
+    infile = sys.argv[1]
+    outfile = sys.argv[2]
+
+    data = {}
+    if os.path.exists(infile):
+        try:
+            with open(infile, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception as e:
+            sys.stderr.write(f"push-helper failed to parse input JSON: {e}\n")
+
+    summary = "Time to Hydrate!"
+    body = "Take a refreshing drink of water to keep your hydration on track."
+    icon = "assets/logo.png"
+
+    if isinstance(data, dict):
+        if "notification" in data and isinstance(data["notification"], dict):
+            card = data["notification"].get("card", {})
+            summary = card.get("summary", summary)
+            body = card.get("body", body)
+            icon = card.get("icon", icon)
+        elif "data" in data and isinstance(data["data"], dict):
+            notif = data["data"].get("notification", {})
+            card = notif.get("card", {}) if isinstance(notif, dict) else {}
+            summary = card.get("summary", summary)
+            body = card.get("body", body)
+            icon = card.get("icon", icon)
+        elif "card" in data and isinstance(data["card"], dict):
+            summary = data["card"].get("summary", summary)
+            body = data["card"].get("body", body)
+            icon = data["card"].get("icon", icon)
+        elif "summary" in data:
+            summary = data.get("summary", summary)
+            body = data.get("body", body)
+        elif "message" in data:
+            body = data.get("message", body)
+
+    notification_payload = {
+        "notification": {
+            "card": {
+                "icon": icon,
+                "summary": summary,
+                "body": body,
+                "popup": True,
+                "persist": True
+            },
+            "sound": True,
+            "vibrate": True
+        }
+    }
+
+    try:
+        with open(outfile, 'w', encoding='utf-8') as f:
+            json.dump(notification_payload, f)
+    except Exception as e:
+        sys.stderr.write(f"push-helper failed to write output JSON: {e}\n")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

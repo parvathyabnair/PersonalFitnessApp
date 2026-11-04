@@ -8,6 +8,10 @@
         "personalfitnessapp": {
             "apparmor": "personalfitnessapp.apparmor",
             "desktop":  "personalfitnessapp.desktop"
+        },
+        "push": {
+            "apparmor": "push-apparmor.json",
+            "push-helper": "push.json"
         }
     },
     "version": "1.0.0",
