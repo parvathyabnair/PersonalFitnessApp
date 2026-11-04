@@ -1289,10 +1289,6 @@ Page {
                         spacing: units.gu(1)
                         Layout.alignment: Qt.AlignVCenter
 
-                        Label {
-                            text: "⚡"
-                            font.pixelSize: units.gu(2)
-                        }
 
                         Label {
                             text: i18n.tr("MET Sports Guide")
