@@ -12,7 +12,6 @@ Item {
         Component.onCompleted: {
             addImportPath(Qt.resolvedUrl(".."))
             addImportPath(Qt.resolvedUrl("."))
-            addImportPath("/opt/click.ubuntu.com/personalfitnessapp.parvathy/current")
 
             importModule("backend", function() {
                 console.log("PyOtherSide: backend.py loaded successfully")
@@ -46,3 +45,4 @@ Item {
         })
     }
 }
+
