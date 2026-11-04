@@ -51,10 +51,17 @@ def main():
         elif "message" in data:
             body = data.get("message", body)
 
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    resolved_icon = icon
+    if not os.path.isabs(resolved_icon):
+        candidate = os.path.join(script_dir, resolved_icon)
+        if os.path.exists(candidate):
+            resolved_icon = candidate
+
     notification_payload = {
         "notification": {
             "card": {
-                "icon": icon,
+                "icon": resolved_icon,
                 "summary": summary,
                 "body": body,
                 "popup": True,

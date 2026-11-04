@@ -6,7 +6,8 @@
         "video",
         "content_exchange",
         "content_exchange_source",
-        "push-notification-client"
+        "push-notification-client",
+        "calendar"
     ],
     "policy_version": 20.04
 }

@@ -5,17 +5,25 @@ Item {
     id: backendRoot
 
     property bool isReady: false
+    property var pendingSchedule: null
 
     Python {
         id: py
 
         Component.onCompleted: {
-            addImportPath(Qt.resolvedUrl(".."))
-            addImportPath(Qt.resolvedUrl("."))
+            var rootUrl = Qt.resolvedUrl("..").toString().replace(/^file:\/\//, "")
+            var localUrl = Qt.resolvedUrl(".").toString().replace(/^file:\/\//, "")
+            addImportPath(rootUrl)
+            addImportPath(localUrl)
 
             importModule("backend", function() {
                 console.log("PyOtherSide: backend.py loaded successfully")
                 backendRoot.isReady = true
+                if (backendRoot.pendingSchedule) {
+                    var fn = backendRoot.pendingSchedule
+                    backendRoot.pendingSchedule = null
+                    fn()
+                }
             })
         }
 
@@ -25,13 +33,22 @@ Item {
     }
 
     function schedule(seconds, title, message) {
-        if (!isReady) return
+        if (!isReady) {
+            console.log("NotificationBackend: Queuing schedule until backend is ready...")
+            pendingSchedule = function() {
+                py.call("backend.schedule_notification", [seconds, title, message], function(res) {
+                    console.log("Queued notification scheduled in background:", res)
+                })
+            }
+            return
+        }
         py.call("backend.schedule_notification", [seconds, title, message], function(res) {
             console.log("Notification scheduled in background:", res)
         })
     }
 
     function cancel() {
+        pendingSchedule = null
         if (!isReady) return
         py.call("backend.cancel_notification", [], function(res) {
             console.log("Scheduled notification cancelled:", res)
@@ -45,4 +62,3 @@ Item {
         })
     }
 }
-
