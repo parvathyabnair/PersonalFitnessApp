@@ -19,6 +19,7 @@ SCHEDULER_SCRIPT = os.path.join(SCRIPT_DIR, "scheduled-notification.py")
 DISPATCHER_SCRIPT = os.path.join(SCRIPT_DIR, "notify-dispatcher.py")
 CONFIG_DIR = os.path.expanduser("~/.config/personalfitnessapp.parvathy")
 STATE_FILE = os.path.join(CONFIG_DIR, "scheduled_reminder.json")
+TOKEN_FILE = os.path.join(CONFIG_DIR, "push_token.txt")
 LOG_FILE = os.path.join(CONFIG_DIR, "backend.log")
 
 def log(msg):
@@ -28,6 +29,17 @@ def log(msg):
             f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
     except Exception:
         pass
+
+def save_token(token):
+    try:
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+        with open(TOKEN_FILE, "w", encoding="utf-8") as f:
+            f.write(str(token).strip())
+        log(f"Push token saved: {str(token)[:15]}...")
+        return True
+    except Exception as e:
+        log(f"save_token exception: {e}")
+        return False
 
 def schedule_notification(seconds, title, message):
     try:

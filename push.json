@@ -1,4 +1,5 @@
 {
-    "exec": "push-helper"
+    "exec": "push-helper",
+    "app_id": "personalfitnessapp.parvathy_personalfitnessapp"
 }
 

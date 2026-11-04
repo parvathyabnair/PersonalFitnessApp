@@ -5,12 +5,26 @@ Item {
     id: pushClientRoot
     signal notificationReceived(var notification)
 
+    property string currentToken: ""
+
+    function checkAndStoreToken() {
+        if (pushClient.token && pushClient.token.length > 0) {
+            pushClientRoot.currentToken = pushClient.token
+            console.log("Push notification registration token:", pushClient.token)
+            if (typeof notificationBackendLoader !== "undefined" &&
+                notificationBackendLoader.item &&
+                typeof notificationBackendLoader.item.savePushToken === "function") {
+                notificationBackendLoader.item.savePushToken(pushClient.token)
+            }
+        }
+    }
+
     PushClient {
         id: pushClient
         appId: "personalfitnessapp.parvathy_personalfitnessapp"
 
         onTokenChanged: {
-            console.log("Push notification registration token:", pushClient.token)
+            checkAndStoreToken()
         }
 
         onNotificationsChanged: {
@@ -30,6 +44,6 @@ Item {
         } catch(e) {
             console.log("Error getting notifications on start:", e)
         }
+        checkAndStoreToken()
     }
 }
-

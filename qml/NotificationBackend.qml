@@ -6,6 +6,7 @@ Item {
 
     property bool isReady: false
     property var pendingSchedule: null
+    property string pendingToken: ""
 
     Python {
         id: py
@@ -19,6 +20,12 @@ Item {
             importModule("backend", function() {
                 console.log("PyOtherSide: backend.py loaded successfully")
                 backendRoot.isReady = true
+                if (backendRoot.pendingToken && backendRoot.pendingToken.length > 0) {
+                    py.call("backend.save_token", [backendRoot.pendingToken], function(res) {
+                        console.log("Queued push token saved:", res)
+                    })
+                    backendRoot.pendingToken = ""
+                }
                 if (backendRoot.pendingSchedule) {
                     var fn = backendRoot.pendingSchedule
                     backendRoot.pendingSchedule = null
@@ -30,6 +37,17 @@ Item {
         onError: {
             console.log("PyOtherSide error:", traceback)
         }
+    }
+
+    function savePushToken(token) {
+        if (!token) return
+        if (!isReady) {
+            pendingToken = token
+            return
+        }
+        py.call("backend.save_token", [token], function(res) {
+            console.log("Push token saved in background:", res)
+        })
     }
 
     function schedule(seconds, title, message) {
