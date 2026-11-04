@@ -1,6 +1,6 @@
 [Desktop Entry]
 _Name=Fitness App
-Exec=personalfitnessapp %U
+Exec=qmlscene %U qml/Main.qml
 Icon=assets/logo.png
 Terminal=false
 Type=Application

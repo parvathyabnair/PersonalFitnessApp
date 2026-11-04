@@ -94,3 +94,4 @@ if __name__ == "__main__":
     b = sys.argv[2] if len(sys.argv) > 2 else "Take a refreshing drink of water to keep your hydration on track."
     ic = sys.argv[3] if len(sys.argv) > 3 else "assets/logo.png"
     dispatch(s, b, ic)
+

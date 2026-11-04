@@ -43,7 +43,6 @@ install(FILES push.json DESTINATION ${DATA_DIR})
 install(PROGRAMS push-helper DESTINATION ${DATA_DIR})
 install(PROGRAMS notify-dispatcher.py DESTINATION ${DATA_DIR})
 install(PROGRAMS personalfitnessapp-reminder-daemon.py DESTINATION ${DATA_DIR})
-install(PROGRAMS personalfitnessapp DESTINATION ${DATA_DIR})
 
 install(DIRECTORY assets DESTINATION ${DATA_DIR})
 
