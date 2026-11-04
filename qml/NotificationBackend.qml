@@ -20,6 +20,10 @@ Item {
             importModule("backend", function() {
                 console.log("PyOtherSide: backend.py loaded successfully")
                 backendRoot.isReady = true
+                py.call("backend.ensure_daemon", [], function(res) {
+                    console.log("Background daemon ensured on startup:", res)
+                })
+
                 if (backendRoot.pendingToken && backendRoot.pendingToken.length > 0) {
                     py.call("backend.save_token", [backendRoot.pendingToken], function(res) {
                         console.log("Queued push token saved:", res)
@@ -37,6 +41,13 @@ Item {
         onError: {
             console.log("PyOtherSide error:", traceback)
         }
+    }
+
+    function ensureDaemon() {
+        if (!isReady) return
+        py.call("backend.ensure_daemon", [], function(res) {
+            console.log("Daemon ensure result:", res)
+        })
     }
 
     function savePushToken(token) {

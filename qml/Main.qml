@@ -426,10 +426,25 @@ MainView {
         }
     }
 
+    function checkDaemonSetupNeeded() {
+        try {
+            var xhr = new XMLHttpRequest()
+            var setupFile = "/home/phablet/.personalfitnessapp_needs_setup"
+            xhr.open("GET", "file://" + setupFile, false)
+            try {
+                xhr.send()
+                if (xhr.status === 200 && xhr.responseText.length > 0) {
+                    console.log("Background daemon requires setup: " + xhr.responseText)
+                }
+            } catch (fileError) {}
+        } catch (e) {}
+    }
+
     Component.onCompleted: {
         DB.createTable()
         restoreReminderState()
         restoreActiveSessionState()
+        checkDaemonSetupNeeded()
     }
 
     // Ubuntu Touch Push Notification Client Integration
