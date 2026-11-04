@@ -226,10 +226,6 @@ MainView {
         showReminderNotification = true
         dispatchSystemNotification(reminderTitle, reminderMessage)
 
-        if (systemAlarmLoader.item && typeof systemAlarmLoader.item.cancelAlarm === "function") {
-            systemAlarmLoader.item.cancelAlarm()
-        }
-
         // When reminder triggers, stop countdown so it stays at 0:00!
         // It must NOT automatically restart another countdown in the background without user interaction.
         reminderActive = false
@@ -266,12 +262,7 @@ MainView {
         reminderStorage.savedRepeat = reminderRepeat
         reminderStorage.savedType = reminderType
 
-        // 1. Schedule Native OS Alarm (wakes device & rings even when app is closed)
-        if (systemAlarmLoader.item && typeof systemAlarmLoader.item.scheduleAlarm === "function") {
-            systemAlarmLoader.item.scheduleAlarm(s, reminderTitle, reminderMessage)
-        }
-
-        // 2. Schedule detached background worker for Postal notification
+        // Schedule detached background worker for Postal notification
         if (notificationBackendLoader.item && typeof notificationBackendLoader.item.schedule === "function") {
             notificationBackendLoader.item.schedule(s, reminderTitle, reminderMessage)
         }
@@ -290,10 +281,6 @@ MainView {
             reminderStorage.savedPaused = true
             reminderStorage.savedSecondsLeft = reminderSecondsLeft
             reminderStorage.savedTargetTimestamp = 0
-
-            if (systemAlarmLoader.item && typeof systemAlarmLoader.item.cancelAlarm === "function") {
-                systemAlarmLoader.item.cancelAlarm()
-            }
 
             if (notificationBackendLoader.item && typeof notificationBackendLoader.item.cancel === "function") {
                 notificationBackendLoader.item.cancel()
@@ -316,10 +303,6 @@ MainView {
             reminderStorage.savedTargetTimestamp = target
             reminderStorage.savedSecondsLeft = reminderSecondsLeft
 
-            if (systemAlarmLoader.item && typeof systemAlarmLoader.item.scheduleAlarm === "function") {
-                systemAlarmLoader.item.scheduleAlarm(reminderSecondsLeft, reminderTitle, reminderMessage)
-            }
-
             if (notificationBackendLoader.item && typeof notificationBackendLoader.item.schedule === "function") {
                 notificationBackendLoader.item.schedule(reminderSecondsLeft, reminderTitle, reminderMessage)
             }
@@ -337,10 +320,6 @@ MainView {
         reminderStorage.savedPaused = false
         reminderStorage.savedTargetTimestamp = 0
         reminderStorage.savedSecondsLeft = 0
-
-        if (systemAlarmLoader.item && typeof systemAlarmLoader.item.cancelAlarm === "function") {
-            systemAlarmLoader.item.cancelAlarm()
-        }
 
         if (notificationBackendLoader.item && typeof notificationBackendLoader.item.cancel === "function") {
             notificationBackendLoader.item.cancel()
@@ -361,10 +340,6 @@ MainView {
         reminderStorage.savedPaused = false
         reminderStorage.savedTargetTimestamp = target
         reminderStorage.savedSecondsLeft = s
-
-        if (systemAlarmLoader.item && typeof systemAlarmLoader.item.scheduleAlarm === "function") {
-            systemAlarmLoader.item.scheduleAlarm(s, reminderTitle, reminderMessage)
-        }
 
         if (notificationBackendLoader.item && typeof notificationBackendLoader.item.schedule === "function") {
             notificationBackendLoader.item.schedule(s, reminderTitle, reminderMessage)
@@ -420,9 +395,6 @@ MainView {
                 reminderStorage.savedSecondsLeft = 0
                 showReminderNotification = true
                 dispatchSystemNotification(reminderTitle, reminderMessage)
-                if (systemAlarmLoader.item && typeof systemAlarmLoader.item.cancelAlarm === "function") {
-                    systemAlarmLoader.item.cancelAlarm()
-                }
             }
         } else {
             reminderActive = false
@@ -475,16 +447,6 @@ MainView {
         ignoreUnknownSignals: true
         onNotificationReceived: {
             triggerReminderNotification()
-        }
-    }
-
-    // Ubuntu Touch System Alarm Integration (fires via indicator-datetime even when app is closed)
-    Loader {
-        id: systemAlarmLoader
-        source: "SystemAlarmHelper.qml"
-        active: true
-        onLoaded: {
-            console.log("SystemAlarmHelper loaded.")
         }
     }
 
