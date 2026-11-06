@@ -51,6 +51,9 @@ Page {
 
     readonly property real exerciseMet: DB.getMetValue(chosenWorkoutName)
     readonly property var exerciseMetInfo: DB.getMetIntensityInfo(exerciseMet)
+    property real intensityMultiplier: (typeof root !== "undefined" && root.activeSessionIntensityMultiplier) ? root.activeSessionIntensityMultiplier : 1.0
+    property string intensityLevel: (typeof root !== "undefined" && root.activeSessionIntensityLevel) ? root.activeSessionIntensityLevel : "standard"
+    readonly property real effectiveMet: exerciseMet * intensityMultiplier
 
     property var strengthWorkouts: [
         "Dumbbell Bench Press",
@@ -88,23 +91,7 @@ Page {
     ]
 
     function getSelectedWorkoutName() {
-        var category = categorySelector.model[categorySelector.selectedIndex]
-        if (category === "Strength Training") {
-            return strengthSelector.model[strengthSelector.selectedIndex]
-        } else if (category === "Cardio") {
-            return cardioSelector.model[cardioSelector.selectedIndex]
-        } else if (category === "HIIT Workout") {
-            return "HIIT Workout"
-        } else if (category === "Zumba") {
-            return "Zumba"
-        } else if (category === "Custom Workout") {
-            if (customSelector.selectedIndex === 3) {
-                return customTextField.text.trim() !== "" ? customTextField.text.trim() : "Custom Workout"
-            } else {
-                return customSelector.model[customSelector.selectedIndex]
-            }
-        }
-        return "Workout"
+        return chosenWorkoutName
     }
 
     function getTotalDurationSeconds() {
@@ -192,13 +179,20 @@ Page {
         }
 
         // Recalculate and update calories for the updated duration
-        var cal = DB.calculateMetCalories(workoutVal, userWeight, totalSecs > 0 ? totalSecs : 2700, 1.0)
+        var cal = DB.calculateMetCalories(workoutVal, userWeight, totalSecs > 0 ? totalSecs : 2700, intensityMultiplier)
         DB.updateSessionCalories(currentSessionId, cal)
 
         isSaved = true
         selectedDate = dateVal
         DB.ACTIVE_SESSION_ID = currentSessionId
         DB.ACTIVE_WORKOUT = currentWorkout
+        if (typeof root !== "undefined") {
+            if (root.activeSessionId === -1 || root.activeSessionId === currentSessionId) {
+                root.activeSessionWorkout = currentWorkout
+                root.activeSessionIntensityMultiplier = intensityMultiplier
+                root.activeSessionIntensityLevel = intensityLevel
+            }
+        }
         if (typeof mainView !== "undefined" && typeof mainView.sessionDataChanged === "function") {
             mainView.sessionDataChanged()
         } else if (typeof root !== "undefined" && typeof root.sessionDataChanged === "function") {
@@ -213,10 +207,18 @@ Page {
         }
 
         if (pageLayout) {
+            if (typeof root !== "undefined") {
+                root.activeSessionWorkout = currentWorkout
+                root.activeSessionIntensityMultiplier = intensityMultiplier
+                root.activeSessionIntensityLevel = intensityLevel
+            }
+
             // If the active session is ALREADY running for this session, do not wipe elapsed seconds
             if (root.activeSessionId !== currentSessionId || !root.activeSessionRunning) {
                 root.activeSessionId = currentSessionId
                 root.activeSessionWorkout = currentWorkout
+                root.activeSessionIntensityMultiplier = intensityMultiplier
+                root.activeSessionIntensityLevel = intensityLevel
                 root.activeSessionSeconds = 0
                 root.activeSessionRunning = true
                 
@@ -226,6 +228,10 @@ Page {
                 } else {
                     root.activeSessionTargetSeconds = -1
                 }
+            } else {
+                root.activeSessionWorkout = currentWorkout
+                root.activeSessionIntensityMultiplier = intensityMultiplier
+                root.activeSessionIntensityLevel = intensityLevel
             }
 
             pageLayout.addPageToNextColumn(
@@ -234,7 +240,9 @@ Page {
                 {
                     pageLayout: pageLayout,
                     sessionId: currentSessionId,
-                    workout: currentWorkout
+                    workout: currentWorkout,
+                    intensityMultiplier: intensityMultiplier,
+                    intensityLevel: intensityLevel
                 }
             )
         }
@@ -570,7 +578,7 @@ Page {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.margins: units.gu(1.4)
-                    spacing: units.gu(1)
+                    spacing: units.gu(1.2)
 
                     RowLayout {
                         width: parent.width
@@ -580,12 +588,7 @@ Page {
                             Layout.alignment: Qt.AlignVCenter
 
                             Label {
-                                text: "⚡"
-                                font.pixelSize: units.gu(1.6)
-                            }
-
-                            Label {
-                                text: i18n.tr("Metabolic Forecast (Compendium)")
+                                text: i18n.tr("Metabolic Forecast")
                                 font.bold: true
                                 font.pixelSize: units.gu(1.4)
                                 color: root.textPrimaryColor
@@ -598,7 +601,8 @@ Page {
                             height: units.gu(2.8)
                             width: metBadgeRow.width + units.gu(1.6)
                             radius: height / 2
-                            color: exerciseMetInfo.color
+                            color: (intensityLevel === "light") ? root.secondaryColor :
+                                   (intensityLevel === "high" || intensityLevel === "vigorous") ? "#EF4444" : "#34D399"
                             opacity: 0.9
 
                             Row {
@@ -606,7 +610,7 @@ Page {
                                 anchors.centerIn: parent
                                 spacing: units.gu(0.4)
                                 Label {
-                                    text: exerciseMet.toFixed(1) + " METs"
+                                    text: effectiveMet.toFixed(1) + " METs"
                                     font.bold: true
                                     font.pixelSize: units.gu(1.1)
                                     color: "white"
@@ -631,10 +635,13 @@ Page {
                                 spacing: units.gu(0.2)
 
                                 Label {
-                                    text: exerciseMetInfo.label
+                                    text: (intensityLevel === "light") ? i18n.tr("Relaxed Pace") :
+                                          (intensityLevel === "high" || intensityLevel === "vigorous") ? i18n.tr("Intense Pace") :
+                                          i18n.tr("Standard Pace")
                                     font.bold: true
                                     font.pixelSize: units.gu(1.3)
-                                    color: exerciseMetInfo.color
+                                    color: (intensityLevel === "light") ? root.secondaryColor :
+                                           (intensityLevel === "high" || intensityLevel === "vigorous") ? "#EF4444" : "#34D399"
                                 }
 
                                 Label {
@@ -657,7 +664,7 @@ Page {
                                 Label {
                                     text: {
                                         var durationSecs = getTotalDurationSeconds() > 0 ? getTotalDurationSeconds() : (isTimeBased ? 30 * 60 : 45 * 60)
-                                        var cal = DB.calculateMetCalories(chosenWorkoutName, userWeight, durationSecs, 1.0)
+                                        var cal = DB.calculateMetCalories(chosenWorkoutName, userWeight, durationSecs, intensityMultiplier)
                                         return "~" + Math.round(cal) + " kcal"
                                     }
                                     font.bold: true
@@ -671,6 +678,166 @@ Page {
                                     font.pixelSize: units.gu(0.9)
                                     color: root.textSecondaryColor
                                     anchors.right: parent.right
+                                }
+                            }
+                        }
+                    }
+
+                    // Burn Rate & Hourly Estimate Row (Aligned exactly with Active Session)
+                    RowLayout {
+                        width: parent.width
+
+                        Column {
+                            Layout.fillWidth: true
+                            spacing: units.gu(0.2)
+
+                            Label {
+                                text: i18n.tr("Caloric Burn Rate")
+                                font.pixelSize: units.gu(1.1)
+                                color: root.textSecondaryColor
+                            }
+
+                            Label {
+                                text: {
+                                    var ratePerMin = (effectiveMet * userWeight) / 60.0
+                                    return "~" + ratePerMin.toFixed(1) + " kcal / min"
+                                }
+                                font.bold: true
+                                font.pixelSize: units.gu(1.6)
+                                color: root.accentOrange
+                            }
+                        }
+
+                        Column {
+                            spacing: units.gu(0.2)
+                            Layout.alignment: Qt.AlignRight
+
+                            Label {
+                                text: i18n.tr("Hourly Burn")
+                                font.pixelSize: units.gu(1.1)
+                                color: root.textSecondaryColor
+                                anchors.right: parent.right
+                            }
+
+                            Label {
+                                text: {
+                                    var ratePerHour = effectiveMet * userWeight
+                                    return "~" + Math.round(ratePerHour) + " kcal / hr"
+                                }
+                                font.bold: true
+                                font.pixelSize: units.gu(1.6)
+                                color: root.secondaryColor
+                                anchors.right: parent.right
+                            }
+                        }
+                    }
+
+                    // Workout Effort / Intensity Multiplier Selector
+                    Column {
+                        width: parent.width
+                        spacing: units.gu(0.6)
+
+                        Label {
+                            text: i18n.tr("Workout Pace / Effort:")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
+                            color: root.textSecondaryColor
+                        }
+
+                        Row {
+                            width: parent.width
+                            spacing: units.gu(0.8)
+
+                            // Relaxed Effort
+                            Rectangle {
+                                width: (parent.width - units.gu(1.6)) / 3
+                                height: units.gu(3.8)
+                                radius: units.dp(8)
+                                color: intensityLevel === "light" ? root.secondaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: intensityLevel === "light" ? root.secondaryColor : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: i18n.tr("Relaxed")
+                                    font.bold: intensityLevel === "light"
+                                    font.pixelSize: units.gu(1.1)
+                                    color: intensityLevel === "light" ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        intensityMultiplier = 0.85
+                                        intensityLevel = "light"
+                                        if (typeof root !== "undefined") {
+                                            root.activeSessionIntensityMultiplier = 0.85
+                                            root.activeSessionIntensityLevel = "light"
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Standard Effort
+                            Rectangle {
+                                width: (parent.width - units.gu(1.6)) / 3
+                                height: units.gu(3.8)
+                                radius: units.dp(8)
+                                color: (intensityLevel === "moderate" || intensityLevel === "standard") ? root.primaryColor : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: (intensityLevel === "moderate" || intensityLevel === "standard") ? root.primaryColor : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: i18n.tr("Standard")
+                                    font.bold: (intensityLevel === "moderate" || intensityLevel === "standard")
+                                    font.pixelSize: units.gu(1.1)
+                                    color: (intensityLevel === "moderate" || intensityLevel === "standard") ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        intensityMultiplier = 1.0
+                                        intensityLevel = "standard"
+                                        if (typeof root !== "undefined") {
+                                            root.activeSessionIntensityMultiplier = 1.0
+                                            root.activeSessionIntensityLevel = "standard"
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Intense Effort
+                            Rectangle {
+                                width: (parent.width - units.gu(1.6)) / 3
+                                height: units.gu(3.8)
+                                radius: units.dp(8)
+                                color: (intensityLevel === "vigorous" || intensityLevel === "high") ? "#EF4444" : (root.isDarkMode ? "#25262B" : "#F1F3F5")
+                                border.color: (intensityLevel === "vigorous" || intensityLevel === "high") ? "#EF4444" : root.cardBorderColor
+                                border.width: units.dp(1)
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: i18n.tr("Intense")
+                                    font.bold: (intensityLevel === "vigorous" || intensityLevel === "high")
+                                    font.pixelSize: units.gu(1.1)
+                                    color: (intensityLevel === "vigorous" || intensityLevel === "high") ? "white" : root.textPrimaryColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        intensityMultiplier = 1.2
+                                        intensityLevel = "high"
+                                        if (typeof root !== "undefined") {
+                                            root.activeSessionIntensityMultiplier = 1.2
+                                            root.activeSessionIntensityLevel = "high"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1089,8 +1256,15 @@ Page {
                     height: units.gu(5)
 
                     onClicked: {
-                        saveSessionData()
-                        navigateToActiveSession()
+                        var startAction = function() {
+                            saveSessionData()
+                            navigateToActiveSession()
+                        }
+                        if (typeof root !== "undefined" && root.activeSessionId !== -1 && root.activeSessionId !== currentSessionId && typeof root.promptWorkoutConflict === "function") {
+                            root.promptWorkoutConflict(startAction)
+                        } else {
+                            startAction()
+                        }
                     }
                 }
 

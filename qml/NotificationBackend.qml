@@ -12,8 +12,8 @@ Item {
         id: py
 
         Component.onCompleted: {
-            var rootUrl = Qt.resolvedUrl("..").toString().replace(/^file:\/\//, "")
-            var localUrl = Qt.resolvedUrl(".").toString().replace(/^file:\/\//, "")
+            var rootUrl = Qt.resolvedUrl("..").toString().replace("file://", "")
+            var localUrl = Qt.resolvedUrl(".").toString().replace("file://", "")
             addImportPath(rootUrl)
             addImportPath(localUrl)
 

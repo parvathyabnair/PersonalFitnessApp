@@ -15,14 +15,27 @@ Page {
     property int sessionId: (typeof root !== "undefined" && root.activeSessionId !== -1) ? root.activeSessionId : -1
     property string workout: (typeof root !== "undefined" && root.activeSessionWorkout !== "") ? root.activeSessionWorkout : "Workout"
 
+    readonly property string activeWorkoutName: {
+        if (workout && workout !== "" && workout !== "Workout") return workout;
+        if (typeof root !== "undefined" && root.activeSessionWorkout && root.activeSessionWorkout !== "" && root.activeSessionWorkout !== "Workout") return root.activeSessionWorkout;
+        if (workout && workout !== "") return workout;
+        return (typeof root !== "undefined" && root.activeSessionWorkout) ? root.activeSessionWorkout : "Workout";
+    }
+
+    onWorkoutChanged: {
+        if (typeof root !== "undefined" && workout !== "" && workout !== root.activeSessionWorkout) {
+            root.activeSessionWorkout = workout;
+        }
+    }
+
     // TIMER PROPERTIES (BIND TO GLOBAL)
     property int secondsElapsed: root.activeSessionSeconds
     property bool isRunning: root.activeSessionRunning
 
     // MET (Metabolic Equivalent of Task) Calculation Properties
-    property real intensityMultiplier: 1.0
-    property string intensityLevel: "standard" // "light", "standard", "high" / "vigorous"
-    property real baseMet: DB.getMetValue(root.activeSessionWorkout || workout || "Workout")
+    property real intensityMultiplier: (typeof root !== "undefined" && root.activeSessionIntensityMultiplier) ? root.activeSessionIntensityMultiplier : 1.0
+    property string intensityLevel: (typeof root !== "undefined" && root.activeSessionIntensityLevel) ? root.activeSessionIntensityLevel : "standard" // "light", "standard", "high" / "vigorous"
+    property real baseMet: DB.getMetValue(activeWorkoutName)
     property real effectiveMet: baseMet * intensityMultiplier
     property var metInfo: DB.getMetIntensityInfo(effectiveMet)
     property bool showMetExplainer: false
@@ -89,6 +102,29 @@ Page {
 
     Component.onCompleted: {
         restoreRestTimerState()
+        if (workout && workout !== "" && workout !== "Workout") {
+            if (typeof root !== "undefined") {
+                root.activeSessionWorkout = workout;
+            }
+        } else if (typeof root !== "undefined" && root.activeSessionWorkout && root.activeSessionWorkout !== "") {
+            workout = root.activeSessionWorkout;
+        } else if (sessionId !== -1) {
+            var s = DB.getSessionById(sessionId);
+            if (s && s.workout) {
+                workout = s.workout;
+                if (typeof root !== "undefined") {
+                    root.activeSessionWorkout = s.workout;
+                }
+            }
+        }
+        if (typeof root !== "undefined") {
+            if (root.activeSessionIntensityMultiplier > 0) {
+                intensityMultiplier = root.activeSessionIntensityMultiplier;
+            }
+            if (root.activeSessionIntensityLevel) {
+                intensityLevel = root.activeSessionIntensityLevel;
+            }
+        }
     }
 
     Connections {
@@ -243,7 +279,7 @@ Page {
         }
 
         // Standard Compendium MET Formula: Calories Burned = MET Value × Weight (kg) × Duration (hours)
-        caloriesBurned = DB.calculateMetCalories(root.activeSessionWorkout, weight, timeTaken, intensityMultiplier)
+        caloriesBurned = DB.calculateMetCalories(activeWorkoutName, weight, timeTaken, intensityMultiplier)
 
         DB.updateSessionTime(root.activeSessionId, timeTaken)
         DB.updateSessionCalories(root.activeSessionId, caloriesBurned)
@@ -286,64 +322,231 @@ Page {
             }
         ]
 
-        trailingActionBar.numberOfSlots: 2
-        trailingActionBar.actions: [
-            Action {
-                iconName: "save"
-                text: i18n.tr("Save Session")
-                enabled: root.activeSessionId !== -1
-                onTriggered: handleSaveSession()
+        trailingActionBar.numberOfSlots: (typeof root !== "undefined" && root.activeSessionId !== -1) ? 2 : 0
+        trailingActionBar.actions: (typeof root !== "undefined" && root.activeSessionId !== -1) ? [newWorkoutHeaderAction, saveHeaderAction] : []
+
+        Action {
+            id: newWorkoutHeaderAction
+            iconName: "add"
+            text: i18n.tr("New Workout")
+            visible: typeof root !== "undefined" && root.activeSessionId !== -1
+            enabled: typeof root !== "undefined" && root.activeSessionId !== -1
+            onTriggered: {
+                var openCreate = function() {
+                    pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                }
+                if (typeof root !== "undefined" && typeof root.promptWorkoutConflict === "function") {
+                    root.promptWorkoutConflict(openCreate)
+                } else {
+                    openCreate()
+                }
             }
-        ]
+        }
+
+        Action {
+            id: saveHeaderAction
+            iconName: "save"
+            text: i18n.tr("Save Session")
+            visible: typeof root !== "undefined" && root.activeSessionId !== -1
+            enabled: typeof root !== "undefined" && root.activeSessionId !== -1
+            onTriggered: handleSaveSession()
+        }
     }
 
-    // NO ACTIVE SESSIONS VIEW
-    Item {
+    // NO ACTIVE SESSIONS VIEW (Flickable for responsive layout on all screen sizes)
+    Flickable {
         anchors.fill: parent
         anchors.topMargin: header.height
         visible: root.activeSessionId === -1
+        contentWidth: width
+        contentHeight: Math.max(height, emptyContentCol.height + units.gu(4))
+        boundsBehavior: Flickable.StopAtBounds
 
         Column {
-            anchors.centerIn: parent
-            spacing: units.gu(2.5)
-            width: parent.width - units.gu(4)
+            id: emptyContentCol
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.height > (emptyContentCol.height + units.gu(4)) ? parent.verticalCenter : undefined
+            anchors.top: parent.height > (emptyContentCol.height + units.gu(4)) ? undefined : parent.top
+            anchors.topMargin: units.gu(2)
+            spacing: units.gu(2.2)
+            width: Math.min(parent.width - units.gu(3.6), units.gu(42))
 
             EmptyState {
                 anchors.horizontalCenter: parent.horizontalCenter
-                title: i18n.tr("No Active Workout")
-                message: i18n.tr("You don't have a session running right now. Choose a workout or quick start to track your time and burned calories.")
+                useAnimation: true
+                title: i18n.tr("Ready for Your Workout?")
+                message: i18n.tr("You don't have a session running right now. Choose a workout or quick start to track your time and burned calories")
             }
 
-            Button {
-                text: i18n.tr("Quick Start Workout")
-                color: root.cardBorderColor
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.min(units.gu(26), parent.width * 0.8)
-                height: units.gu(5)
+            // PRIMARY ACTION CARD: QUICK START WORKOUT
+            Rectangle {
+                width: parent.width
+                height: units.gu(7)
+                radius: units.dp(14)
+                color: quickStartMouseArea.pressed ? Qt.darker(root.primaryColor, 1.15) : root.primaryColor
 
-                onClicked: {
-                    var today = new Date().toISOString()
-                    var id = DB.insertSession("General Workout", "1", JSON.stringify([""]), JSON.stringify([""]), today)
-                    if (id !== -1) {
-                        root.activeSessionId = id
-                        root.activeSessionWorkout = "General Workout"
-                        root.activeSessionSeconds = 0
-                        root.activeSessionRunning = false
-                        activePage.isSaved = false
+                Behavior on color {
+                    ColorAnimation { duration: 100 }
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: units.gu(1.4)
+                    spacing: units.gu(1.2)
+
+                    // Left Icon Badge Container
+                    Rectangle {
+                        width: units.gu(4.4)
+                        height: units.gu(4.4)
+                        radius: width / 2
+                        color: Qt.rgba(255, 255, 255, 0.22)
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Icon {
+                            name: "media-playback-start"
+                            width: units.gu(2.2)
+                            height: units.gu(2.2)
+                            anchors.centerIn: parent
+                            color: "#FFFFFF"
+                        }
+                    }
+
+                    // Text Details
+                    Column {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: units.dp(2)
+
+                        Label {
+                            text: i18n.tr("Quick Start Workout")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            color: "#FFFFFF"
+                        }
+
+                        Label {
+                            text: i18n.tr("Instant tracking with real-time MET burn")
+                            font.pixelSize: units.gu(1.15)
+                            color: Qt.rgba(255, 255, 255, 0.85)
+                        }
+                    }
+
+                    // Forward Navigation Arrow
+                    Icon {
+                        name: "next"
+                        width: units.gu(1.8)
+                        height: units.gu(1.8)
+                        color: "#FFFFFF"
+                        opacity: 0.8
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                }
+
+                MouseArea {
+                    id: quickStartMouseArea
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
                         PopupUtils.open(intensityDialogComponent)
                     }
                 }
             }
 
-            Button {
-                text: i18n.tr("Configure Custom Workout")
-                color: root.cardBorderColor
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.min(units.gu(26), parent.width * 0.8)
-                height: units.gu(5)
+            // SECONDARY ACTION CARD: CONFIGURE CUSTOM WORKOUT
+            Rectangle {
+                width: parent.width
+                height: units.gu(7)
+                radius: units.dp(14)
+                color: customStartMouseArea.pressed ? (root.isDarkMode ? "#2C3038" : "#E2E8F0") : root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
 
-                onClicked: {
-                    pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                Behavior on color {
+                    ColorAnimation { duration: 100 }
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: units.gu(1.4)
+                    spacing: units.gu(1.2)
+
+                    // Left Icon Badge Container
+                    Rectangle {
+                        width: units.gu(4.4)
+                        height: units.gu(4.4)
+                        radius: width / 2
+                        color: root.isDarkMode ? "#2D3139" : "#F1F5F9"
+                        border.color: root.cardBorderColor
+                        border.width: units.dp(1)
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Icon {
+                            name: "settings"
+                            width: units.gu(2.2)
+                            height: units.gu(2.2)
+                            anchors.centerIn: parent
+                            color: root.primaryColor
+                        }
+                    }
+
+                    // Text Details
+                    Column {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: units.dp(2)
+
+                        Label {
+                            text: i18n.tr("Configure Custom Workout")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            color: root.textPrimaryColor
+                        }
+
+                        Label {
+                            text: i18n.tr("Customize exercise, sets, reps & duration")
+                            font.pixelSize: units.gu(1.15)
+                            color: root.textSecondaryColor
+                        }
+                    }
+
+                    // Forward Navigation Arrow
+                    Icon {
+                        name: "next"
+                        width: units.gu(1.8)
+                        height: units.gu(1.8)
+                        color: root.textSecondaryColor
+                        opacity: 0.7
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                }
+
+                MouseArea {
+                    id: customStartMouseArea
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        pageLayout.addPageToNextColumn(activePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                    }
+                }
+            }
+
+            // MOTIVATIONAL QUICK STATS SNIPPET
+            Rectangle {
+                width: parent.width
+                height: units.gu(4.2)
+                radius: units.dp(10)
+                color: root.isDarkMode ? Qt.rgba(255, 255, 255, 0.04) : Qt.rgba(0, 0, 0, 0.03)
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: units.gu(1)
+
+                    Label {
+                        text: i18n.tr("Consistency is key • Ready when you are")
+                        font.pixelSize: units.gu(1.1)
+                        color: root.textSecondaryColor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
             }
         }
@@ -424,7 +627,7 @@ Page {
                         spacing: units.gu(0.8)
 
                         Label {
-                            text: root.activeSessionWorkout || i18n.tr("Workout")
+                            text: activeWorkoutName
                             font.bold: true
                             font.pixelSize: units.gu(2.4)
                             color: root.textPrimaryColor
@@ -588,7 +791,7 @@ Page {
                         Label {
                             id: targetReachedLabel
                             anchors.centerIn: parent
-                            text: i18n.tr("🎉 Workout Target Reached!")
+                            text: i18n.tr("Workout Target Reached!")
                             font.bold: true
                             font.pixelSize: units.gu(1.3)
                             color: "white"
@@ -607,7 +810,7 @@ Page {
                         Label {
                             id: restAutoPauseLabel
                             anchors.centerIn: parent
-                            text: i18n.tr("⏸️ Auto-Paused for Rest (Resumes in ") + activePage.restTimeLeft + "s)"
+                            text: i18n.tr("Auto-Paused for Rest (Resumes in ") + activePage.restTimeLeft + "s)"
                             font.bold: true
                             font.pixelSize: units.gu(1.2)
                             color: "#1A1B1E"
@@ -643,7 +846,7 @@ Page {
                                     var weight = 70;
                                     var s = DB.getSettings();
                                     if (s && s.weight) weight = parseFloat(s.weight);
-                                    var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
+                                    var cal = DB.calculateMetCalories(activeWorkoutName, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
                                     return cal.toFixed(1) + " kcal";
                                 }
                                 font.pixelSize: units.gu(1.4)
@@ -809,6 +1012,10 @@ Page {
                                     onClicked: {
                                         activePage.intensityMultiplier = 0.85
                                         activePage.intensityLevel = "light"
+                                        if (typeof root !== "undefined") {
+                                            root.activeSessionIntensityMultiplier = 0.85
+                                            root.activeSessionIntensityLevel = "light"
+                                        }
                                     }
                                 }
                             }
@@ -835,6 +1042,10 @@ Page {
                                     onClicked: {
                                         activePage.intensityMultiplier = 1.0
                                         activePage.intensityLevel = "standard"
+                                        if (typeof root !== "undefined") {
+                                            root.activeSessionIntensityMultiplier = 1.0
+                                            root.activeSessionIntensityLevel = "standard"
+                                        }
                                     }
                                 }
                             }
@@ -861,6 +1072,10 @@ Page {
                                     onClicked: {
                                         activePage.intensityMultiplier = 1.2
                                         activePage.intensityLevel = "high"
+                                        if (typeof root !== "undefined") {
+                                            root.activeSessionIntensityMultiplier = 1.2
+                                            root.activeSessionIntensityLevel = "high"
+                                        }
                                     }
                                 }
                             }
@@ -886,19 +1101,31 @@ Page {
 
                             RowLayout {
                                 width: parent.width
+                                spacing: units.gu(0.8)
 
-                                Label {
-                                    text: "ℹ️ " + i18n.tr("How Calories are Calculated")
-                                    font.bold: true
-                                    font.pixelSize: units.gu(1.1)
+                                Icon {
+                                    name: "info"
+                                    width: units.gu(1.5)
+                                    height: units.gu(1.5)
                                     color: root.secondaryColor
-                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
                                 }
 
                                 Label {
-                                    text: activePage.showMetExplainer ? "▲" : "▼"
-                                    font.pixelSize: units.gu(1.1)
+                                    text: i18n.tr("How Calories are Calculated")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.15)
+                                    color: root.secondaryColor
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                Icon {
+                                    name: activePage.showMetExplainer ? "up" : "down"
+                                    width: units.gu(1.3)
+                                    height: units.gu(1.3)
                                     color: root.textSecondaryColor
+                                    Layout.alignment: Qt.AlignVCenter
                                 }
                             }
 
@@ -925,7 +1152,7 @@ Page {
                                         var secs = root.activeSessionSeconds % 60;
                                         var timeDisplay = mins + "m " + (secs < 10 ? "0" : "") + secs + "s";
                                         var minDec = (root.activeSessionSeconds / 60.0).toFixed(1);
-                                        var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
+                                        var cal = DB.calculateMetCalories(activeWorkoutName, weight, root.activeSessionSeconds, activePage.intensityMultiplier);
                                         return i18n.tr("Live Calculation: ") + activePage.effectiveMet.toFixed(1) + " METs × " + weight + " kg × " + timeDisplay + " (" + minDec + " / 60 hrs) = " + cal.toFixed(1) + " kcal";
                                     }
                                     font.pixelSize: units.gu(1.1)
@@ -952,67 +1179,304 @@ Page {
                 }
             }
 
-            // PRIMARY CONTROL BUTTONS ROW
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: units.gu(1.5)
+            // WORKOUT ACTIONS CONTROL PANEL (2x2 Responsive Thumb-Friendly Grid)
+            Column {
                 width: parent.width
+                spacing: units.gu(1.2)
 
-                Button {
-                    text: root.activeSessionRunning ? i18n.tr("Pause") : i18n.tr("Resume")
-                    color: (!root.activeSessionRunning && root.activeSessionSeconds > 0) ? root.primaryColor : root.cardBorderColor
-                    width: (parent.width - units.gu(3)) / 3
-                    height: units.gu(4.8)
-                    onClicked: {
-                        if (!root.activeSessionRunning) {
-                            activePage.workoutPausedForRest = false
-                            if (activePage.restTimerRunning) {
-                                activePage.restTimerRunning = false
-                                activePage.restStartTimestamp = 0
-                                activePage.restInitialMs = 0
+                // Row 1: Primary Controls (Pause/Resume & Finish/Save)
+                Row {
+                    width: parent.width
+                    spacing: units.gu(1.2)
+
+                    // 1. Pause / Resume Action Card
+                    Rectangle {
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(5.6)
+                        radius: units.dp(12)
+                        color: pauseMouseArea.pressed ? 
+                               (root.activeSessionRunning ? (root.isDarkMode ? "#2A2D35" : "#E2E8F0") : Qt.darker("#10B981", 1.15)) :
+                               (root.activeSessionRunning ? root.cardBgColor : "#10B981")
+                        border.color: root.activeSessionRunning ? 
+                                      (root.isDarkMode ? "#3F424E" : "#D1D5DB") : 
+                                      "#10B981"
+                        border.width: units.dp(1)
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: units.gu(1.2)
+                            anchors.rightMargin: units.gu(1.2)
+                            spacing: units.gu(1)
+
+                            Rectangle {
+                                width: units.gu(3.6)
+                                height: units.gu(3.6)
+                                radius: width / 2
+                                color: root.activeSessionRunning ? 
+                                       (root.isDarkMode ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : Qt.rgba(245/255, 158/255, 11/255, 0.15)) : 
+                                       Qt.rgba(255, 255, 255, 0.25)
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Icon {
+                                    name: root.activeSessionRunning ? "media-playback-pause" : "media-playback-start"
+                                    width: units.gu(1.8)
+                                    height: units.gu(1.8)
+                                    color: root.activeSessionRunning ? "#F59E0B" : "#FFFFFF"
+                                    anchors.centerIn: parent
+                                }
                             }
-                            root.activeSessionRunning = true
-                        } else {
-                            activePage.workoutPausedForRest = false
-                            root.activeSessionRunning = false
+
+                            Column {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: units.dp(1)
+
+                                Label {
+                                    text: root.activeSessionRunning ? i18n.tr("Pause") : i18n.tr("Resume")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.25)
+                                    color: root.activeSessionRunning ? root.textPrimaryColor : "#FFFFFF"
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: root.activeSessionRunning ? i18n.tr("Take rest") : i18n.tr("Continue")
+                                    font.pixelSize: units.gu(0.95)
+                                    color: root.activeSessionRunning ? root.textSecondaryColor : Qt.rgba(255, 255, 255, 0.85)
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: pauseMouseArea
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (!root.activeSessionRunning) {
+                                    activePage.workoutPausedForRest = false
+                                    if (activePage.restTimerRunning) {
+                                        activePage.restTimerRunning = false
+                                        activePage.restStartTimestamp = 0
+                                        activePage.restInitialMs = 0
+                                    }
+                                    root.activeSessionRunning = true
+                                } else {
+                                    activePage.workoutPausedForRest = false
+                                    root.activeSessionRunning = false
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Finish & Save Action Card
+                    Rectangle {
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(5.6)
+                        radius: units.dp(12)
+                        color: finishMouseArea.pressed ? Qt.darker(root.primaryColor, 1.15) : root.primaryColor
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: units.gu(1.2)
+                            anchors.rightMargin: units.gu(1.2)
+                            spacing: units.gu(1)
+
+                            Rectangle {
+                                width: units.gu(3.6)
+                                height: units.gu(3.6)
+                                radius: width / 2
+                                color: Qt.rgba(255, 255, 255, 0.22)
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Icon {
+                                    name: "document-save"
+                                    width: units.gu(1.8)
+                                    height: units.gu(1.8)
+                                    color: "#FFFFFF"
+                                    anchors.centerIn: parent
+                                }
+                            }
+
+                            Column {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: units.dp(1)
+
+                                Label {
+                                    text: i18n.tr("Finish & Save")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.25)
+                                    color: "#FFFFFF"
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: i18n.tr("Complete log")
+                                    font.pixelSize: units.gu(0.95)
+                                    color: Qt.rgba(255, 255, 255, 0.85)
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: finishMouseArea
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: handleSaveSession()
                         }
                     }
                 }
 
-                Button {
-                    text: i18n.tr("Finish & Save")
-                    color: root.cardBorderColor
-                    width: (parent.width - units.gu(3)) / 3
-                    height: units.gu(4.8)
-                    onClicked: handleSaveSession()
-                }
-
-                Button {
-                    text: i18n.tr("Next Exercise")
-                    color: root.cardBorderColor
-                    width: (parent.width - units.gu(3)) / 3
-                    height: units.gu(4.8)
-                    onClicked: handleNextExercise()
-                }
-            }
-
-            // FORM CHECK & PRIVATE MEDIA ATTACHMENT ROW
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: parent.width
-
-                Button {
-                    text: i18n.tr("📷 Form Check / Photo")
-                    color: root.cardBorderColor
+                // Row 2: Workout Flow & Media Tools (Next Exercise & Media Vault)
+                Row {
                     width: parent.width
-                    height: units.gu(4.5)
-                    onClicked: {
-                        var layout = (typeof pageLayout !== "undefined" && pageLayout) ? pageLayout : (typeof root !== "undefined" ? root.pageLayout : null)
-                        if (layout) {
-                            layout.addPageToNextColumn(activePage, Qt.resolvedUrl("MediaVaultPage.qml"), {
-                                pageLayout: layout,
-                                filterSessionId: (activePage.sessionId > 0) ? activePage.sessionId : root.activeSessionId
-                            })
+                    spacing: units.gu(1.2)
+
+                    // 3. Next Exercise Action Card
+                    Rectangle {
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(5.6)
+                        radius: units.dp(12)
+                        color: nextExMouseArea.pressed ? (root.isDarkMode ? "#2A2D35" : "#E2E8F0") : root.cardBgColor
+                        border.color: root.cardBorderColor
+                        border.width: units.dp(1)
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: units.gu(1.2)
+                            anchors.rightMargin: units.gu(1.2)
+                            spacing: units.gu(1)
+
+                            Rectangle {
+                                width: units.gu(3.6)
+                                height: units.gu(3.6)
+                                radius: width / 2
+                                color: Qt.rgba(56/255, 189/255, 248/255, 0.15)
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Icon {
+                                    name: "next"
+                                    width: units.gu(1.8)
+                                    height: units.gu(1.8)
+                                    color: root.secondaryColor
+                                    anchors.centerIn: parent
+                                }
+                            }
+
+                            Column {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: units.dp(1)
+
+                                Label {
+                                    text: i18n.tr("Next Exercise")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.25)
+                                    color: root.textPrimaryColor
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: i18n.tr("Switch set")
+                                    font.pixelSize: units.gu(0.95)
+                                    color: root.textSecondaryColor
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: nextExMouseArea
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: handleNextExercise()
+                        }
+                    }
+
+                    // 4. Form Check & Private Media Vault Card
+                    Rectangle {
+                        width: (parent.width - units.gu(1.2)) / 2
+                        height: units.gu(5.6)
+                        radius: units.dp(12)
+                        color: mediaVaultMouseArea.pressed ? (root.isDarkMode ? "#2A2D35" : "#E2E8F0") : root.cardBgColor
+                        border.color: root.cardBorderColor
+                        border.width: units.dp(1)
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: units.gu(1.2)
+                            anchors.rightMargin: units.gu(1.2)
+                            spacing: units.gu(1)
+
+                            Rectangle {
+                                width: units.gu(3.6)
+                                height: units.gu(3.6)
+                                radius: width / 2
+                                color: Qt.rgba(168/255, 85/255, 247/255, 0.15)
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Icon {
+                                    name: "camera-app"
+                                    width: units.gu(1.8)
+                                    height: units.gu(1.8)
+                                    color: "#A855F7"
+                                    anchors.centerIn: parent
+                                }
+                            }
+
+                            Column {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: units.dp(1)
+
+                                Label {
+                                    text: i18n.tr("Media Vault")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.25)
+                                    color: root.textPrimaryColor
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: i18n.tr("Form check")
+                                    font.pixelSize: units.gu(0.95)
+                                    color: root.textSecondaryColor
+                                    elide: Text.ElideRight
+                                    width: parent.width
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: mediaVaultMouseArea
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                var layout = (typeof pageLayout !== "undefined" && pageLayout) ? pageLayout : (typeof root !== "undefined" ? root.pageLayout : null)
+                                if (layout) {
+                                    layout.addPageToNextColumn(activePage, Qt.resolvedUrl("MediaVaultPage.qml"), {
+                                        pageLayout: layout,
+                                        filterSessionId: (activePage.sessionId > 0) ? activePage.sessionId : root.activeSessionId
+                                    })
+                                }
+                            }
                         }
                     }
                 }
@@ -1041,25 +1505,20 @@ Page {
 
     // NEXT EXERCISE FUNCTION (Direct workout logging without navigating away)
     function handleNextExercise() {
-        // Automatically save current session progress to database if active
-        if (root.activeSessionId !== -1 && root.activeSessionSeconds > 0) {
-            var weight = 70
-            var s = DB.getSettings()
-            if (s && s.weight) weight = parseFloat(s.weight)
-            var cal = DB.calculateMetCalories(root.activeSessionWorkout, weight, root.activeSessionSeconds, activePage.intensityMultiplier)
-            DB.updateSessionTime(root.activeSessionId, root.activeSessionSeconds)
-            DB.updateSessionCalories(root.activeSessionId, cal)
-            activePage.isSaved = true
+        var openNext = function() {
+            root.activeSessionRunning = false
+            workoutPausedForRest = false
+            if (restTimerRunning) {
+                resetRest()
+            }
+            PopupUtils.open(nextExerciseDialogComponent)
         }
 
-        // Pause timer while selecting next exercise
-        root.activeSessionRunning = false
-        workoutPausedForRest = false
-        if (restTimerRunning) {
-            resetRest()
+        if (typeof root !== "undefined" && root.activeSessionId !== -1) {
+            root.promptWorkoutConflict(openNext)
+        } else {
+            openNext()
         }
-
-        PopupUtils.open(nextExerciseDialogComponent)
     }
 
     // INTENSITY SELECTION DIALOG (Prompted before starting timer on Quick Start)
@@ -1129,7 +1588,13 @@ Page {
                         color: root.cardBorderColor
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
-                        onClicked: PopupUtils.close(intensityDlg)
+                        onClicked: {
+                            if (root.activeSessionSeconds === 0 && !root.activeSessionRunning) {
+                                root.activeSessionId = -1
+                                root.activeSessionWorkout = ""
+                            }
+                            PopupUtils.close(intensityDlg)
+                        }
                     }
 
                     Button {
@@ -1138,10 +1603,24 @@ Page {
                         width: (parent.width - units.gu(1.2)) / 2
                         height: units.gu(4.5)
                         onClicked: {
-                            activePage.intensityMultiplier = intensityDlg.selectedMultiplier
-                            activePage.intensityLevel = intensityDlg.selectedLevel
+                            var today = new Date().toISOString()
+                            var id = DB.insertSession("General Workout", "1", JSON.stringify([""]), JSON.stringify([""]), today)
+                            if (id !== -1) {
+                                root.activeSessionId = id
+                                root.activeSessionWorkout = "General Workout"
+                                activePage.workout = "General Workout"
+                                activePage.intensityMultiplier = intensityDlg.selectedMultiplier
+                                activePage.intensityLevel = intensityDlg.selectedLevel
+                                if (typeof root !== "undefined") {
+                                    root.activeSessionIntensityMultiplier = intensityDlg.selectedMultiplier
+                                    root.activeSessionIntensityLevel = intensityDlg.selectedLevel
+                                }
+                                activePage.setSessionTime(0)
+                                activePage.resetRest()
+                                activePage.isSaved = false
+                                root.activeSessionRunning = true
+                            }
                             PopupUtils.close(intensityDlg)
-                            root.activeSessionRunning = true
                         }
                     }
                 }

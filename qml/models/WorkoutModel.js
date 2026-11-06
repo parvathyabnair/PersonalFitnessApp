@@ -42,6 +42,21 @@ function getSessions(searchQuery) {
     return results;
 }
 
+function getSessionById(id) {
+    DBModule.createTable();
+    var db = DBModule.getDatabase();
+    var session = null;
+
+    db.transaction(function(tx) {
+        var rs = tx.executeSql("SELECT * FROM sessions WHERE id = ?", [id]);
+        if (rs.rows.length > 0) {
+            session = rs.rows.item(0);
+        }
+    });
+
+    return session;
+}
+
 function deleteSession(id) {
     DBModule.createTable();
     var db = DBModule.getDatabase();

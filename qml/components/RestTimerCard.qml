@@ -40,11 +40,25 @@ Rectangle {
         RowLayout {
             width: parent.width
 
-            Label {
-                text: i18n.tr("⏱️ Rest Interval Timer")
-                font.bold: true
-                font.pixelSize: units.gu(1.7)
-                color: restTimerRoot.textPrimaryColor
+            Row {
+                spacing: units.gu(0.8)
+                Layout.alignment: Qt.AlignVCenter
+
+                Icon {
+                    name: "alarm-clock"
+                    width: units.gu(1.8)
+                    height: units.gu(1.8)
+                    color: restTimerRoot.primaryColor
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Label {
+                    text: i18n.tr("Rest Interval Timer")
+                    font.bold: true
+                    font.pixelSize: units.gu(1.7)
+                    color: restTimerRoot.textPrimaryColor
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
 
             Item { Layout.fillWidth: true }
@@ -73,9 +87,12 @@ Rectangle {
                 anchors.centerIn: parent
                 spacing: units.gu(0.6)
 
-                Label {
-                    text: "⏸️"
-                    font.pixelSize: units.gu(1.1)
+                Icon {
+                    name: "media-playback-pause"
+                    width: units.gu(1.3)
+                    height: units.gu(1.3)
+                    color: restTimerRoot.secondaryColor
+                    anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Label {
@@ -83,6 +100,7 @@ Rectangle {
                     font.pixelSize: units.gu(1.1)
                     font.bold: true
                     color: (typeof root !== "undefined" && root.isDarkMode) ? "#FFFFFF" : "#1A1B1E"
+                    anchors.verticalCenter: parent.verticalCenter
                 }
             }
         }

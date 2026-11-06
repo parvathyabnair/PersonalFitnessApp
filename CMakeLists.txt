@@ -42,7 +42,6 @@ install(FILES push-apparmor.json DESTINATION ${DATA_DIR})
 install(FILES push.json DESTINATION ${DATA_DIR})
 install(PROGRAMS push-helper DESTINATION ${DATA_DIR})
 install(PROGRAMS notify-dispatcher.py DESTINATION ${DATA_DIR})
-install(PROGRAMS personalfitnessapp-reminder-daemon.py DESTINATION ${DATA_DIR})
 install(FILES backend.py DESTINATION ${DATA_DIR})
 install(PROGRAMS scheduled-notification.py DESTINATION ${DATA_DIR})
 
@@ -78,6 +77,8 @@ file(GLOB_RECURSE PROJECT_SRC_FILES
     RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     qml/*.qml
     qml/*.js
+    tests/*.qml
+    tests/*.js
     src/*
     *.json
     *.json.in

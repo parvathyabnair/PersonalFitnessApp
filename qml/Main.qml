@@ -16,9 +16,11 @@
 
 import QtQuick 2.7
 import Lomiri.Components 1.3
+import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import "database.js" as DB
+import "components"
 
 MainView {
     id: root
@@ -55,6 +57,8 @@ MainView {
     property int activeSessionSeconds: 0
     property bool activeSessionRunning: false
     property int activeSessionTargetSeconds: -1
+    property real activeSessionIntensityMultiplier: 1.0
+    property string activeSessionIntensityLevel: "standard"
 
     property double sessionAccumulatedMs: 0
     property double lastResumeTimestamp: 0
@@ -67,6 +71,8 @@ MainView {
         property bool savedRunning: false
         property int savedSeconds: 0
         property int savedTargetSeconds: -1
+        property real savedIntensityMultiplier: 1.0
+        property string savedIntensityLevel: "standard"
         property double savedAccumulatedMs: 0
         property double savedLastResumeTimestamp: 0
     }
@@ -77,8 +83,22 @@ MainView {
         sessionStorage.savedRunning = activeSessionRunning
         sessionStorage.savedSeconds = activeSessionSeconds
         sessionStorage.savedTargetSeconds = activeSessionTargetSeconds
+        sessionStorage.savedIntensityMultiplier = activeSessionIntensityMultiplier
+        sessionStorage.savedIntensityLevel = activeSessionIntensityLevel
         sessionStorage.savedAccumulatedMs = sessionAccumulatedMs
         sessionStorage.savedLastResumeTimestamp = lastResumeTimestamp
+    }
+
+    onActiveSessionWorkoutChanged: {
+        syncSessionStorage()
+    }
+
+    onActiveSessionIntensityMultiplierChanged: {
+        syncSessionStorage()
+    }
+
+    onActiveSessionIntensityLevelChanged: {
+        syncSessionStorage()
     }
 
     onActiveSessionRunningChanged: {
@@ -123,6 +143,10 @@ MainView {
             activeSessionId = sessionStorage.savedSessionId
             activeSessionWorkout = sessionStorage.savedWorkout
             activeSessionTargetSeconds = sessionStorage.savedTargetSeconds
+            if (sessionStorage.savedIntensityMultiplier > 0) {
+                activeSessionIntensityMultiplier = sessionStorage.savedIntensityMultiplier
+                activeSessionIntensityLevel = sessionStorage.savedIntensityLevel || "standard"
+            }
             if (sessionStorage.savedRunning && sessionStorage.savedLastResumeTimestamp > 0) {
                 var now = Date.now()
                 var elapsedMs = sessionStorage.savedAccumulatedMs + (now - sessionStorage.savedLastResumeTimestamp)
@@ -168,6 +192,69 @@ MainView {
                 }
             }
         }
+    }
+
+    function saveCurrentSessionAndReset(callback) {
+        if (activeSessionId !== -1) {
+            var timeTaken = activeSessionSeconds
+            var weight = 70
+            var s = DB.getSettings()
+            if (s && s.weight) {
+                weight = parseFloat(s.weight)
+            }
+            var wName = (activeSessionWorkout && activeSessionWorkout !== "") ? activeSessionWorkout : "General Workout"
+            var mult = (activeSessionIntensityMultiplier > 0) ? activeSessionIntensityMultiplier : 1.0
+            var cal = DB.calculateMetCalories(wName, weight, timeTaken, mult)
+            DB.updateSessionTime(activeSessionId, timeTaken)
+            DB.updateSessionCalories(activeSessionId, cal)
+            root.sessionDataChanged()
+            activeSessionId = -1
+            activeSessionWorkout = ""
+            activeSessionSeconds = 0
+            activeSessionRunning = false
+            activeSessionTargetSeconds = -1
+            sessionAccumulatedMs = 0
+            lastResumeTimestamp = 0
+            syncSessionStorage()
+        }
+        if (typeof callback === "function") {
+            callback()
+        }
+    }
+
+    function discardCurrentSessionAndReset(callback) {
+        if (activeSessionId !== -1) {
+            DB.deleteSession(activeSessionId)
+            root.sessionDataChanged()
+            activeSessionId = -1
+            activeSessionWorkout = ""
+            activeSessionSeconds = 0
+            activeSessionRunning = false
+            activeSessionTargetSeconds = -1
+            sessionAccumulatedMs = 0
+            lastResumeTimestamp = 0
+            syncSessionStorage()
+        }
+        if (typeof callback === "function") {
+            callback()
+        }
+    }
+
+    Component {
+        id: workoutConflictDialogComponent
+        ActiveWorkoutConflictDialog {}
+    }
+
+    function promptWorkoutConflict(onProceed) {
+        if (activeSessionId === -1) {
+            if (typeof onProceed === "function") {
+                onProceed()
+            }
+            return
+        }
+        PopupUtils.open(workoutConflictDialogComponent, root, {
+            onProceedCallback: onProceed
+        })
     }
 
     // GLOBAL TIMELY REMINDER & NOTIFICATION SYSTEM

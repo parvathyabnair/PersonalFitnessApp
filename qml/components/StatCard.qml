@@ -46,7 +46,6 @@ Rectangle {
 
         Row {
             spacing: units.gu(0.4)
-            anchors.bottom: parent.bottom
 
             Label {
                 text: card.value

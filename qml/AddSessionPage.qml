@@ -49,11 +49,18 @@ Page {
                 iconName: "add"
                 text: i18n.tr("New Workout")
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(
-                        addSessionPage,
-                        Qt.resolvedUrl("SessionCreatePage.qml"),
-                        { pageLayout: pageLayout }
-                    )
+                    var openCreate = function() {
+                        pageLayout.addPageToNextColumn(
+                            addSessionPage,
+                            Qt.resolvedUrl("SessionCreatePage.qml"),
+                            { pageLayout: pageLayout }
+                        )
+                    }
+                    if (typeof root !== "undefined" && typeof root.promptWorkoutConflict === "function") {
+                        root.promptWorkoutConflict(openCreate)
+                    } else {
+                        openCreate()
+                    }
                 }
             }
         ]

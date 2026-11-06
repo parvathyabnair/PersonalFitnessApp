@@ -41,6 +41,9 @@ def save_token(token):
         log(f"save_token exception: {e}")
         return False
 
+def ensure_daemon():
+    return True
+
 def schedule_notification(seconds, title, message):
     try:
         os.makedirs(CONFIG_DIR, exist_ok=True)

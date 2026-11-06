@@ -29,6 +29,10 @@ function getSessions(searchQuery) {
     return WorkoutModel.getSessions(searchQuery);
 }
 
+function getSessionById(id) {
+    return WorkoutModel.getSessionById(id);
+}
+
 function deleteSession(id) {
     return WorkoutModel.deleteSession(id);
 }

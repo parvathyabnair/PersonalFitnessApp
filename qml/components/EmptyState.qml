@@ -5,14 +5,24 @@ Column {
     id: root
     property string title: ""
     property string message: i18n.tr("You haven't logged a workout today. Let's get moving!")
+    property bool useAnimation: true
     property string imageSource: (typeof theme !== "undefined" && theme.name === "Ubuntu.Components.Themes.SuruDark") ? 
                                  Qt.resolvedUrl("../../assets/person_darkmode.png") : 
                                  Qt.resolvedUrl("../../assets/person_whitemode.png")
     
     width: Math.min(parent ? parent.width * 0.85 : units.gu(35), units.gu(36))
     spacing: units.gu(1.5)
+
+    // Animated Walking Person
+    WalkingPersonAnimation {
+        visible: root.useAnimation
+        anchors.horizontalCenter: parent.horizontalCenter
+        running: root.useAnimation && root.visible
+    }
     
+    // Fallback Static Image
     Image {
+        visible: !root.useAnimation
         source: root.imageSource
         width: Math.min(units.gu(16), root.width * 0.6)
         height: width

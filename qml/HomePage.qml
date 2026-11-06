@@ -104,7 +104,15 @@ Page {
                 text: i18n.tr("Active Session")
 
                 onTriggered: {
-                    pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("ActiveSessionPage.qml"), {pageLayout: pageLayout})
+                    pageLayout.addPageToNextColumn(
+                        homePage,
+                        Qt.resolvedUrl("ActiveSessionPage.qml"),
+                        {
+                            pageLayout: pageLayout,
+                            sessionId: root.activeSessionId,
+                            workout: root.activeSessionWorkout
+                        }
+                    )
                 }
             },
 
@@ -267,7 +275,15 @@ Page {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            pageLayout.addPageToNextColumn(pageLayout.primaryPage, Qt.resolvedUrl("ActiveSessionPage.qml"), {pageLayout: pageLayout})
+                            pageLayout.addPageToNextColumn(
+                                pageLayout.primaryPage,
+                                Qt.resolvedUrl("ActiveSessionPage.qml"),
+                                {
+                                    pageLayout: pageLayout,
+                                    sessionId: root.activeSessionId,
+                                    workout: root.activeSessionWorkout
+                                }
+                            )
                         }
                     }
                 }
@@ -1209,7 +1225,7 @@ Page {
                             width: (parent.width - units.gu(1.5)) / 2
                             height: units.gu(4.5)
                             onClicked: {
-                                pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+                                handleNewWorkoutRequest()
                             }
                         }
 
@@ -1237,6 +1253,17 @@ Page {
         }
     }
 
+    function handleNewWorkoutRequest() {
+        var openCreate = function() {
+            pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+        }
+        if (typeof root !== "undefined" && typeof root.promptWorkoutConflict === "function") {
+            root.promptWorkoutConflict(openCreate)
+        } else {
+            openCreate()
+        }
+    }
+
     // FLOATING ACTION BUTTON
     Button {
         id: fab
@@ -1249,7 +1276,7 @@ Page {
         height: units.gu(5.5)
 
         onTriggered: {
-            pageLayout.addPageToNextColumn(homePage, Qt.resolvedUrl("SessionCreatePage.qml"), {pageLayout: pageLayout})
+            handleNewWorkoutRequest()
         }
     }
 

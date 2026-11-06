@@ -468,8 +468,8 @@ Page {
 
                         TextField {
                             id: customTitleField
-                            text: (typeof root !== "undefined" && root.reminderTitle) ? root.reminderTitle : i18n.tr("💧 Time to Hydrate!")
-                            placeholderText: i18n.tr("e.g. 💧 Time to Hydrate!")
+                            text: (typeof root !== "undefined" && root.reminderTitle) ? root.reminderTitle : i18n.tr(" Time to Hydrate!")
+                            placeholderText: i18n.tr("e.g.Time to Hydrate!")
                             width: parent.width
                             onActiveFocusChanged: {
                                 if (activeFocus) ensureVisibleTimer.restart()

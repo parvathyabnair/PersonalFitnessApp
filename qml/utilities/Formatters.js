@@ -1,7 +1,7 @@
 .pragma library
 
 function formatDuration(totalSeconds) {
-    var secs = parseInt(totalSeconds) || 0;
+    var secs = Math.max(0, parseInt(totalSeconds) || 0);
     var hours = Math.floor(secs / 3600);
     var mins = Math.floor((secs % 3600) / 60);
     var remainingSecs = secs % 60;
