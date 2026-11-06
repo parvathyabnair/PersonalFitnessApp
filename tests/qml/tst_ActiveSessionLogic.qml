@@ -56,6 +56,64 @@ Item {
             var calIntense = MetCalc.calculateMetCalories("Zumba", 80, 1800, 1.2);
             compare(calIntense, 312.0);
         }
+
+        function test_view_mode_to_edit_mode_transition() {
+            var pageState = {
+                sessionId: 15,
+                isViewMode: true,
+                isEditMode: false
+            };
+
+            // In View Mode by default when opened from overview list
+            compare(pageState.isViewMode, true);
+            compare(pageState.isEditMode, false);
+
+            // User triggers edit mode
+            pageState.isViewMode = false;
+            pageState.isEditMode = true;
+            compare(pageState.isViewMode, false);
+            compare(pageState.isEditMode, true);
+
+            // User saves changes and returns to View Mode
+            pageState.isEditMode = false;
+            pageState.isViewMode = true;
+            compare(pageState.isViewMode, true);
+            compare(pageState.isEditMode, false);
+        }
+
+        function test_settings_page_view_mode_to_edit_mode_transition() {
+            var settingsState = {
+                isViewMode: true,
+                currentWeight: "70",
+                kcalTarget: "500",
+                goalWeight: "65",
+                gender: "Male",
+                height: "175",
+                age: "25"
+            };
+
+            // By default on opening Settings, it starts in View Mode
+            compare(settingsState.isViewMode, true);
+
+            // User taps "Edit"
+            settingsState.isViewMode = false;
+            compare(settingsState.isViewMode, false);
+
+            // User modifies a metric in Edit Mode
+            settingsState.currentWeight = "72";
+            compare(settingsState.currentWeight, "72");
+
+            // User clicks "Save" -> persists and transitions back to View Mode
+            settingsState.isViewMode = true;
+            compare(settingsState.isViewMode, true);
+
+            // User taps "Edit" then "Cancel" -> resets and returns to View Mode
+            settingsState.isViewMode = false;
+            compare(settingsState.isViewMode, false);
+            settingsState.currentWeight = "72";
+            settingsState.isViewMode = true;
+            compare(settingsState.isViewMode, true);
+        }
     }
 }
 

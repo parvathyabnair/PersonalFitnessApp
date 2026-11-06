@@ -345,7 +345,7 @@ Page {
                                     }
                                 )
                             } else {
-                                openEditPage(model)
+                                openViewPage(model)
                             }
                         }
 
@@ -493,12 +493,32 @@ Page {
         }
     }
 
+    function openViewPage(m) {
+        pageLayout.addPageToNextColumn(
+            addSessionPage,
+            Qt.resolvedUrl("SessionCreatePage.qml"),
+            {
+                pageLayout: pageLayout,
+                isViewMode: true,
+                isEditMode: false,
+                sessionId: m.id,
+                workout: m.workout,
+                sets: m.sets,
+                reps: m.reps,
+                weight: m.weight,
+                date: m.date,
+                duration: (m.duration !== undefined && m.duration !== null && !isNaN(parseInt(m.duration))) ? parseInt(m.duration) : 0
+            }
+        )
+    }
+
     function openEditPage(m) {
         pageLayout.addPageToNextColumn(
             addSessionPage,
             Qt.resolvedUrl("SessionCreatePage.qml"),
             {
-                pageLayout: pageLayout,   
+                pageLayout: pageLayout,
+                isViewMode: false,
                 isEditMode: true,
                 sessionId: m.id,
                 workout: m.workout,

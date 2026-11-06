@@ -11,8 +11,14 @@ Page {
     anchors.fill: parent
 
     property var pageLayout
+    property bool isViewMode: true
     property string selectedDate: ""
     property string currentWeightVal: "70"
+    property string kcalTargetVal: "500"
+    property string goalWeightVal: ""
+    property string genderVal: "Male"
+    property string heightVal: "175"
+    property string ageVal: "25"
 
     PropertyAnimation {
         id: scrollAnim
@@ -85,48 +91,64 @@ Page {
         if (settings) {
             var w = settings.weight ? String(settings.weight).trim() : "70"
             currentWeightVal = w
-            weightInputField.text = w
+            if (weightInputField) weightInputField.text = w
 
-            kcalInputField.text = settings.kcal_target ? String(settings.kcal_target) : "500"
+            var kc = settings.kcal_target ? String(settings.kcal_target) : "500"
+            kcalTargetVal = kc
+            if (kcalInputField) kcalInputField.text = kc
 
             selectedDate = settings.date || ""
-            goalWeightField.text = settings.goal_weight || ""
+
+            var gw = settings.goal_weight || ""
+            goalWeightVal = gw
+            if (goalWeightField) goalWeightField.text = gw
             
-            if (settings.gender === "Female") {
-                femalePill.selected = true
-                malePill.selected = false
-            } else {
-                malePill.selected = true
-                femalePill.selected = false
+            genderVal = settings.gender === "Female" ? "Female" : "Male"
+            if (femalePill && malePill) {
+                if (settings.gender === "Female") {
+                    femalePill.selected = true
+                    malePill.selected = false
+                } else {
+                    malePill.selected = true
+                    femalePill.selected = false
+                }
             }
 
-            if (settings.height) {
-                heightField.text = String(settings.height)
-            }
-            if (settings.age) {
-                ageField.text = String(settings.age)
-            }
+            var h = settings.height ? String(settings.height) : "175"
+            heightVal = h
+            if (heightField) heightField.text = h
+
+            var a = settings.age ? String(settings.age) : "25"
+            ageVal = a
+            if (ageField) ageField.text = a
         }
     }
 
     function saveSettings() {
-        var weight = weightInputField.text.trim() !== "" ? weightInputField.text.trim() : (currentWeightVal || "70")
+        var weight = (weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : (currentWeightVal || "70")
         currentWeightVal = weight
-        var kcal = kcalInputField.text.trim() !== "" ? kcalInputField.text.trim() : "500"
+        var kcal = (kcalInputField && kcalInputField.text.trim() !== "") ? kcalInputField.text.trim() : (kcalTargetVal || "500")
+        kcalTargetVal = kcal
         var currentSettings = DB.getSettings()
         var workouts = (currentSettings && currentSettings.num_workouts) ? currentSettings.num_workouts : "3"
-        var goalWeight = goalWeightField.text.trim()
-        var gender = femalePill.selected ? "Female" : "Male"
+        var goalWeight = (goalWeightField) ? goalWeightField.text.trim() : goalWeightVal
+        goalWeightVal = goalWeight
+        var gender = (femalePill && femalePill.selected) ? "Female" : genderVal
+        genderVal = gender
         var dateVal = selectedDate !== "" ? selectedDate : Qt.formatDate(new Date(), "MM/dd/yyyy")
-        var height = heightField.text.trim() !== "" ? heightField.text.trim() : "175"
-        var age = ageField.text.trim() !== "" ? ageField.text.trim() : "25"
+        selectedDate = dateVal
+        var height = (heightField && heightField.text.trim() !== "") ? heightField.text.trim() : (heightVal || "175")
+        heightVal = height
+        var age = (ageField && ageField.text.trim() !== "") ? ageField.text.trim() : (ageVal || "25")
+        ageVal = age
         
         DB.upsertSettings(weight, kcal, workouts, dateVal, goalWeight, gender, height, age)
+        isViewMode = true
         PopupUtils.open(successDialog)
     }
 
     header: PageHeader {
-        title: i18n.tr("Settings")
+        title: isViewMode ? i18n.tr("Settings Profile") : i18n.tr("Edit Settings")
 
         StyleHints {
             foregroundColor: "white"
@@ -146,14 +168,37 @@ Page {
             }
         ]
 
-        trailingActionBar.numberOfSlots: 1
-        trailingActionBar.actions: [
-            Action {
-                iconName: "save"
-                text: i18n.tr("Save")
-                onTriggered: saveSettings()
+        trailingActionBar.numberOfSlots: isViewMode ? 1 : 2
+        trailingActionBar.actions: isViewMode ? [editHeaderAction] : [saveHeaderAction, cancelHeaderAction]
+
+        Action {
+            id: editHeaderAction
+            iconName: "edit"
+            text: i18n.tr("Edit")
+            visible: isViewMode
+            onTriggered: {
+                isViewMode = false
             }
-        ]
+        }
+
+        Action {
+            id: saveHeaderAction
+            iconName: "save"
+            text: i18n.tr("Save")
+            visible: !isViewMode
+            onTriggered: saveSettings()
+        }
+
+        Action {
+            id: cancelHeaderAction
+            iconName: "close"
+            text: i18n.tr("Cancel")
+            visible: !isViewMode
+            onTriggered: {
+                loadSettings()
+                isViewMode = true
+            }
+        }
     }
 
     Flickable {
@@ -189,14 +234,183 @@ Page {
             // PROFILE SECTION CARD
             Rectangle {
                 width: parent.width
-                height: profileColumn.height + units.gu(3)
+                height: (isViewMode ? viewProfileCol.height : profileColumn.height) + units.gu(3)
                 radius: units.dp(12)
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
 
                 Column {
+                    id: viewProfileCol
+                    visible: isViewMode
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.5)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Label {
+                            text: i18n.tr("Personal Profile")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.8)
+                            color: root.textPrimaryColor
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            height: units.gu(3)
+                            width: genderBadgeRow.width + units.gu(2)
+                            radius: height / 2
+                            color: root.primaryColor
+
+                            Row {
+                                id: genderBadgeRow
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.5)
+
+                                Label {
+                                    text: settingsPage.genderVal === "Female" ? "♀" : "♂"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.3)
+                                    color: "white"
+                                }
+
+                                Label {
+                                    text: settingsPage.genderVal === "Female" ? i18n.tr("Female") : i18n.tr("Male")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.2)
+                                    color: "white"
+                                }
+                            }
+                        }
+                    }
+
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1.5)
+
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(8)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Label {
+                                    text: i18n.tr("Current Weight")
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: (settingsPage.currentWeightVal !== "" ? settingsPage.currentWeightVal : "70") + " kg"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
+                                    color: root.primaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(8)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Label {
+                                    text: i18n.tr("Goal Weight")
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: settingsPage.goalWeightVal !== "" ? (settingsPage.goalWeightVal + " kg") : i18n.tr("Not set")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
+                                    color: settingsPage.goalWeightVal !== "" ? root.secondaryColor : root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+                    }
+
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1.5)
+
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(8)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Label {
+                                    text: i18n.tr("Height")
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: (settingsPage.heightVal !== "" ? settingsPage.heightVal : "175") + " cm"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
+                                    color: root.textPrimaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(8)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Label {
+                                    text: i18n.tr("Age")
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: (settingsPage.ageVal !== "" ? settingsPage.ageVal : "25") + " " + i18n.tr("years")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
+                                    color: root.textPrimaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Column {
                     id: profileColumn
+                    visible: !isViewMode
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -479,15 +693,15 @@ Page {
                 border.width: units.dp(1)
 
                 readonly property var currentBmi: {
-                    var w = (weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : settingsPage.currentWeightVal;
-                    var h = (heightField && heightField.text) ? heightField.text : "175";
+                    var w = (!isViewMode && weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : (settingsPage.currentWeightVal || "70");
+                    var h = (!isViewMode && heightField && heightField.text) ? heightField.text : (settingsPage.heightVal || "175");
                     return DB.calculateBMI(w, h);
                 }
                 readonly property int currentBmr: {
-                    var w = (weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : settingsPage.currentWeightVal;
-                    var h = (heightField && heightField.text) ? heightField.text : "175";
-                    var a = (ageField && ageField.text) ? ageField.text : "25";
-                    var g = (femalePill && femalePill.selected) ? "Female" : "Male";
+                    var w = (!isViewMode && weightInputField && weightInputField.text.trim() !== "") ? weightInputField.text.trim() : (settingsPage.currentWeightVal || "70");
+                    var h = (!isViewMode && heightField && heightField.text) ? heightField.text : (settingsPage.heightVal || "175");
+                    var a = (!isViewMode && ageField && ageField.text) ? ageField.text : (settingsPage.ageVal || "25");
+                    var g = (!isViewMode && femalePill && femalePill.selected) ? "Female" : (settingsPage.genderVal || "Male");
                     return DB.calculateBMR(w, h, a, g);
                 }
 
@@ -518,11 +732,6 @@ Page {
 
                         Item { Layout.fillWidth: true }
 
-                        Label {
-                            text: i18n.tr("Mifflin-St Jeor")
-                            font.pixelSize: units.gu(1.1)
-                            color: root.textSecondaryColor
-                        }
                     }
 
                     // BMI and BMR side-by-side
@@ -635,14 +844,91 @@ Page {
             // FITNESS TARGETS SECTION CARD
             Rectangle {
                 width: parent.width
-                height: targetsColumn.height + units.gu(3)
+                height: (isViewMode ? viewTargetsCol.height : targetsColumn.height) + units.gu(3)
                 radius: units.dp(12)
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
 
                 Column {
+                    id: viewTargetsCol
+                    visible: isViewMode
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.5)
+
+                    Label {
+                        text: i18n.tr("Daily & Weekly Targets")
+                        font.bold: true
+                        font.pixelSize: units.gu(1.8)
+                        color: root.textPrimaryColor
+                    }
+
+                    Row {
+                        width: parent.width
+                        spacing: units.gu(1.5)
+
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(8)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Label {
+                                    text: i18n.tr("Daily Burn Target")
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: (settingsPage.kcalTargetVal !== "" ? settingsPage.kcalTargetVal : "500") + " kcal"
+                                    font.bold: true
+                                    font.pixelSize: units.gu(2.0)
+                                    color: root.secondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: (parent.width - units.gu(1.5)) / 2
+                            height: units.gu(8)
+                            radius: units.dp(10)
+                            color: root.isDarkMode ? "#25262B" : "#F8F9FA"
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: units.gu(0.4)
+
+                                Label {
+                                    text: i18n.tr("Goal Date")
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+
+                                Label {
+                                    text: settingsPage.selectedDate !== "" ? settingsPage.selectedDate : i18n.tr("Not set")
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.6)
+                                    color: settingsPage.selectedDate !== "" ? root.primaryColor : root.textSecondaryColor
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Column {
                     id: targetsColumn
+                    visible: !isViewMode
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -711,15 +997,46 @@ Page {
                 }
             }
 
-           
-            // SAVE SETTINGS BUTTON
+            // ACTION BUTTONS (VIEW MODE vs EDIT MODE)
             Button {
-                text: i18n.tr("Save Settings")
+                id: editModeButton
+                visible: isViewMode
+                text: i18n.tr("Edit Profile & Targets")
                 color: root.primaryColor
                 width: parent.width
                 height: units.gu(5)
 
-                onClicked: saveSettings()
+                onClicked: {
+                    isViewMode = false
+                }
+            }
+
+            Row {
+                id: editActionsRow
+                visible: !isViewMode
+                width: parent.width
+                spacing: units.gu(1.5)
+
+                Button {
+                    text: i18n.tr("Cancel")
+                    color: root.cardBorderColor
+                    width: (parent.width - units.gu(1.5)) / 2
+                    height: units.gu(5)
+
+                    onClicked: {
+                        loadSettings()
+                        isViewMode = true
+                    }
+                }
+
+                Button {
+                    text: i18n.tr("Save Settings")
+                    color: root.primaryColor
+                    width: (parent.width - units.gu(1.5)) / 2
+                    height: units.gu(5)
+
+                    onClicked: saveSettings()
+                }
             }
         }
     }
@@ -765,7 +1082,7 @@ Page {
             Column {
                 spacing: units.gu(2)
                 Label {
-                    text: i18n.tr("Your fitness profile and targets have been saved successfully.")
+                    text: i18n.tr("Your fitness profile have been saved successfully.")
                     width: parent.width
                     wrapMode: Text.WordWrap
                     color: root.textPrimaryColor

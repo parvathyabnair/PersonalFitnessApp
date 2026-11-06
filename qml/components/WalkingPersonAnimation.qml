@@ -74,10 +74,8 @@ Item {
             isJogging = !isJogging
         }
     }
-
-    // ==========================================
     // LAYER 1: AMBIENT GLOW AURA (PULSING)
-    // ==========================================
+   
     Rectangle {
         id: auraGlow
         anchors.centerIn: parent
@@ -102,10 +100,8 @@ Item {
         opacity: isDarkMode ? (0.15 - Math.sin(omega) * 0.05) : (0.10 - Math.sin(omega) * 0.04)
         scale: 0.95 + Math.sin(omega) * 0.08
     }
-
-    // ==========================================
     // LAYER 2: SPEED PARTICLES / AMBIENT BREEZE
-    // ==========================================
+   
     Repeater {
         model: 3
         Item {
@@ -124,10 +120,8 @@ Item {
             }
         }
     }
-
-    // ==========================================
-    // LAYER 3: DYNAMIC MOVING GROUND TRACK (TREADMILL)
-    // ==========================================
+  // LAYER 3: DYNAMIC MOVING GROUND TRACK (TREADMILL)
+  
     Item {
         id: trackContainer
         anchors.left: parent.left
@@ -163,10 +157,7 @@ Item {
             }
         }
     }
-
-    // ==========================================
     // LAYER 4: KINEMATIC CHARACTER
-    // ==========================================
     Item {
         id: characterContainer
         x: (parent.width / 2) - units.dp(6)
@@ -234,9 +225,8 @@ Item {
             }
         }
 
-        // ------------------------------------------
         // 4B: BACK LEG (Far leg, shaded)
-        // ------------------------------------------
+
         Item {
             id: backLeg
             x: units.dp(18)
@@ -329,9 +319,8 @@ Item {
             }
         }
 
-        // ------------------------------------------
-        // 4C: TORSO & GYM WEAR
-        // ------------------------------------------
+      // 4C: TORSO & GYM WEAR
+       
         Item {
             id: torso
             x: units.dp(12)
@@ -388,9 +377,8 @@ Item {
             }
         }
 
-        // ------------------------------------------
         // 4D: HEAD, CAP & WIRELESS EARBUD
-        // ------------------------------------------
+       
         Item {
             id: headContainer
             x: units.dp(16)
@@ -457,9 +445,8 @@ Item {
             }
         }
 
-        // ------------------------------------------
-        // 4E: FRONT LEG (Near camera, fully detailed)
-        // ------------------------------------------
+// 4E: FRONT LEG (Near camera, fully detailed)
+    
         Item {
             id: frontLeg
             x: units.dp(20)
@@ -561,9 +548,8 @@ Item {
             }
         }
 
-        // ------------------------------------------
         // 4F: FRONT ARM (Nearest layer, with Smart Fitness Watch)
-        // ------------------------------------------
+      
         Item {
             id: frontArm
             x: units.dp(24)

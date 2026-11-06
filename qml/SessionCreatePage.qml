@@ -12,6 +12,7 @@ Page {
     property var pageLayout
  
     property bool isEditMode: false
+    property bool isViewMode: false
     property int sessionId: -1
     property bool isSaved: false
     property bool formReady: false
@@ -34,7 +35,8 @@ Page {
     property real userWeight: 70.0
 
     readonly property string chosenWorkoutName: {
-        if (!categorySelector) return "Workout"
+        if (workout && workout !== "" && (!categorySelector || !formReady || isViewMode)) return workout
+        if (!categorySelector) return (workout && workout !== "") ? workout : "Workout"
         var cat = categorySelector.selectedIndex
         if (cat === 0 && strengthSelector) return strengthSelector.model[strengthSelector.selectedIndex]
         if (cat === 1 && cardioSelector) return cardioSelector.model[cardioSelector.selectedIndex]
@@ -42,11 +44,11 @@ Page {
         if (cat === 3) return "Zumba"
         if (cat === 4 && customSelector) {
             if (customSelector.selectedIndex === 3 && customTextField) {
-                return customTextField.text.trim() !== "" ? customTextField.text.trim() : "Custom Workout"
+                return customTextField.text.trim() !== "" ? customTextField.text.trim() : (workout && workout !== "" ? workout : "Custom Workout")
             }
             return customSelector.model[customSelector.selectedIndex]
         }
-        return "Workout"
+        return (workout && workout !== "") ? workout : "Workout"
     }
 
     readonly property real exerciseMet: DB.getMetValue(chosenWorkoutName)
@@ -131,12 +133,14 @@ Page {
                     wArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
                 }
                 var weightVal = JSON.stringify(wArray)
+                weightsArray = wArray
 
                 var rArray = []
                 for (var i = 0; i < numSets; i++) {
                     rArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
                 }
                 var repsVal = JSON.stringify(rArray)
+                repsArray = rArray
 
                 DB.updateSession(targetId, workoutVal, setsVal, repsVal, weightVal, dateVal)
                 if (totalSecs > 0) {
@@ -145,8 +149,9 @@ Page {
             }
             currentSessionId = targetId
             sessionId = targetId
-            isEditMode = true
             currentWorkout = workoutVal
+            workout = workoutVal
+            duration = totalSecs
         } else {
             // BRAND NEW SESSION - INSERT FOR THE FIRST TIME
             if (isTimeBased) {
@@ -161,12 +166,14 @@ Page {
                     wArray.push((weightFields[i] && weightFields[i].text !== undefined) ? weightFields[i].text : "")
                 }
                 var weightVal = JSON.stringify(wArray)
+                weightsArray = wArray
 
                 var rArray = []
                 for (var i = 0; i < numSets; i++) {
                     rArray.push((repsFields[i] && repsFields[i].text !== undefined) ? repsFields[i].text : "")
                 }
                 var repsVal = JSON.stringify(rArray)
+                repsArray = rArray
 
                 currentSessionId = DB.insertSession(workoutVal, setsVal, repsVal, weightVal, dateVal)
                 if (totalSecs > 0) {
@@ -174,8 +181,9 @@ Page {
                 }
             }
             sessionId = currentSessionId
-            isEditMode = true
             currentWorkout = workoutVal   
+            workout = workoutVal
+            duration = totalSecs
         }
 
         // Recalculate and update calories for the updated duration
@@ -249,7 +257,7 @@ Page {
     }
 
     header: PageHeader {
-        title: isEditMode ? i18n.tr("Edit Session") : i18n.tr("Create Session")
+        title: isViewMode ? i18n.tr("Workout Details") : (isEditMode ? i18n.tr("Edit Session") : i18n.tr("Create Session"))
 
         StyleHints {
             foregroundColor: "white"
@@ -269,21 +277,49 @@ Page {
             }
         ]
 
-        trailingActionBar.numberOfSlots: 1
-        trailingActionBar.actions: [
-            Action {
-                iconName: "save"
-                text: i18n.tr("Save")
-                onTriggered: {
-                    saveSessionData()
-                    PopupUtils.open(successDialog)
-                }
+        trailingActionBar.numberOfSlots: (isEditMode && sessionId !== -1) ? 2 : 1
+        trailingActionBar.actions: isViewMode ? [editHeaderAction] : ((isEditMode && sessionId !== -1) ? [saveHeaderAction, cancelHeaderAction] : [saveHeaderAction])
+
+        Action {
+            id: editHeaderAction
+            iconName: "edit"
+            text: i18n.tr("Edit")
+            visible: isViewMode
+            onTriggered: {
+                isViewMode = false
+                isEditMode = true
             }
-        ]
+        }
+
+        Action {
+            id: saveHeaderAction
+            iconName: "save"
+            text: i18n.tr("Save")
+            visible: !isViewMode
+            onTriggered: {
+                saveSessionData()
+                if (isEditMode) {
+                    isEditMode = false
+                    isViewMode = true
+                }
+                PopupUtils.open(successDialog)
+            }
+        }
+
+        Action {
+            id: cancelHeaderAction
+            iconName: "close"
+            text: i18n.tr("Cancel")
+            visible: isEditMode && sessionId !== -1
+            onTriggered: {
+                isEditMode = false
+                isViewMode = true
+            }
+        }
     }
 
     Component.onCompleted: {
-        if (isEditMode) {
+        if (isEditMode || isViewMode || sessionId !== -1) {
             currentSessionId = sessionId
             var strengthIdx = strengthWorkouts.indexOf(workout)
             var cardioIdx = cardioWorkouts.indexOf(workout)
@@ -448,7 +484,69 @@ Page {
             topPadding: units.gu(2)
             bottomPadding: units.gu(3)
 
-            // SECTION 1: WORKOUT CATEGORY & EXERCISE
+            // VIEW MODE: WORKOUT HEADER CARD
+            Rectangle {
+                width: parent.width
+                height: viewCatCol.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+                visible: isViewMode
+
+                Column {
+                    id: viewCatCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(0.8)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Rectangle {
+                            height: units.gu(2.6)
+                            width: catBadgeLabel.width + units.gu(1.6)
+                            radius: height / 2
+                            color: root.isDarkMode ? Qt.rgba(root.primaryColor.r, root.primaryColor.g, root.primaryColor.b, 0.2) : Qt.rgba(root.primaryColor.r, root.primaryColor.g, root.primaryColor.b, 0.12)
+                            border.color: root.primaryColor
+                            border.width: units.dp(1)
+
+                            Label {
+                                id: catBadgeLabel
+                                anchors.centerIn: parent
+                                text: (categorySelector && categorySelector.model && categorySelector.model.length > categorySelector.selectedIndex) ?
+                                      categorySelector.model[categorySelector.selectedIndex] : i18n.tr("Workout")
+                                font.bold: true
+                                font.pixelSize: units.gu(1.05)
+                                color: root.primaryColor
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: selectedDate === "" ? 
+                                  Qt.formatDate(new Date(), "MMM d, yyyy") : 
+                                  Qt.formatDate(new Date(selectedDate), "MMM d, yyyy")
+                            font.pixelSize: units.gu(1.1)
+                            color: root.textSecondaryColor
+                        }
+                    }
+
+                    Label {
+                        text: chosenWorkoutName
+                        font.bold: true
+                        font.pixelSize: units.gu(2.0)
+                        color: root.textPrimaryColor
+                        elide: Text.ElideRight
+                        width: parent.width
+                    }
+                }
+            }
+
+            // SECTION 1: WORKOUT CATEGORY & EXERCISE (EDIT / CREATE MODE)
             Rectangle {
                 width: parent.width
                 height: catColumn.height + units.gu(3)
@@ -456,6 +554,7 @@ Page {
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
+                visible: !isViewMode
 
                 Column {
                     id: catColumn
@@ -767,7 +866,8 @@ Page {
 
                                 MouseArea {
                                     anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
+                                    cursorShape: isViewMode ? Qt.ArrowCursor : Qt.PointingHandCursor
+                                    enabled: !isViewMode
                                     onClicked: {
                                         intensityMultiplier = 0.85
                                         intensityLevel = "light"
@@ -798,7 +898,8 @@ Page {
 
                                 MouseArea {
                                     anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
+                                    cursorShape: isViewMode ? Qt.ArrowCursor : Qt.PointingHandCursor
+                                    enabled: !isViewMode
                                     onClicked: {
                                         intensityMultiplier = 1.0
                                         intensityLevel = "standard"
@@ -829,7 +930,8 @@ Page {
 
                                 MouseArea {
                                     anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
+                                    cursorShape: isViewMode ? Qt.ArrowCursor : Qt.PointingHandCursor
+                                    enabled: !isViewMode
                                     onClicked: {
                                         intensityMultiplier = 1.2
                                         intensityLevel = "high"
@@ -837,6 +939,114 @@ Page {
                                             root.activeSessionIntensityMultiplier = 1.2
                                             root.activeSessionIntensityLevel = "high"
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // VIEW MODE: SETS & REPETITIONS BREAKDOWN
+            Rectangle {
+                width: parent.width
+                height: viewSetsCol.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+                visible: isViewMode && !isTimeBased
+
+                Column {
+                    id: viewSetsCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(1.2)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Label {
+                            text: i18n.tr("Sets Breakdown")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            color: root.textPrimaryColor
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: (weightsArray.length > 0 ? weightsArray.length : (parseInt(sets) || 1)) + " " + i18n.tr("Sets")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.2)
+                            color: root.primaryColor
+                        }
+                    }
+
+                    Repeater {
+                        model: Math.max(1, Math.max(weightsArray.length, parseInt(sets) || 1))
+
+                        Rectangle {
+                            width: parent.width
+                            height: units.gu(4.8)
+                            radius: units.dp(8)
+                            color: root.isDarkMode ? "#2C2D32" : "#F8F9FA"
+                            border.color: root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: units.gu(1.2)
+                                anchors.rightMargin: units.gu(1.2)
+
+                                Rectangle {
+                                    width: units.gu(2.8)
+                                    height: units.gu(2.8)
+                                    radius: width / 2
+                                    color: Qt.rgba(root.primaryColor.r, root.primaryColor.g, root.primaryColor.b, 0.15)
+
+                                    Label {
+                                        anchors.centerIn: parent
+                                        text: (index + 1).toString()
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.1)
+                                        color: root.primaryColor
+                                    }
+                                }
+
+                                Label {
+                                    text: i18n.tr("Set ") + (index + 1)
+                                    font.bold: true
+                                    font.pixelSize: units.gu(1.2)
+                                    color: root.textPrimaryColor
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Row {
+                                    spacing: units.gu(1.2)
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    Label {
+                                        text: (weightsArray.length > index && weightsArray[index] !== "" ? weightsArray[index] : "--") + " kg"
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.2)
+                                        color: root.textPrimaryColor
+                                    }
+
+                                    Label {
+                                        text: "•"
+                                        font.pixelSize: units.gu(1.2)
+                                        color: root.textSecondaryColor
+                                    }
+
+                                    Label {
+                                        text: (repsArray.length > index && repsArray[index] !== "" ? repsArray[index] : "--") + " reps"
+                                        font.bold: true
+                                        font.pixelSize: units.gu(1.2)
+                                        color: root.textPrimaryColor
                                     }
                                 }
                             }
@@ -853,7 +1063,7 @@ Page {
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
-                visible: !isTimeBased
+                visible: !isViewMode && !isTimeBased
 
                 Column {
                     id: paramColumn
@@ -892,7 +1102,7 @@ Page {
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
-                visible: !isTimeBased
+                visible: !isViewMode && !isTimeBased
 
                 Column {
                     id: setsColumn
@@ -945,7 +1155,7 @@ Page {
                                             width: parent.width - units.gu(3.5)
                                             placeholderText: i18n.tr("Weight")
                                             inputMethodHints: Qt.ImhFormattedNumbersOnly
-                                            text: (isEditMode && weightsArray.length > index) ? weightsArray[index] : ""
+                                            text: (weightsArray.length > index) ? weightsArray[index] : ""
                                             onTextChanged: {
                                                 if (activeFocus) createSessionPage.isSaved = false
                                             }
@@ -974,7 +1184,7 @@ Page {
                                             width: parent.width - units.gu(4.5)
                                             placeholderText: i18n.tr("Reps")
                                             inputMethodHints: Qt.ImhDigitsOnly
-                                            text: (isEditMode && repsArray.length > index) ? repsArray[index] : ""
+                                            text: (repsArray.length > index) ? repsArray[index] : ""
                                             onTextChanged: {
                                                 if (activeFocus) createSessionPage.isSaved = false
                                             }
@@ -1000,7 +1210,65 @@ Page {
                 }
             }
 
-            // SECTION: WORKOUT DURATION & TIME
+            // VIEW MODE: DURATION CARD
+            Rectangle {
+                width: parent.width
+                height: viewDurCol.height + units.gu(3)
+                radius: units.dp(12)
+                color: root.cardBgColor
+                border.color: root.cardBorderColor
+                border.width: units.dp(1)
+                visible: isViewMode
+
+                Column {
+                    id: viewDurCol
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: units.gu(1.5)
+                    spacing: units.gu(0.8)
+
+                    RowLayout {
+                        width: parent.width
+
+                        Label {
+                            text: i18n.tr("Logged Duration")
+                            font.bold: true
+                            font.pixelSize: units.gu(1.6)
+                            color: root.textPrimaryColor
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            height: units.gu(2.8)
+                            width: viewDurTextLabel.width + units.gu(2)
+                            radius: height / 2
+                            color: root.isDarkMode ? "#2C2D32" : "#F1F3F5"
+                            border.color: root.cardBorderColor
+                            border.width: units.dp(1)
+
+                            Label {
+                                id: viewDurTextLabel
+                                anchors.centerIn: parent
+                                text: {
+                                    var sec = getTotalDurationSeconds()
+                                    var hrs = Math.floor(sec / 3600)
+                                    var remM = Math.floor((sec % 3600) / 60)
+                                    var remS = sec % 60
+                                    return ("0" + hrs).slice(-2) + ":" + ("0" + remM).slice(-2) + ":" + ("0" + remS).slice(-2)
+                                }
+                                font.bold: true
+                                font.family: "Monospace"
+                                font.pixelSize: units.gu(1.3)
+                                color: root.primaryColor
+                            }
+                        }
+                    }
+                }
+            }
+
+            // SECTION: WORKOUT DURATION & TIME (EDIT / CREATE MODE)
             Rectangle {
                 width: parent.width
                 height: durationSectionCol.height + units.gu(3)
@@ -1008,7 +1276,7 @@ Page {
                 color: root.cardBgColor
                 border.color: root.cardBorderColor
                 border.width: units.dp(1)
-                visible: isEditMode || isTimeBased
+                visible: !isViewMode && (isEditMode || isTimeBased)
 
                 Column {
                     id: durationSectionCol
@@ -1234,6 +1502,7 @@ Page {
                         text: i18n.tr("Change")
                         color: root.cardBorderColor
                         height: units.gu(4)
+                        visible: !isViewMode
                         onClicked: {
                             PopupUtils.open(datePickerPopover, dateButton)
                         }
@@ -1241,7 +1510,7 @@ Page {
                 }
             }
 
-            // SECTION 5: ACTION BUTTONS (SEAMLESS ONE-TAP START & SAVE)
+            // SECTION 5: ACTION BUTTONS (SEAMLESS ONE-TAP START & SAVE / EDIT)
             Row {
                 width: parent.width
                 spacing: units.gu(1.5)
@@ -1252,12 +1521,14 @@ Page {
                           i18n.tr("Start Workout Now")
                     color: (root.activeSessionRunning && root.activeSessionId === currentSessionId && currentSessionId !== -1) ?
                            root.secondaryColor : root.cardBorderColor
-                    width: (parent.width - units.gu(1.5)) * 0.6
+                    width: isViewMode ? (parent.width - units.gu(1.5)) * 0.55 : (parent.width - units.gu(1.5)) * 0.6
                     height: units.gu(5)
 
                     onClicked: {
                         var startAction = function() {
-                            saveSessionData()
+                            if (!isViewMode) {
+                                saveSessionData()
+                            }
                             navigateToActiveSession()
                         }
                         if (typeof root !== "undefined" && root.activeSessionId !== -1 && root.activeSessionId !== currentSessionId && typeof root.promptWorkoutConflict === "function") {
@@ -1269,14 +1540,23 @@ Page {
                 }
 
                 Button {
-                    text: isEditMode ? i18n.tr("Save Changes") : i18n.tr("Save to Log")
-                    color: root.cardBorderColor
-                    width: (parent.width - units.gu(1.5)) * 0.4
+                    text: isViewMode ? i18n.tr("Edit Workout") : (isEditMode ? i18n.tr("Save Changes") : i18n.tr("Save to Log"))
+                    color: isViewMode ? root.primaryColor : root.cardBorderColor
+                    width: isViewMode ? (parent.width - units.gu(1.5)) * 0.45 : (parent.width - units.gu(1.5)) * 0.4
                     height: units.gu(5)
 
                     onClicked: {
-                        saveSessionData()
-                        PopupUtils.open(successDialog)
+                        if (isViewMode) {
+                            isViewMode = false
+                            isEditMode = true
+                        } else {
+                            saveSessionData()
+                            if (isEditMode) {
+                                isEditMode = false
+                                isViewMode = true
+                            }
+                            PopupUtils.open(successDialog)
+                        }
                     }
                 }
             }
